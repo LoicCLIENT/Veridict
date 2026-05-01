@@ -1,4 +1,4 @@
-# CrashForensics AI
+# Veridict AI
 
 > Reconstrucción forense automatizada de accidentes de tráfico.
 > Hackathon Nexforge 2026 · Track Open · Deadline: 3 mayo 23:00 GMT+2
