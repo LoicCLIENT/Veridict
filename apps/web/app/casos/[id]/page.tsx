@@ -1,5 +1,8 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+export const dynamicParams = true;
+
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -8,12 +11,18 @@ import { useAppStore } from "@/lib/store";
 import { MapaReconstruccion } from "@/components/MapaReconstruccion";
 import { CalculosFisicos } from "@/components/CalculosFisicos";
 import { RazonamientoLegal } from "@/components/RazonamientoLegal";
-import { Timeline, mockTimelineEvents, ConfrontacionTab } from "@/components/caso";
+import { Timeline, ConfrontacionTab } from "@/components/caso";
+import { ContextoPanel } from "@/components/caso/ContextoPanel";
+import { VehiculosPanel } from "@/components/caso/VehiculosPanel";
+import { EscenaPanel } from "@/components/caso/EscenaPanel";
+import { DocumentosPanel } from "@/components/caso/DocumentosPanel";
+import { mapEventosToTimeline } from "@/lib/mapTimeline";
 import { useToast } from "@/components/ui/toast";
 import {
   ProcessingPipeline,
   type AgentState,
 } from "@/components/processing";
+import { mapEstadoToAgents, isTerminal } from "@/lib/mapEstado";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,67 +37,12 @@ import {
   CheckCircle2,
   AlertTriangle,
   Shield,
+  Cloud,
+  Car,
+  Eye,
+  FileText,
 } from "lucide-react";
 import Link from "next/link";
-
-// Estado de simulación del procesamiento
-const simulatedAgentStates: AgentState[][] = [
-  // Paso 1: Extractor trabajando
-  [
-    { agent: "extractor", status: "thinking", progress: 0, message: "Leyendo atestado policial..." },
-    { agent: "reconstructor", status: "idle" },
-    { agent: "legal", status: "idle" },
-    { agent: "adversarial", status: "idle" },
-  ],
-  [
-    { agent: "extractor", status: "thinking", progress: 45, message: "Extrayendo datos de vehículos..." },
-    { agent: "reconstructor", status: "idle" },
-    { agent: "legal", status: "idle" },
-    { agent: "adversarial", status: "idle" },
-  ],
-  [
-    { agent: "extractor", status: "done", completedMessage: "3 documentos procesados" },
-    { agent: "reconstructor", status: "thinking", progress: 0, message: "Iniciando cálculos CRASH3..." },
-    { agent: "legal", status: "idle" },
-    { agent: "adversarial", status: "idle" },
-  ],
-  [
-    { agent: "extractor", status: "done", completedMessage: "3 documentos procesados" },
-    { agent: "reconstructor", status: "thinking", progress: 60, message: "Calculando velocidad pre-impacto..." },
-    { agent: "legal", status: "idle" },
-    { agent: "adversarial", status: "idle" },
-  ],
-  [
-    { agent: "extractor", status: "done", completedMessage: "3 documentos procesados" },
-    { agent: "reconstructor", status: "done", completedMessage: "EBS: 45.2 km/h | V₀: 67.3 km/h" },
-    { agent: "legal", status: "thinking", progress: 0, message: "Analizando normativa aplicable..." },
-    { agent: "adversarial", status: "idle" },
-  ],
-  [
-    { agent: "extractor", status: "done", completedMessage: "3 documentos procesados" },
-    { agent: "reconstructor", status: "done", completedMessage: "EBS: 45.2 km/h | V₀: 67.3 km/h" },
-    { agent: "legal", status: "thinking", progress: 75, message: "Verificando Art. 74.1 y Art. 72.1 RGC..." },
-    { agent: "adversarial", status: "idle" },
-  ],
-  [
-    { agent: "extractor", status: "done", completedMessage: "3 documentos procesados" },
-    { agent: "reconstructor", status: "done", completedMessage: "EBS: 45.2 km/h | V₀: 67.3 km/h" },
-    { agent: "legal", status: "done", completedMessage: "2 infracciones detectadas" },
-    { agent: "adversarial", status: "thinking", progress: 0, message: "Iniciando verificación adversarial..." },
-  ],
-  [
-    { agent: "extractor", status: "done", completedMessage: "3 documentos procesados" },
-    { agent: "reconstructor", status: "done", completedMessage: "EBS: 45.2 km/h | V₀: 67.3 km/h" },
-    { agent: "legal", status: "done", completedMessage: "2 infracciones detectadas" },
-    { agent: "adversarial", status: "thinking", progress: 50, message: "Buscando contradicciones en versiones..." },
-  ],
-  [
-    { agent: "extractor", status: "done", completedMessage: "3 documentos procesados" },
-    { agent: "reconstructor", status: "done", completedMessage: "EBS: 45.2 km/h | V₀: 67.3 km/h" },
-    { agent: "legal", status: "done", completedMessage: "2 infracciones detectadas" },
-    { agent: "adversarial", status: "done", completedMessage: "Sin contradicciones detectadas" },
-  ],
-];
 
 export default function CasoDetailPage() {
   const params = useParams();
@@ -97,7 +51,13 @@ export default function CasoDetailPage() {
   const [caso, setCaso] = useState<Caso | null>(null);
   const [loading, setLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [processingStep, setProcessingStep] = useState(0);
+  const [agentStates, setAgentStates] = useState<AgentState[]>([
+    { agent: "extractor", status: "idle" },
+    { agent: "reconstructor", status: "idle" },
+    { agent: "legal", status: "idle" },
+    { agent: "adversarial", status: "idle" },
+  ]);
+  const [overallProgress, setOverallProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const { panelActivo, setPanelActivo } = useAppStore();
 
@@ -108,99 +68,72 @@ export default function CasoDetailPage() {
         setCaso(data);
       } catch (error) {
         console.error("Error loading caso:", error);
-        // Mock data para desarrollo
-        setCaso({
-          id: casoId,
-          estado: "completado",
-          fecha_accidente: "2026-04-15T14:30:00Z",
-          ubicacion: { lat: 40.4168, lon: -3.7038 },
-          tipo_colision: "lateral",
-          vehiculos: [],
-          documentos: [],
-          fotos: [],
-          resultado: {
-            cronologia: [
-              { timestamp: 0, descripcion: "Vehiculo A circula por carril derecho a 67 km/h" },
-              { timestamp: 2, descripcion: "Vehiculo B inicia cambio de carril sin senalizar" },
-              { timestamp: 3, descripcion: "Vehiculo A detecta peligro e inicia frenada" },
-              { timestamp: 4, descripcion: "Colision lateral en zona delantera derecha" },
-            ],
-            calculos: [
-              {
-                nombre: "Velocidad pre-frenada (Stannard Baker)",
-                formula: "V = sqrt(2 * mu * g * d)",
-                valor: 67.3,
-                unidad: "km/h",
-                justificacion: "Huella de frenada de 12.5m, mu=0.65 (asfalto mojado)",
-              },
-              {
-                nombre: "EBS por deformacion (CRASH3)",
-                formula: "EBS = sqrt((A*C + B*C^2/2) / m)",
-                valor: 45.2,
-                unidad: "km/h",
-                justificacion: "Deformacion media 23cm, coeficientes NHTSA para modelo",
-              },
-            ],
-            infracciones: [
-              {
-                articulo: "Art. 74.1 RGC",
-                descripcion: "Circular a velocidad superior a la permitida",
-                vehiculo: "A",
-                fuente: "BOE-A-2003-23514",
-              },
-              {
-                articulo: "Art. 72.1 RGC",
-                descripcion: "Cambio de carril sin senalizar la maniobra",
-                vehiculo: "B",
-                fuente: "BOE-A-2003-23514",
-              },
-            ],
-            veredicto: { culpa_a: 0.65, culpa_b: 0.35, confidence: 0.89 },
-            compatibilidad_versiones: {
-              a: true,
-              b: false,
-              justificacion: "Version de B incompatible con huellas de frenada observadas",
-            },
-            devils_advocate_passed: true,
-            pdf_url: "/api/casos/1/pdf",
-            sigstore_hash: "sha256:abc123...",
-          },
-        });
+        toast.error(
+          "Error de red",
+          "No se pudo cargar el caso. Verifica que el backend esté disponible."
+        );
+        setCaso(null);
       } finally {
         setLoading(false);
       }
     }
     loadCaso();
-  }, [casoId]);
-
-  // Simulación del procesamiento
-  useEffect(() => {
-    if (isProcessing && processingStep < simulatedAgentStates.length - 1) {
-      const timer = setTimeout(() => {
-        setProcessingStep((prev) => prev + 1);
-      }, 1500);
-      return () => clearTimeout(timer);
-    } else if (processingStep >= simulatedAgentStates.length - 1) {
-      // Procesamiento completado
-      setTimeout(() => {
-        setIsProcessing(false);
-        if (caso) {
-          setCaso({ ...caso, estado: "completado" });
-          toast.success(
-            "Análisis completado",
-            "Los 4 agentes han procesado el caso exitosamente."
-          );
-        }
-      }, 1000);
-    }
-  }, [isProcessing, processingStep, caso]);
+  }, [casoId, toast]);
 
   const handleAnalizar = async () => {
-    setIsProcessing(true);
-    setProcessingStep(0);
-    if (caso) {
-      setCaso({ ...caso, estado: "procesando" });
+    if (!caso) return;
+    try {
+      await api.iniciarAnalisis(caso.id);
+    } catch (error) {
+      console.error("Error iniciando análisis:", error);
+      toast.error("Error", "No se pudo iniciar el análisis.");
+      return;
     }
+    setIsProcessing(true);
+    setOverallProgress(0);
+    setCaso({ ...caso, estado: "procesando" });
+
+    const intervalId = setInterval(async () => {
+      try {
+        const estado = await api.getEstado(caso.id);
+        setAgentStates(mapEstadoToAgents(estado));
+        setOverallProgress(estado.progreso ?? 0);
+
+        const terminal = isTerminal(estado);
+        if (terminal === "completado") {
+          clearInterval(intervalId);
+          try {
+            const resultado = await api.getDictamen(caso.id);
+            setCaso((prev) =>
+              prev ? { ...prev, estado: "completado", resultado } : prev
+            );
+            toast.success(
+              "Análisis completado",
+              "Los 4 agentes han procesado el caso exitosamente."
+            );
+          } catch (e) {
+            console.error("Error fetching dictamen:", e);
+            toast.error("Error", "No se pudo obtener el dictamen final.");
+          }
+          setIsProcessing(false);
+        } else if (terminal === "error") {
+          clearInterval(intervalId);
+          setIsProcessing(false);
+          setCaso((prev) =>
+            prev ? { ...prev, estado: "escalado_humano" } : prev
+          );
+          toast.error(
+            "Análisis fallido",
+            estado.etapa_actual || "El análisis no pudo completarse."
+          );
+        }
+      } catch (e) {
+        console.error("Error polling estado:", e);
+        clearInterval(intervalId);
+        setIsProcessing(false);
+        toast.error("Error de red", "Se perdió la conexión con el backend.");
+      }
+    }, 1500);
   };
 
   const handleDownloadPdf = async () => {
@@ -225,9 +158,6 @@ export default function CasoDetailPage() {
       );
     }
   };
-
-  const overallProgress =
-    (processingStep / (simulatedAgentStates.length - 1)) * 100;
 
   if (loading) {
     return (
@@ -266,6 +196,10 @@ export default function CasoDetailPage() {
     { id: "calculos", label: "Cálculos", icon: Calculator },
     { id: "legal", label: "Legal", icon: Scale },
     { id: "confrontacion", label: "Confrontación", icon: Shield },
+    { id: "contexto", label: "Contexto", icon: Cloud },
+    { id: "vehiculos", label: "Vehículos", icon: Car },
+    { id: "escena", label: "Escena", icon: Eye },
+    { id: "docs", label: "Docs/Fotos", icon: FileText },
     { id: "dictamen", label: "Dictamen", icon: Scale },
   ] as const;
 
@@ -349,7 +283,7 @@ export default function CasoDetailPage() {
             className="max-w-lg mx-auto py-12"
           >
             <ProcessingPipeline
-              agents={simulatedAgentStates[processingStep]}
+              agents={agentStates}
               overallProgress={overallProgress}
               variant="vertical"
             />
@@ -394,7 +328,7 @@ export default function CasoDetailPage() {
                   {panelActivo === "cronologia" && (
                     <div className="p-4 h-full">
                       <Timeline
-                        events={mockTimelineEvents}
+                        events={mapEventosToTimeline(caso.resultado?.cronologia ?? [])}
                         currentTime={currentTime}
                         onTimeChange={setCurrentTime}
                       />
@@ -410,7 +344,26 @@ export default function CasoDetailPage() {
                     />
                   )}
                   {panelActivo === "confrontacion" && (
-                    <ConfrontacionTab />
+                    <ConfrontacionTab
+                      vehiculos={caso.vehiculos ?? []}
+                      contrastes={caso.resultado?.contraste_versiones}
+                      compatibilidad={caso.resultado?.compatibilidad_versiones}
+                      calculos={caso.resultado?.calculos}
+                      adversarial={caso.resultado?.verificacion_adversarial}
+                    />
+                  )}
+                  {panelActivo === "contexto" && (
+                    <ContextoPanel contexto={caso.resultado?.contexto ?? caso.contexto} />
+                  )}
+                  {panelActivo === "vehiculos" && (
+                    <VehiculosPanel vehiculos={caso.vehiculos ?? []} />
+                  )}
+                  {panelActivo === "escena" && <EscenaPanel escena={caso.escena} />}
+                  {panelActivo === "docs" && (
+                    <DocumentosPanel
+                      documentos={caso.documentos ?? []}
+                      fotos={caso.fotos ?? []}
+                    />
                   )}
                   {panelActivo === "dictamen" && (
                     <div className="p-6">
@@ -437,7 +390,7 @@ export default function CasoDetailPage() {
                                   Vehículo A
                                 </div>
                                 <div className="text-5xl font-bold text-blue-400">
-                                  {Math.round(caso.resultado.veredicto.culpa_a * 100)}%
+                                  {Math.round((caso.resultado.veredicto?.culpa_a ?? 0) * 100)}%
                                 </div>
                               </motion.div>
                               <motion.div
@@ -450,7 +403,7 @@ export default function CasoDetailPage() {
                                   Vehículo B
                                 </div>
                                 <div className="text-5xl font-bold text-orange-400">
-                                  {Math.round(caso.resultado.veredicto.culpa_b * 100)}%
+                                  {Math.round((caso.resultado.veredicto?.culpa_b ?? 0) * 100)}%
                                 </div>
                               </motion.div>
                             </div>
@@ -458,7 +411,7 @@ export default function CasoDetailPage() {
                               <span className="text-sm text-veridict-gray">
                                 Confianza del modelo:{" "}
                                 <span className="text-veridict-lime font-mono text-lg">
-                                  {Math.round(caso.resultado.veredicto.confidence * 100)}%
+                                  {Math.round((caso.resultado.veredicto?.confidence ?? 0) * 100)}%
                                 </span>
                               </span>
                             </div>
@@ -473,41 +426,41 @@ export default function CasoDetailPage() {
                               <div className="flex flex-col gap-3 mb-3">
                                 <div
                                   className={`flex items-center gap-2 text-sm ${
-                                    caso.resultado.compatibilidad_versiones.a
+                                    (caso.resultado.compatibilidad_versiones?.a ?? false)
                                       ? "text-veridict-lime"
                                       : "text-veridict-error"
                                   }`}
                                 >
-                                  {caso.resultado.compatibilidad_versiones.a ? (
+                                  {(caso.resultado.compatibilidad_versiones?.a ?? false) ? (
                                     <CheckCircle2 className="w-5 h-5" />
                                   ) : (
                                     <AlertTriangle className="w-5 h-5" />
                                   )}
                                   <span className="font-medium">Versión A:{" "}</span>
-                                  {caso.resultado.compatibilidad_versiones.a
+                                  {(caso.resultado.compatibilidad_versiones?.a ?? false)
                                     ? "Compatible con evidencia física"
                                     : "Incompatible con evidencia física"}
                                 </div>
                                 <div
                                   className={`flex items-center gap-2 text-sm ${
-                                    caso.resultado.compatibilidad_versiones.b
+                                    (caso.resultado.compatibilidad_versiones?.b ?? false)
                                       ? "text-veridict-lime"
                                       : "text-veridict-error"
                                   }`}
                                 >
-                                  {caso.resultado.compatibilidad_versiones.b ? (
+                                  {(caso.resultado.compatibilidad_versiones?.b ?? false) ? (
                                     <CheckCircle2 className="w-5 h-5" />
                                   ) : (
                                     <AlertTriangle className="w-5 h-5" />
                                   )}
                                   <span className="font-medium">Versión B:{" "}</span>
-                                  {caso.resultado.compatibilidad_versiones.b
+                                  {(caso.resultado.compatibilidad_versiones?.b ?? false)
                                     ? "Compatible con evidencia física"
                                     : "Incompatible con evidencia física"}
                                 </div>
                               </div>
                               <p className="text-sm text-veridict-gray mt-4 pt-3 border-t border-veridict-green-600">
-                                {caso.resultado.compatibilidad_versiones.justificacion}
+                                {(caso.resultado.compatibilidad_versiones?.justificacion ?? "")}
                               </p>
                             </div>
                           </div>
@@ -520,36 +473,65 @@ export default function CasoDetailPage() {
                               </h4>
                               <div
                                 className={`p-4 rounded-lg flex items-center gap-3 ${
-                                  caso.resultado.devils_advocate_passed
+                                  (caso.resultado.verificacion_adversarial?.passed ?? false)
                                     ? "bg-veridict-lime/10 border border-veridict-lime/30"
                                     : "bg-veridict-error/10 border border-veridict-error/30"
                                 }`}
                               >
-                                {caso.resultado.devils_advocate_passed ? (
+                                {(caso.resultado.verificacion_adversarial?.passed ?? false) ? (
                                   <CheckCircle2 className="w-6 h-6 text-veridict-lime" />
                                 ) : (
                                   <AlertTriangle className="w-6 h-6 text-veridict-error" />
                                 )}
                                 <span
                                   className={`font-medium ${
-                                    caso.resultado.devils_advocate_passed
+                                    (caso.resultado.verificacion_adversarial?.passed ?? false)
                                       ? "text-veridict-lime"
                                       : "text-veridict-error"
                                   }`}
                                 >
-                                  {caso.resultado.devils_advocate_passed
+                                  {(caso.resultado.verificacion_adversarial?.passed ?? false)
                                     ? "Todas las verificaciones pasadas"
                                     : "Requiere revisión humana"}
                                 </span>
                               </div>
+                              {!(caso.resultado.verificacion_adversarial?.passed ?? true) &&
+                                (caso.resultado.verificacion_adversarial?.failures ?? []).length > 0 && (
+                                  <ul className="mt-2 text-xs text-veridict-error/90 list-disc list-inside space-y-1 pl-2">
+                                    {caso.resultado.verificacion_adversarial!.failures.map((f, i) => (
+                                      <li key={i}>{f}</li>
+                                    ))}
+                                  </ul>
+                                )}
                             </div>
+
+                            {caso.resultado.veredicto?.razonamiento && (
+                              <div>
+                                <h4 className="text-sm font-medium text-veridict-gray mb-2">
+                                  Razonamiento técnico-jurídico
+                                </h4>
+                                <p className="text-sm text-veridict-white whitespace-pre-wrap leading-relaxed bg-veridict-green-800 border border-veridict-green-600 rounded p-3">
+                                  {caso.resultado.veredicto.razonamiento}
+                                </p>
+                              </div>
+                            )}
+
+                            {caso.resultado.veredicto?.advertencia_personal && (
+                              <div className="flex items-start gap-2 p-3 rounded bg-yellow-500/10 border border-yellow-500/30">
+                                <AlertTriangle className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
+                                <div className="text-xs text-yellow-300">
+                                  <strong>Regla 100/100 TS:</strong> daños personales — la culpa
+                                  civil puede no redistribuirse. Revisión humana recomendada.
+                                </div>
+                              </div>
+                            )}
 
                             <div>
                               <h4 className="text-sm font-medium text-veridict-gray mb-2">
                                 Audit trail (Sigstore)
                               </h4>
                               <code className="text-xs text-veridict-gray bg-veridict-green-800 px-3 py-3 rounded block break-all font-mono border border-veridict-green-600">
-                                {caso.resultado.sigstore_hash}
+                                {caso.resultado.sigstore_hash ?? "—"}
                               </code>
                             </div>
                           </div>

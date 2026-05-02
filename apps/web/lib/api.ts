@@ -1,172 +1,125 @@
+import type {
+  Caso,
+  CasoCreate,
+  Resultado,
+  EstadoAnalisis,
+} from "@veridict/types";
+
+export type {
+  Caso,
+  CasoCreate,
+  Resultado,
+  EstadoAnalisis,
+  Vehiculo,
+  Documento,
+  Foto,
+  Evento,
+  CalculoFisico,
+  Infraccion,
+  Veredicto,
+  CompatibilidadVersiones,
+  VerificacionAdversarial,
+  ContrastVersiones,
+  NexoCausal,
+  GravedadInfraccion,
+  TipoNexo,
+  Contexto,
+  MeteoData,
+  ViaData,
+  SolData,
+  EstadoCaso,
+  TipoColision,
+  Ubicacion,
+  HuellaCalzada,
+  DanoSecundario,
+  EscenaAccidente,
+  TipoHuella,
+  CurvaturaHuella,
+  TipoDanoSecundario,
+} from "@veridict/types";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
-export interface Caso {
-  id: string;
-  estado: "creado" | "procesando" | "completado" | "escalado_humano";
-  fecha_accidente: string;
-  ubicacion: { lat: number; lon: number };
-  tipo_colision: "frontal" | "lateral" | "alcance" | "atropello";
-  vehiculos: Vehiculo[];
-  documentos: Documento[];
-  fotos: Foto[];
-  contexto?: Contexto;
-  resultado?: Resultado;
+async function handle<T>(res: Response, msg: string): Promise<T> {
+  if (!res.ok) throw new Error(`${msg} (${res.status})`);
+  return res.json() as Promise<T>;
 }
 
-export interface Vehiculo {
-  id: "A" | "B";
-  matricula: string;
-  modelo: string;
-  masa_kg: number;
-  coef_rigidez_a: number;
-  coef_rigidez_b: number;
-  mediciones_C: [number, number, number, number, number, number];
-  ancho_zona_danada_cm: number;
-  version_conductor: string;
-}
-
-export interface Documento {
-  id: string;
-  tipo: "atestado" | "parte_amistoso";
-  url: string;
-  texto_extraido?: string;
-}
-
-export interface Foto {
-  id: string;
-  url: string;
-  analisis?: string;
-}
-
-export interface Contexto {
-  meteo: Record<string, unknown>;
-  via: Record<string, unknown>;
-  sol: Record<string, unknown>;
-}
-
-export interface Resultado {
-  cronologia: Evento[];
-  calculos: CalculoFisico[];
-  infracciones: Infraccion[];
-  veredicto: {
-    culpa_a: number;
-    culpa_b: number;
-    confidence: number;
-  };
-  compatibilidad_versiones: {
-    a: boolean;
-    b: boolean;
-    justificacion: string;
-  };
-  devils_advocate_passed: boolean;
-  pdf_url: string;
-  sigstore_hash: string;
-}
-
-export interface Evento {
-  timestamp: number;
-  descripcion: string;
-  posicion?: { lat: number; lon: number };
-}
-
-export interface CalculoFisico {
-  nombre: string;
-  formula: string;
-  valor: number;
-  unidad: string;
-  justificacion: string;
-}
-
-export interface Infraccion {
-  articulo: string;
-  descripcion: string;
-  vehiculo: "A" | "B";
-  fuente: string;
-}
-
-// API Client
 export const api = {
   // Casos
-  async getCasos(): Promise<Caso[]> {
-    const res = await fetch(`${API_BASE}/api/casos`);
-    if (!res.ok) throw new Error("Error fetching casos");
-    return res.json();
-  },
+  getCasos: (): Promise<Caso[]> =>
+    fetch(`${API_BASE}/api/casos`).then((r) => handle<Caso[]>(r, "Error fetching casos")),
 
-  async getCaso(id: string): Promise<Caso> {
-    const res = await fetch(`${API_BASE}/api/casos/${id}`);
-    if (!res.ok) throw new Error("Error fetching caso");
-    return res.json();
-  },
+  getCaso: (id: string): Promise<Caso> =>
+    fetch(`${API_BASE}/api/casos/${id}`).then((r) => handle<Caso>(r, "Error fetching caso")),
 
-  async crearCaso(data: Partial<Caso>): Promise<Caso> {
-    const res = await fetch(`${API_BASE}/api/casos`, {
+  crearCaso: (data: CasoCreate): Promise<Caso> =>
+    fetch(`${API_BASE}/api/casos`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
-    });
-    if (!res.ok) throw new Error("Error creating caso");
-    return res.json();
-  },
+    }).then((r) => handle<Caso>(r, "Error creating caso")),
 
   // Upload
-  async uploadAtestado(casoId: string, file: File): Promise<void> {
+  uploadAtestado: async (casoId: string, file: File): Promise<void> => {
     const formData = new FormData();
     formData.append("file", file);
     const res = await fetch(`${API_BASE}/api/casos/${casoId}/upload/atestado`, {
       method: "POST",
       body: formData,
     });
-    if (!res.ok) throw new Error("Error uploading atestado");
+    if (!res.ok) throw new Error(`Error uploading atestado (${res.status})`);
   },
 
-  async uploadFoto(casoId: string, file: File): Promise<void> {
+  uploadFoto: async (casoId: string, file: File): Promise<void> => {
     const formData = new FormData();
     formData.append("file", file);
     const res = await fetch(`${API_BASE}/api/casos/${casoId}/upload/foto`, {
       method: "POST",
       body: formData,
     });
-    if (!res.ok) throw new Error("Error uploading foto");
+    if (!res.ok) throw new Error(`Error uploading foto (${res.status})`);
   },
 
-  // Analisis
-  async analizarCaso(casoId: string): Promise<void> {
-    const res = await fetch(`${API_BASE}/api/casos/${casoId}/analizar`, {
-      method: "POST",
-    });
-    if (!res.ok) throw new Error("Error starting analysis");
+  // Análisis
+  iniciarAnalisis: async (casoId: string): Promise<void> => {
+    const res = await fetch(`${API_BASE}/api/casos/${casoId}/analizar`, { method: "POST" });
+    if (!res.ok) throw new Error(`Error starting analysis (${res.status})`);
   },
 
-  async getEstado(casoId: string): Promise<{ estado: string; progreso: number }> {
-    const res = await fetch(`${API_BASE}/api/casos/${casoId}/estado`);
-    if (!res.ok) throw new Error("Error fetching estado");
-    return res.json();
-  },
+  getEstado: (casoId: string): Promise<EstadoAnalisis> =>
+    fetch(`${API_BASE}/api/casos/${casoId}/estado`).then((r) =>
+      handle<EstadoAnalisis>(r, "Error fetching estado")
+    ),
 
-  async getDictamen(casoId: string): Promise<Resultado> {
-    const res = await fetch(`${API_BASE}/api/casos/${casoId}/dictamen`);
-    if (!res.ok) throw new Error("Error fetching dictamen");
-    return res.json();
-  },
+  getDictamen: (casoId: string): Promise<Resultado> =>
+    fetch(`${API_BASE}/api/casos/${casoId}/dictamen`).then((r) =>
+      handle<Resultado>(r, "Error fetching dictamen")
+    ),
 
-  async downloadPdf(casoId: string): Promise<Blob> {
+  downloadPdf: async (casoId: string): Promise<Blob> => {
     const res = await fetch(`${API_BASE}/api/casos/${casoId}/pdf`);
-    if (!res.ok) throw new Error("Error downloading PDF");
+    if (!res.ok) throw new Error(`Error downloading PDF (${res.status})`);
     return res.blob();
   },
 
   // Demo
-  async getDemoCasos(): Promise<Caso[]> {
-    const res = await fetch(`${API_BASE}/api/demo/casos`);
-    if (!res.ok) throw new Error("Error fetching demo casos");
-    return res.json();
+  getDemoCasos: (): Promise<Caso[]> =>
+    fetch(`${API_BASE}/api/demo/casos`).then((r) =>
+      handle<Caso[]>(r, "Error fetching demo casos")
+    ),
+
+  resetDemoCaso: async (casoId: string): Promise<void> => {
+    const res = await fetch(`${API_BASE}/api/demo/casos/${casoId}/reset`, { method: "POST" });
+    if (!res.ok) throw new Error(`Error resetting demo caso (${res.status})`);
   },
 
-  async resetDemoCaso(casoId: string): Promise<void> {
-    const res = await fetch(`${API_BASE}/api/demo/casos/${casoId}/reset`, {
-      method: "POST",
-    });
-    if (!res.ok) throw new Error("Error resetting demo caso");
+  health: async (): Promise<boolean> => {
+    try {
+      const res = await fetch(`${API_BASE}/health`, { cache: "no-store" });
+      return res.ok;
+    } catch {
+      return false;
+    }
   },
 };

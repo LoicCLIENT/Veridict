@@ -5,57 +5,34 @@ import Link from "next/link";
 import { api, type Caso } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, FileText, Clock, CheckCircle, AlertTriangle } from "lucide-react";
+import { useToast } from "@/components/ui/toast";
+import { Plus, FileText, Clock, CheckCircle, AlertTriangle, RefreshCw } from "lucide-react";
 
 export default function CasosPage() {
   const [casos, setCasos] = useState<Caso[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const toast = useToast();
+
+  const loadCasos = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const data = await api.getDemoCasos();
+      setCasos(data);
+    } catch (e) {
+      console.error("Error loading casos:", e);
+      const msg = "No se pudo conectar con el backend.";
+      setError(msg);
+      toast.error("Error de red", msg);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    async function loadCasos() {
-      try {
-        const data = await api.getDemoCasos();
-        setCasos(data);
-      } catch (error) {
-        console.error("Error loading casos:", error);
-        // Casos mock para desarrollo
-        setCasos([
-          {
-            id: "1",
-            estado: "completado",
-            fecha_accidente: "2026-04-15T14:30:00Z",
-            ubicacion: { lat: 40.4168, lon: -3.7038 },
-            tipo_colision: "lateral",
-            vehiculos: [],
-            documentos: [],
-            fotos: [],
-          },
-          {
-            id: "2",
-            estado: "completado",
-            fecha_accidente: "2026-04-20T09:15:00Z",
-            ubicacion: { lat: 40.4825, lon: -3.3645 },
-            tipo_colision: "atropello",
-            vehiculos: [],
-            documentos: [],
-            fotos: [],
-          },
-          {
-            id: "3",
-            estado: "completado",
-            fecha_accidente: "2026-04-22T18:45:00Z",
-            ubicacion: { lat: 40.4500, lon: -3.7200 },
-            tipo_colision: "alcance",
-            vehiculos: [],
-            documentos: [],
-            fotos: [],
-          },
-        ]);
-      } finally {
-        setLoading(false);
-      }
-    }
     loadCasos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const estadoIcon = (estado: Caso["estado"]) => {
@@ -96,6 +73,15 @@ export default function CasosPage() {
       {loading ? (
         <div className="text-center py-12 text-muted-foreground">
           Cargando casos...
+        </div>
+      ) : error ? (
+        <div className="text-center py-12">
+          <AlertTriangle className="w-10 h-10 text-yellow-500 mx-auto mb-3" />
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <Button onClick={loadCasos} variant="outline">
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Reintentar
+          </Button>
         </div>
       ) : casos.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
