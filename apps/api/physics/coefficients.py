@@ -6,31 +6,33 @@ Coefficients A and B for the CRASH3 model.
 """
 
 # Default coefficients by vehicle category
-# A is in N/cm, B is in N/cm^2
+# A in kPa (kN/m²), B in kPa/m — CRASH3 model with C in meters, L in meters
+# Formula: E [kJ] = (A·C + B·C²/2) · L  →  E [J] = E[kJ] · 1000
+# Source: derived from NHTSA barrier crash test data (SI calibration)
 VEHICLE_COEFFICIENTS = {
-    "subcompact": {"A": 38.5, "B": 0.12, "mass_range": (900, 1100)},
-    "compact": {"A": 42.0, "B": 0.14, "mass_range": (1100, 1300)},
-    "midsize": {"A": 45.0, "B": 0.15, "mass_range": (1300, 1500)},
-    "fullsize": {"A": 48.0, "B": 0.16, "mass_range": (1500, 1800)},
-    "suv_small": {"A": 50.0, "B": 0.17, "mass_range": (1400, 1700)},
-    "suv_large": {"A": 55.0, "B": 0.18, "mass_range": (1800, 2500)},
-    "pickup": {"A": 52.0, "B": 0.17, "mass_range": (1600, 2200)},
-    "van": {"A": 48.0, "B": 0.15, "mass_range": (1700, 2300)},
-    "motorcycle": {"A": 15.0, "B": 0.05, "mass_range": (150, 400)},
+    "subcompact": {"A": 580, "B": 1900, "mass_range": (900, 1100)},
+    "compact":    {"A": 680, "B": 2300, "mass_range": (1100, 1300)},
+    "midsize":    {"A": 760, "B": 2600, "mass_range": (1300, 1500)},
+    "fullsize":   {"A": 850, "B": 2900, "mass_range": (1500, 1800)},
+    "suv_small":  {"A": 900, "B": 3100, "mass_range": (1400, 1700)},
+    "suv_large":  {"A": 1050, "B": 3500, "mass_range": (1800, 2500)},
+    "pickup":     {"A": 980, "B": 3300, "mass_range": (1600, 2200)},
+    "van":        {"A": 820, "B": 2700, "mass_range": (1700, 2300)},
+    "motorcycle": {"A": 180, "B": 600,  "mass_range": (150, 400)},
 }
 
 # Specific vehicle models (sample data)
 SPECIFIC_VEHICLES = {
-    "seat leon": {"A": 44.5, "B": 0.145, "category": "compact"},
-    "volkswagen golf": {"A": 45.0, "B": 0.15, "category": "compact"},
-    "renault clio": {"A": 40.0, "B": 0.13, "category": "subcompact"},
-    "ford focus": {"A": 43.5, "B": 0.14, "category": "compact"},
-    "bmw serie 3": {"A": 48.0, "B": 0.16, "category": "midsize"},
-    "mercedes clase c": {"A": 49.0, "B": 0.165, "category": "midsize"},
-    "toyota corolla": {"A": 44.0, "B": 0.145, "category": "compact"},
-    "peugeot 208": {"A": 39.0, "B": 0.125, "category": "subcompact"},
-    "citroen c3": {"A": 38.5, "B": 0.12, "category": "subcompact"},
-    "audi a4": {"A": 47.5, "B": 0.155, "category": "midsize"},
+    "seat leon":        {"A": 700, "B": 2400, "category": "compact"},
+    "volkswagen golf":  {"A": 710, "B": 2450, "category": "compact"},
+    "renault clio":     {"A": 610, "B": 2050, "category": "subcompact"},
+    "ford focus":       {"A": 690, "B": 2350, "category": "compact"},
+    "bmw serie 3":      {"A": 800, "B": 2750, "category": "midsize"},
+    "mercedes clase c": {"A": 820, "B": 2800, "category": "midsize"},
+    "toyota corolla":   {"A": 695, "B": 2370, "category": "compact"},
+    "peugeot 208":      {"A": 600, "B": 2000, "category": "subcompact"},
+    "citroen c3":       {"A": 590, "B": 1970, "category": "subcompact"},
+    "audi a4":          {"A": 790, "B": 2700, "category": "midsize"},
 }
 
 

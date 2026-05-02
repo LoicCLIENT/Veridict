@@ -1,134 +1,127 @@
 """
-LangGraph orchestration for multi-agent pipeline.
+Pipeline de análisis forense — ejecución paralela.
 
-Pipeline:
-[Data] -> [Forensic Analyst] -> [Legal Reasoner] -> [Adjudicator]
-       -> [Devil's Advocate] -> [Report Writer]
+Fases:
+  1. PARALELO   → Física (CRASH3/SB) + Contexto externo (meteo, vía, sol, dirección)
+  2. PARALELO   → Cronología (Claude) + Infracciones RGC/LSV (Claude)
+  3. PARALELO   → Adjudicación culpa % (Claude Opus) + Contraste declaraciones (Claude)
+  4. SECUENCIAL → Verificación adversarial (Devil's Advocate)
+  5. SECUENCIAL → Generación PDF (Claude + ReportLab)
 """
 
-from typing import Callable, Optional
 import asyncio
+from typing import Callable, Optional
 
-from models import Caso, Resultado, Evento, CalculoFisico, Infraccion, Veredicto, CompatibilidadVersiones
+from models import Caso, Resultado, VerificacionAdversarial, NexoCausal
 
 
 async def run_analysis_pipeline(
     caso: Caso,
     progress_callback: Optional[Callable[[float, str], None]] = None,
 ) -> Resultado:
-    """
-    Run the complete multi-agent analysis pipeline.
 
-    Args:
-        caso: The case to analyze
-        progress_callback: Optional callback for progress updates (progress%, stage_name)
-
-    Returns:
-        Resultado with complete analysis
-    """
-    from agents.forensic_analyst import ForensicAnalyst
-    from agents.legal_reasoner import LegalReasoner
-    from agents.adjudicator import Adjudicator
-    from agents.devils_advocate import DevilsAdvocate
-    from agents.report_writer import ReportWriter
+    def update(p: float, msg: str):
+        if progress_callback:
+            progress_callback(p, msg)
 
     resultado = Resultado()
 
-    def update(progress: float, stage: str):
-        if progress_callback:
-            progress_callback(progress, stage)
-
     try:
-        # Stage 1: Forensic Analysis (0-30%)
-        update(5, "Extrayendo datos contextuales")
-        await asyncio.sleep(0.5)  # Simulated API calls
+        # ── FASE 1: PARALELO ──────────────────────────────────────────────
+        # Contexto primero (meteo, OSM) para que la física use μ real de la calzada.
+        update(5, "Obteniendo contexto externo y calculando física...")
 
-        update(10, "Analizando fotografias con vision AI")
-        await asyncio.sleep(0.5)
+        from agents.forensic_analyst import ForensicAnalyst
+        from agents.context_fetcher import fetch_full_context
 
-        update(15, "Ejecutando calculos CRASH3")
-        forensic = ForensicAnalyst()
-        forensic_result = await forensic.analyze(caso)
-        resultado.cronologia = forensic_result.get("cronologia", [])
-        resultado.calculos = forensic_result.get("calculos", [])
+        analyst = ForensicAnalyst()
+        contexto = await fetch_full_context(caso)
+        resultado.contexto = contexto
 
-        update(30, "Analisis forense completado")
+        # Física con contexto: μ real, distancia seguridad, Delta-V
+        (calculos, _) = await analyst.run_physics(caso, contexto)
+        resultado.calculos = calculos
 
-        # Stage 2: Legal Reasoning (30-50%)
-        update(35, "Buscando articulos aplicables en corpus legal")
-        legal = LegalReasoner()
-        legal_result = await legal.analyze(caso, resultado.calculos)
-        resultado.infracciones = legal_result.get("infracciones", [])
+        update(35, "Física y contexto obtenidos")
 
-        update(50, "Razonamiento legal completado")
+        # ── FASE 2: PARALELO ──────────────────────────────────────────────
+        update(38, "Generando cronología e identificando infracciones...")
 
-        # Stage 3: Adjudication (50-70%)
-        update(55, "Calculando atribucion de culpa")
-        adjudicator = Adjudicator()
-        adj_result = await adjudicator.adjudicate(caso, resultado)
-        resultado.veredicto = adj_result.get("veredicto")
-        resultado.compatibilidad_versiones = adj_result.get("compatibilidad")
+        from agents.legal_reasoner import LegalReasoner
 
-        update(70, "Adjudicacion completada")
+        timeline_task = analyst.generate_timeline(caso, calculos, contexto)
+        # LegalReasoner recibe contexto para usar límite de velocidad OSM real
+        infractions_task = LegalReasoner().analyze(caso, calculos, contexto)
 
-        # Stage 4: Devil's Advocate (70-85%)
-        if resultado.veredicto and resultado.veredicto.confidence >= 0.85:
-            update(75, "Ejecutando verificacion adversarial")
-            devils = DevilsAdvocate()
-            devils_result = await devils.verify(caso, resultado)
-            resultado.devils_advocate_passed = devils_result.get("passed", False)
+        cronologia, infractions_result = await asyncio.gather(
+            timeline_task,
+            infractions_task,
+        )
 
-            if not resultado.devils_advocate_passed:
-                update(85, "Verificacion fallida - requiere revision humana")
-                return resultado
+        resultado.cronologia = cronologia
+        resultado.infracciones = infractions_result.get("infracciones", [])
+
+        update(70, "Cronología e infracciones completadas")
+
+        # ── FASE 3: SECUENCIAL — contraste de declaraciones ───────────────
+        # Debe correr ANTES del Adjudicator para que éste tenga el contraste disponible.
+        update(72, "Contrastando declaraciones con la evidencia física...")
+
+        from agents.declaration_analyst import DeclarationAnalyst
+
+        contraste = await DeclarationAnalyst().analyze(caso, calculos, resultado.cronologia)
+        resultado.contraste_versiones = contraste
+
+        update(78, "Contraste de declaraciones completado")
+
+        # ── FASE 4: ADJUDICACIÓN ──────────────────────────────────────────
+        # Ahora resultado.contraste_versiones está disponible para el prompt de Opus.
+        update(80, "Adjudicando responsabilidad civil...")
+
+        from agents.adjudicator import Adjudicator
+
+        adjudication_result = await Adjudicator().adjudicate(caso, resultado)
+
+        veredicto = adjudication_result.get("veredicto")
+        if veredicto:
+            veredicto.razonamiento = adjudication_result.get("razonamiento", "")
+            veredicto.advertencia_personal = adjudication_result.get("advertencia_personal", False)
+            veredicto.nexo_causal = [
+                NexoCausal(**n) for n in adjudication_result.get("nexo_causal", [])
+            ]
+        resultado.veredicto = veredicto
+        resultado.compatibilidad_versiones = adjudication_result.get("compatibilidad")
+
+        update(85, "Veredicto completado")
+
+        # ── FASE 4: VERIFICACIÓN ADVERSARIAL ─────────────────────────────
+        update(87, "Verificación adversarial (Devil's Advocate)...")
+
+        from agents.devils_advocate import DevilsAdvocate
+
+        da = await DevilsAdvocate().verify(caso, resultado)
+        resultado.verificacion_adversarial = VerificacionAdversarial(
+            passed=da["passed"],
+            failures=da.get("failures", []),
+        )
+
+        if not da["passed"]:
+            update(93, f"⚠ Verificación adversarial: {len(da['failures'])} incidencia(s) detectada(s)")
         else:
-            update(75, "Confianza insuficiente - escalando a humano")
-            resultado.devils_advocate_passed = False
-            return resultado
+            update(93, "Verificación adversarial superada ✓")
 
-        update(85, "Verificacion adversarial completada")
+        # ── FASE 5: INFORME PDF ───────────────────────────────────────────
+        update(95, "Generando informe pericial PDF...")
 
-        # Stage 5: Report Generation (85-100%)
-        update(90, "Generando informe PDF")
-        writer = ReportWriter()
-        report_result = await writer.generate(caso, resultado)
-        resultado.pdf_url = report_result.get("pdf_url")
-        resultado.sigstore_hash = report_result.get("sigstore_hash")
+        from agents.report_writer import ReportWriter
 
-        update(100, "Dictamen completado")
+        report = await ReportWriter().generate(caso, resultado)
+        resultado.pdf_url = report.get("pdf_url")
+        resultado.sigstore_hash = report.get("sigstore_hash")
 
+        update(100, "Informe pericial completado")
         return resultado
 
     except Exception as e:
         print(f"Pipeline error: {e}")
         raise
-
-
-# For standalone testing
-if __name__ == "__main__":
-    import sys
-    import json
-
-    async def main():
-        # Load test case
-        caso_path = sys.argv[1] if len(sys.argv) > 1 else "data/casos_demo/caso_1_madrid_m30"
-        print(f"Running pipeline for: {caso_path}")
-
-        # Mock caso for testing
-        from datetime import datetime
-        from models import Ubicacion, TipoColision
-
-        caso = Caso(
-            id="test-1",
-            fecha_accidente=datetime.now(),
-            ubicacion=Ubicacion(lat=40.4168, lon=-3.7038),
-            tipo_colision=TipoColision.LATERAL,
-        )
-
-        def progress(p, s):
-            print(f"[{p:.0f}%] {s}")
-
-        resultado = await run_analysis_pipeline(caso, progress)
-        print(json.dumps(resultado.model_dump(), indent=2, default=str))
-
-    asyncio.run(main())
