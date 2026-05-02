@@ -3,6 +3,12 @@
   "responsabilidad_trafico": {
     "normativa": [
       {
+        "referencia": "Art. 3 RGC",
+        "titulo": "Conductores: deberán conducir con la diligencia y precaución necesarias para evitar todo daño, propio o ajeno. Queda terminantemente prohibido conducir de modo negligente o temerario.",
+        "boe": "BOE-A-2003-23514",
+        "extracto": "Se deberá conducir con la diligencia y precaución necesarias para evitar todo daño, propio o ajeno, cuidando de no poner en peligro, tanto al mismo conductor como a los demás ocupantes del vehículo y al resto de los usuarios de la vía."
+      },
+      {
         "referencia": "Art. 74.1 RGC",
         "titulo": "Cambio de carril: el conductor que pretenda cambiar debe asegurarse de que no pone en peligro a otros usuarios y señalizar la maniobra.",
         "boe": "BOE-A-2003-23514",
@@ -80,20 +86,51 @@
   "atropello": {
     "normativa": [
       {
-        "referencia": "Art. 54.1 RGC",
-        "titulo": "Pasos para peatones: el conductor cederá el paso a los peatones.",
+        "referencia": "Art. 3 RGC",
+        "titulo": "Conducción diligente y prudente. Prohibición de conducción negligente o temeraria.",
+        "boe": "BOE-A-2003-23514",
+        "extracto": "Se deberá conducir con la diligencia y precaución necesarias para evitar todo daño, propio o ajeno, cuidando de no poner en peligro, tanto al mismo conductor como a los demás ocupantes del vehículo y al resto de los usuarios de la vía."
+      },
+      {
+        "referencia": "Art. 45 RGC",
+        "titulo": "Adecuación de la velocidad a las circunstancias. Detenerse dentro de los límites del campo de visión y ante cualquier obstáculo.",
+        "boe": "BOE-A-2003-23514",
+        "extracto": "Todo conductor está obligado a respetar los límites de velocidad establecidos y a tener en cuenta, además, sus propias condiciones físicas y psíquicas, las características y el estado de la vía, del vehículo y de su carga, las condiciones meteorológicas, ambientales y de circulación, y, en general, cuantas circunstancias concurran en cada momento, a fin de adecuar la velocidad de su vehículo a ellas, de manera que siempre pueda detenerlo dentro de los límites de su campo de visión y ante cualquier obstáculo que pueda presentarse."
+      },
+      {
+        "referencia": "Art. 46.1.a RGC",
+        "titulo": "Moderación de velocidad: cuando haya peatones en la parte de la vía o pueda preverse racionalmente su irrupción, especialmente niños, ancianos o personas impedidas.",
         "boe": "BOE-A-2003-23514"
       },
       {
-        "referencia": "Art. 46 RGC",
-        "titulo": "Velocidad adecuada: en función de las condiciones de la vía y del entorno (peatones).",
+        "referencia": "Art. 46.1.b RGC",
+        "titulo": "Moderación de velocidad: al aproximarse a ciclos circulando, intersecciones, vías de uso exclusivo de ciclos y pasos de peatones no regulados.",
         "boe": "BOE-A-2003-23514"
+      },
+      {
+        "referencia": "Art. 46.1.d RGC",
+        "titulo": "Moderación de velocidad: tramos con edificios de inmediato acceso a la parte de la vía utilizada.",
+        "boe": "BOE-A-2003-23514"
+      },
+      {
+        "referencia": "Art. 54.1 RGC",
+        "titulo": "Pasos para peatones: el conductor cederá el paso a los peatones que ya iniciaron el cruce.",
+        "boe": "BOE-A-2003-23514"
+      },
+      {
+        "referencia": "Principio de confianza (jurisprudencial)",
+        "titulo": "Doctrina de los Tribunales: todo usuario de la vía puede confiar en que los demás usuarios cumplirán la normativa, salvo evidencia objetiva de comportamiento anómalo. Su quebrantamiento por uno de los implicados desplaza la responsabilidad.",
+        "boe": "STS Sala 2.ª — doctrina reiterada (entre otras: STS 2.ª 1356/1999, STS 2.ª 738/2003)",
+        "extracto": "El ciclista que circula correctamente por su mitad derecha de la calzada ve quebrantado su principio de confianza al verse invadida su trayectoria por un vehículo a velocidad inadecuada o con falta de atención."
       }
     ],
     "bibliografia": [
       "Searle J.A., The physics of throw distance in accident reconstruction, SAE 930659 (1993).",
       "Han I., Brach R.M., Throw model for frontal pedestrian collisions, ASME (2001).",
-      "Wood D.P., Pedestrian throw distance: pre- and post-impact modelling, ITAI (2005)."
+      "Wood D.P., Pedestrian throw distance: pre- and post-impact modelling, ITAI (2005).",
+      "UC3M & Guardia Civil, Manual de reconstrucción de atropellos a peatones y ciclistas (2020).",
+      "Otte D., Pedestrian/Cyclist injuries from cars (1989).",
+      "Van Rooij L., Pedestrian impact reconstruction with WAD (2003)."
     ]
   },
   "mecanica_fallo": {

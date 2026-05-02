@@ -30,9 +30,11 @@ async def simular(modelo: str, parametros: dict[str, Any]) -> dict:
         out = _distancia_detencion(parametros)
     elif modelo == "atropello_throw":
         out = _searle_throw(parametros)
+    elif modelo == "tiempo_huella":
+        out = _tiempo_huella(parametros)
     else:
         out = {"error": f"modelo no soportado: {modelo}"}
-        falta = f"Pidió el modelo {modelo!r} pero solo conocemos balance_momento_alcance, velocidad_por_huella, distancia_detencion, atropello_throw."
+        falta = f"Pidió el modelo {modelo!r} pero solo conocemos balance_momento_alcance, velocidad_por_huella, distancia_detencion, atropello_throw, tiempo_huella."
 
     if "_falta" in out:
         falta = out.pop("_falta")
@@ -117,33 +119,89 @@ def _stannard_baker(p: dict) -> dict:
 
 
 def _distancia_detencion(p: dict) -> dict:
-    """Distancia y tiempo para detener desde una velocidad dada (con t reacción + frenada)."""
+    """Distancia y tiempo para detener desde una velocidad dada.
+
+    Si `incluir_tiempo_reaccion=False` (recomendado para alinear con la práctica
+    pericial, ya que el atestado suele indicar 'el conductor frena'), solo se
+    cuenta la frenada pura. Por defecto incluye reacción + frenada."""
     try:
         v_kmh = float(p["v_kmh"])
         mu = float(p.get("coef_friccion", 0.7))
         pendiente = float(p.get("pendiente_pct", 0)) / 100
         t_reaccion = float(p.get("t_reaccion_s", 1.0))
+        incluir_tr = bool(p.get("incluir_tiempo_reaccion", True))
     except (KeyError, ValueError, TypeError):
-        return {"_falta": "Necesito v_kmh, opcional coef_friccion, pendiente_pct, t_reaccion_s."}
+        return {"_falta": "Necesito v_kmh, opcional coef_friccion, pendiente_pct, t_reaccion_s, incluir_tiempo_reaccion."}
 
     v_ms = v_kmh / 3.6
     mu_eff = max(0.05, mu + pendiente)
     a = mu_eff * G
-    d_reaccion = v_ms * t_reaccion
+    d_reaccion = v_ms * t_reaccion if incluir_tr else 0.0
     t_frenada = v_ms / a
     d_frenada = v_ms ** 2 / (2 * a)
+    d_total = d_reaccion + d_frenada
+    t_total = (t_reaccion if incluir_tr else 0.0) + t_frenada
+    asunciones = [f"μ={mu}", f"pendiente={pendiente*100}%"]
+    if incluir_tr:
+        asunciones.append(f"t reacción={t_reaccion}s")
+    else:
+        asunciones.append("solo frenada (sin tiempo de reacción)")
     return {
         "v_kmh": v_kmh,
+        "incluir_tiempo_reaccion": incluir_tr,
         "distancia_reaccion_m": round(d_reaccion, 2),
         "distancia_frenada_m": round(d_frenada, 2),
-        "distancia_total_m": round(d_reaccion + d_frenada, 2),
+        "distancia_total_m": round(d_total, 2),
         "tiempo_frenada_s": round(t_frenada, 2),
-        "tiempo_total_s": round(t_reaccion + t_frenada, 2),
+        "tiempo_total_s": round(t_total, 2),
         "modelo_aplicado": "distancia_detencion",
-        "asunciones": [f"μ={mu}", f"pendiente={pendiente*100}%", f"t reacción={t_reaccion}s"],
+        "asunciones": asunciones,
         "resumen": (
-            f"A {v_kmh} km/h con μ={mu}, pendiente {pendiente*100:.0f}%, "
-            f"el vehículo recorre {d_reaccion+d_frenada:.1f} m en {t_reaccion+t_frenada:.2f} s."
+            f"A {v_kmh} km/h con μ={mu}, pendiente {pendiente*100:.0f}%"
+            + (f", t_reacción={t_reaccion}s" if incluir_tr else " (solo frenada)") +
+            f": recorre {d_total:.2f} m en {t_total:.2f} s "
+            f"(frenada {d_frenada:.2f} m / {t_frenada:.2f} s)."
+        ),
+    }
+
+
+def _tiempo_huella(p: dict) -> dict:
+    """Tiempo total desde percepción del riesgo hasta el final de la huella de frenado.
+
+    t_total = t_reaccion + t_ejecucion + t_frenada
+    donde t_frenada se obtiene de la longitud de huella y la deceleración (μ·g + pendiente).
+    Es el cálculo de IURGI para demostrar la evitabilidad temporal del accidente.
+    """
+    try:
+        d_huella = float(p["distancia_m"])
+        mu = float(p.get("coef_friccion", 0.7))
+        pendiente = float(p.get("pendiente_pct", 0)) / 100
+        t_reaccion = float(p.get("t_reaccion_s", 1.0))
+        t_ejecucion = float(p.get("t_ejecucion_s", 0.5))
+    except (KeyError, ValueError, TypeError):
+        return {"_falta": "Necesito distancia_m (huella), opcional coef_friccion, pendiente_pct, t_reaccion_s (def 1.0), t_ejecucion_s (def 0.5)."}
+
+    mu_eff = max(0.05, mu + pendiente)
+    # v inicial al iniciar bloqueo (Stannard-Baker inverso): v = sqrt(2·a·d)
+    v_ms = math.sqrt(2 * mu_eff * G * d_huella)
+    v_kmh = v_ms * 3.6
+    t_frenada = v_ms / (mu_eff * G)
+    t_total = t_reaccion + t_ejecucion + t_frenada
+    return {
+        "distancia_huella_m": d_huella,
+        "velocidad_inicio_huella_kmh": round(v_kmh, 1),
+        "t_reaccion_s": t_reaccion,
+        "t_ejecucion_s": t_ejecucion,
+        "t_frenada_s": round(t_frenada, 2),
+        "t_total_s": round(t_total, 2),
+        "modelo_aplicado": "tiempo_huella",
+        "formula": "t_total = t_reaccion + t_ejecucion + sqrt(2·d/(μ·g))/(μ·g)",
+        "asunciones": [f"μ_eff={mu_eff:.2f}", f"pendiente={pendiente*100}%",
+                       f"t_reacción={t_reaccion}s", f"t_ejecución={t_ejecucion}s"],
+        "resumen": (
+            f"Desde percepción del riesgo hasta el final de la huella ({d_huella} m): "
+            f"t_total = {t_total:.2f} s (reacción {t_reaccion}s + ejecución {t_ejecucion}s + "
+            f"frenada {t_frenada:.2f}s). Velocidad al iniciar el bloqueo: {v_kmh:.1f} km/h."
         ),
     }
 

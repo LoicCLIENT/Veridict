@@ -83,9 +83,23 @@ async def analizar_imagen_dano(image_url: str, contexto: Optional[str] = None) -
             ),
         }
 
+    from agents.specialists.biblioteca_fotos import _imagen_a_source
+    source = await _imagen_a_source(image_url)
+    if source is None:
+        return {
+            "datos": {"error": f"no se pudo cargar la imagen: {image_url}"},
+            "_log": ToolCallLog(
+                agente="AtestadoAgent.vision",
+                pregunta="análisis visual",
+                inputs={"image_url": image_url},
+                resultado_resumen="imagen no accesible",
+                falta_info="La URL de la imagen no es resoluble.",
+                duracion_ms=int((time.time() - t0) * 1000),
+            ),
+        }
     client = get_claude()
     user_content = [
-        {"type": "image", "source": {"type": "url", "url": image_url}},
+        {"type": "image", "source": source},
         {"type": "text",
          "text": (contexto or "Describe los daños técnicamente y la posible zona/altura de impacto.")},
     ]

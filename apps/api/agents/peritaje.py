@@ -115,7 +115,9 @@ async def generar_informe(caso: Caso) -> InformePericial:
     coord_out = await coordinar(caso)
 
     if not coord_out.get("informe_data"):
-        # Mantenemos los logs aunque haya error
+        from agents.perito import (  # type: ignore
+            _build_biomecanico, _build_conformidad, _build_escena, _build_meteo,
+        )
         fallback = _fallback_informe(caso, coord_out.get("error", "error desconocido"))
         fallback.fichas_tecnicas = fichas
         fallback.normativa_aplicable = normativa
@@ -123,6 +125,15 @@ async def generar_informe(caso: Caso) -> InformePericial:
         fallback.calculos = calculos
         fallback.tool_calls = coord_out.get("tool_calls", [])
         fallback.imagenes = coord_out.get("imagenes_recopiladas", [])
+        datos = coord_out.get("datos_por_tool") or {}
+        if datos.get("analizar_biomecanica"):
+            fallback.analisis_biomecanico = _build_biomecanico(datos["analizar_biomecanica"])
+        if datos.get("consultar_escena"):
+            fallback.contexto_escena = _build_escena(datos["consultar_escena"])
+        if datos.get("consultar_meteo"):
+            fallback.contexto_meteo = _build_meteo(datos["consultar_meteo"])
+        if datos.get("analizar_conformidad_atestado"):
+            fallback.conformidad_atestado = _build_conformidad(datos["analizar_conformidad_atestado"])
         return fallback
 
     # 4. Construir el InformePericial final

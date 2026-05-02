@@ -284,9 +284,10 @@ export function InformeDocumento({ informe, caso }: Props) {
                   <p className="text-zinc-400 truncate">
                     {img.fuente}
                     {img.compass_angle != null ? ` · ${Math.round(img.compass_angle)}°` : ""}
+                    {img.relevancia ? ` · ${img.relevancia}` : ""}
                   </p>
                   {img.descripcion && (
-                    <p className="text-zinc-300 line-clamp-2 mt-0.5">{img.descripcion}</p>
+                    <p className="text-zinc-300 line-clamp-3 mt-0.5">{img.descripcion}</p>
                   )}
                 </div>
               </a>

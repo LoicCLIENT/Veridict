@@ -54,11 +54,36 @@ class Documento(BaseModel):
     texto_extraido: Optional[str] = None
 
 
+class TipoFoto(str, Enum):
+    VEHICULO_FRONTAL = "vehiculo_frontal"
+    VEHICULO_TRASERO = "vehiculo_trasero"
+    VEHICULO_LATERAL_IZQ = "vehiculo_lateral_izq"
+    VEHICULO_LATERAL_DCH = "vehiculo_lateral_dch"
+    VEHICULO_DETALLE_DANO = "vehiculo_detalle_dano"
+    VEHICULO_INTERIOR = "vehiculo_interior"
+    VEHICULO_GENERAL = "vehiculo_general"
+    ESCENA_GENERAL = "escena_general"
+    ESCENA_HUELLAS = "escena_huellas"
+    ESCENA_SENALIZACION = "escena_senalizacion"
+    ATESTADO_PAGINA = "atestado_pagina"
+    CROQUIS = "croquis"
+    LESION = "lesion"
+    OTRO = "otro"
+
+
 class Foto(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid4()))
     url: str
     descripcion: Optional[str] = None
     analisis: Optional[str] = None
+    # ── Indexación automática (visión Claude al subir) ─────────────────────
+    tipo: Optional[TipoFoto] = None
+    tags: list[str] = Field(default_factory=list)        # parabrisas_danado, capo_hundido…
+    vehiculo_id: Optional[str] = None                    # "A", "B" o None
+    elementos_visibles: list[str] = Field(default_factory=list)
+    calidad: Optional[str] = None                        # alta | media | baja
+    indexada: bool = False
+    error_indexacion: Optional[str] = None
 
 
 class Evento(BaseModel):
@@ -401,6 +426,7 @@ class InfoFaltante(BaseModel):
     afecta_a: list[str] = Field(default_factory=list)   # ["C1", "C2"] preguntas afectadas
     respondida: bool = False
     respuesta_perito: Optional[str] = None
+    requiere_foto: bool = False                # si True, el chat ofrece upload
 
 
 class MensajeChat(BaseModel):
@@ -438,6 +464,103 @@ class ToolCallLog(BaseModel):
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 
 
+class WADResultado(BaseModel):
+    zona_impacto: str
+    altura_m: tuple[float, float]
+    velocidad_min_kmh: float
+    velocidad_max_kmh: float
+    fuente: Optional[str] = None
+
+
+class MecanismoLesivo(BaseModel):
+    nombre: str
+    descripcion: Optional[str] = None
+    razon: Optional[str] = None
+
+
+class ImpactoSucesivo(BaseModel):
+    orden: int
+    descripcion: str
+
+
+class TipoLesionCraneal(BaseModel):
+    nombre: str
+    mecanismo: str
+
+
+class AnalisisCraneal(BaseModel):
+    mecanismo_general: str
+    tipos_compatibles: list[TipoLesionCraneal] = Field(default_factory=list)
+    consideracion_clinica: Optional[str] = None
+
+
+class AceleracionTipo(BaseModel):
+    situacion: str
+    tiempo_parada: str
+    aceleracion_g: float
+    fuerza_n_1200kg: float
+
+
+class AnalisisBiomecanico(BaseModel):
+    """Salida estructurada del BiomecanicaAgent persistida en el informe."""
+    wad: Optional[WADResultado] = None
+    energia_cinetica_kj: Optional[float] = None
+    probabilidad_ais3_pct: Optional[int] = None
+    mecanismos_lesivos_compatibles: list[MecanismoLesivo] = Field(default_factory=list)
+    cadena_4_impactos_sucesivos: list[ImpactoSucesivo] = Field(default_factory=list)
+    analisis_craneal: Optional[AnalisisCraneal] = None
+    compatibilidad_velocidad_lesion: Optional[str] = None
+    tabla_aceleraciones_tipo: list[AceleracionTipo] = Field(default_factory=list)
+    fuentes: list[str] = Field(default_factory=list)
+
+
+class ContextoEscenaResumen(BaseModel):
+    """Resumen estructurado de lo que devolvió EscenaAgent (OSM + Open-Elevation + Mapillary)."""
+    direccion_resuelta: Optional[str] = None
+    lat_resuelta: Optional[float] = None
+    lon_resuelta: Optional[float] = None
+    via_principal_nombre: Optional[str] = None
+    via_principal_tipo: Optional[str] = None      # primary/secondary/residential…
+    velocidad_maxima_kmh: Optional[int] = None    # de OSM maxspeed
+    num_carriles: Optional[int] = None
+    anchura_m: Optional[float] = None
+    superficie: Optional[str] = None
+    tiene_carril_bici: bool = False
+    pasos_peatones_proximos: int = 0
+    senales: list[dict] = Field(default_factory=list)
+    pendiente_pct: Optional[float] = None
+    elevacion_m: Optional[float] = None
+    n_imagenes_mapillary: int = 0
+    fuentes: list[str] = Field(default_factory=list)
+
+
+class ContextoMeteoResumen(BaseModel):
+    temperatura_c: Optional[float] = None
+    precipitacion_mm: Optional[float] = None
+    viento_kmh: Optional[float] = None
+    visibilidad_m: Optional[float] = None
+    estado_tiempo: Optional[str] = None
+    calzada_estimada: Optional[str] = None
+    es_dia: Optional[bool] = None
+    amanecer: Optional[str] = None
+    atardecer: Optional[str] = None
+    fuente: Optional[str] = None
+
+
+class IncongruenciaAtestado(BaseModel):
+    severidad: str                          # "alta" | "media" | "baja"
+    titulo: str
+    descripcion: str
+
+
+class AnalisisConformidadAtestado(BaseModel):
+    """Crítica metodológica del atestado policial."""
+    incongruencias: list[IncongruenciaAtestado] = Field(default_factory=list)
+    elementos_omitidos: list[str] = Field(default_factory=list)   # cosas que el atestado debió recoger
+    valoracion_global: Optional[str] = None    # "satisfactorio" | "incompleto" | "deficiente"
+    recomendaciones: list[str] = Field(default_factory=list)
+
+
 class InformePericial(BaseModel):
     """Resultado del peritaje v2: estructurado por preguntas del encargo."""
     resumen_caso: str = ""
@@ -451,6 +574,10 @@ class InformePericial(BaseModel):
     chat: list[MensajeChat] = Field(default_factory=list)
     tool_calls: list[ToolCallLog] = Field(default_factory=list)
     imagenes: list[ImagenAnalizada] = Field(default_factory=list)
+    analisis_biomecanico: Optional[AnalisisBiomecanico] = None
+    contexto_escena: Optional[ContextoEscenaResumen] = None
+    contexto_meteo: Optional[ContextoMeteoResumen] = None
+    conformidad_atestado: Optional[AnalisisConformidadAtestado] = None
     confianza_global: float = 0.0
     pdf_url: Optional[str] = None
     sigstore_hash: Optional[str] = None

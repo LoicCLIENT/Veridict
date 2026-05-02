@@ -71,21 +71,41 @@ async def upload_parte(caso_id: str, file: UploadFile = File(...)) -> dict:
 
 @router.post("/{caso_id}/upload/foto")
 async def upload_foto(caso_id: str, file: UploadFile = File(...)) -> dict:
-    """Upload foto. Se persiste a disco y queda accesible vía /uploads/...
-
-    El Perito coordinador la verá en `imagenes_disponibles` y podrá llamar a
-    `analizar_imagen_dano(url)` con visión Claude.
-    """
+    """Upload foto. Se persiste a disco, se sirve vía /uploads/... y se indexa
+    automáticamente con visión Claude (tipo, tags, vehículo, descripción)."""
     if caso_id not in casos_db:
         raise HTTPException(status_code=404, detail="Caso not found")
 
     caso = casos_db[caso_id]
     _, url = await _save_file(caso_id, "fotos", file)
-    foto = Foto(url=url, descripcion=None, analisis=None)
+    foto = Foto(url=url)
+
+    # Indexación automática
+    try:
+        from agents.specialists.biblioteca_fotos import aplicar_clasificacion_a_foto
+        contexto = {
+            "vehiculos": [
+                {"id": v.id, "marca": v.marca, "modelo": v.modelo, "matricula": v.matricula}
+                for v in caso.vehiculos_identificacion
+            ],
+            "tipo_colision": caso.tipo_colision.value if caso.tipo_colision else None,
+        }
+        foto = await aplicar_clasificacion_a_foto(foto, contexto)
+    except Exception as e:
+        foto.error_indexacion = str(e)
+        foto.indexada = True
+
     caso.fotos.append(foto)
     casos_db[caso_id] = caso
 
-    return {"status": "uploaded", "foto_id": foto.id, "url": url, "filename": file.filename}
+    return {
+        "status": "uploaded", "foto_id": foto.id, "url": url, "filename": file.filename,
+        "tipo": foto.tipo.value if foto.tipo else None,
+        "vehiculo_id": foto.vehiculo_id,
+        "descripcion": foto.descripcion,
+        "tags": foto.tags,
+        "indexada": foto.indexada,
+    }
 
 
 @router.post("/{caso_id}/mediciones")

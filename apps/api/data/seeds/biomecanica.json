@@ -1,0 +1,68 @@
+{
+  "_doc": "Datos extraídos del Manual ESTT/DGT 2011 (Especialidad: Gestión del Tráfico y Movilidad) y de la literatura forense estándar (Limpert 2012, NHTSA, AAAM AIS).",
+  "mecanismos_lesivos": [
+    {"nombre": "Flexión", "descripcion": "Suele producir fracturas transversales."},
+    {"nombre": "Extensión", "descripcion": "Pueden producir también fracturas transversales y/o luxaciones articulares."},
+    {"nombre": "Tracción", "descripcion": "Suele producir desgarros cutáneos, musculares, luxaciones, etc."},
+    {"nombre": "Compresión", "descripcion": "Aplicación de una fuerza en sentido longitudinal. Puede producir fenómeno de émbolo y fracturas por estallido de cuerpo vertebral."},
+    {"nombre": "Torsión", "descripcion": "Suele producir fracturas espiroideas."}
+  ],
+  "impactos_sucesivos": [
+    {"orden": 1, "descripcion": "Vehículo contra el objeto (fijo o móvil)."},
+    {"orden": 2, "descripcion": "Ocupantes contra alguna estructura interior del vehículo (volante, salpicadero, parabrisas)."},
+    {"orden": 3, "descripcion": "Órganos internos entre sí (encéfalo contra cráneo, vísceras contra paredes torácicas/abdominales)."},
+    {"orden": 4, "descripcion": "Objetos no fijos del interior del automóvil que impactan a los ocupantes (carga, animales sueltos, pasajeros traseros)."}
+  ],
+  "lesiones_cefalicas": {
+    "mecanismo_general": "Tras una deceleración brusca, el encéfalo (contenido en el cráneo, estructura inextensible) golpea internamente. Lesiones típicas:",
+    "tipos": [
+      {
+        "nombre": "Hematoma frontal por golpe directo",
+        "mecanismo": "Impacto de los lóbulos frontales contra la cara interna del hueso frontal."
+      },
+      {
+        "nombre": "Lesión por contragolpe (contre-coup)",
+        "mecanismo": "Tracción del lóbulo opuesto al impacto al desplazarse el encéfalo."
+      },
+      {
+        "nombre": "Hematoma subdural occipital",
+        "mecanismo": "Desgarro de los vasos sanguíneos que unen encéfalo con meninges en zona occipital tras tracción."
+      },
+      {
+        "nombre": "Hemorragia subaracnoidea",
+        "mecanismo": "Rotura de vasos del espacio subaracnoideo por aceleración angular."
+      },
+      {
+        "nombre": "Lesión axonal difusa (DAI)",
+        "mecanismo": "Cizallamiento de axones por aceleración rotacional de la cabeza, frecuente en atropellos a alta velocidad."
+      }
+    ]
+  },
+  "wad_atropello_ciclista": {
+    "_doc": "Wrap Around Distance — distancia desde el suelo a lo largo del frontal del vehículo hasta el punto donde el cuerpo de la víctima impacta. Permite estimar velocidad mínima del vehículo en atropellos a peatón/ciclista. Fuentes: Otte 1989; Searle 1993; Van Rooij 2003; UC3M-GC 2020.",
+    "tablas_velocidad_por_zona_impacto": [
+      {"zona_impacto": "parachoques", "altura_m": [0.40, 0.70], "velocidad_min_kmh": 5,  "velocidad_max_kmh": 25},
+      {"zona_impacto": "capó central",  "altura_m": [0.70, 1.10], "velocidad_min_kmh": 25, "velocidad_max_kmh": 40},
+      {"zona_impacto": "capó alto / base parabrisas", "altura_m": [1.10, 1.30], "velocidad_min_kmh": 35, "velocidad_max_kmh": 50},
+      {"zona_impacto": "parabrisas central",   "altura_m": [1.30, 1.60], "velocidad_min_kmh": 45, "velocidad_max_kmh": 60},
+      {"zona_impacto": "parabrisas alto",      "altura_m": [1.60, 1.80], "velocidad_min_kmh": 50, "velocidad_max_kmh": 70},
+      {"zona_impacto": "techo / umbral techo", "altura_m": [1.80, 2.20], "velocidad_min_kmh": 55, "velocidad_max_kmh": 90}
+    ]
+  },
+  "tabla_aceleraciones_tipo": [
+    {"situacion": "Frenada normal",                             "tiempo_parada": "5 s",   "aceleracion_g": 0.67, "fuerza_n_1200kg": 8000},
+    {"situacion": "Choque contra objeto deformable similar",    "tiempo_parada": "70 ms", "aceleracion_g": 49,   "fuerza_n_1200kg": 600000},
+    {"situacion": "Choque contra objeto rígido (muro/pilar)",   "tiempo_parada": "5 ms",  "aceleracion_g": 680,  "fuerza_n_1200kg": 8000000}
+  ],
+  "umbrales_lesividad": {
+    "_doc": "Probabilidad de lesión grave/letal en función de Δv del impacto (Mertz, AAAM 2002; NHTSA AIS 3+).",
+    "tabla": [
+      {"delta_v_kmh": 20, "ais3_plus_pct": 5},
+      {"delta_v_kmh": 30, "ais3_plus_pct": 15},
+      {"delta_v_kmh": 40, "ais3_plus_pct": 35},
+      {"delta_v_kmh": 50, "ais3_plus_pct": 60},
+      {"delta_v_kmh": 60, "ais3_plus_pct": 80},
+      {"delta_v_kmh": 70, "ais3_plus_pct": 92}
+    ]
+  }
+}

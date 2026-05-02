@@ -89,7 +89,11 @@ export const api = {
     if (!res.ok) throw new Error(`Error uploading atestado (${res.status})`);
   },
 
-  uploadFoto: async (casoId: string, file: File): Promise<void> => {
+  uploadFoto: async (casoId: string, file: File): Promise<{
+    foto_id: string; url: string; tipo?: string | null;
+    vehiculo_id?: string | null; descripcion?: string | null;
+    tags?: string[]; indexada?: boolean;
+  }> => {
     const formData = new FormData();
     formData.append("file", file);
     const res = await fetch(`${API_BASE}/api/casos/${casoId}/upload/foto`, {
@@ -97,6 +101,7 @@ export const api = {
       body: formData,
     });
     if (!res.ok) throw new Error(`Error uploading foto (${res.status})`);
+    return res.json();
   },
 
   // Análisis

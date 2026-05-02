@@ -38,11 +38,34 @@ export interface Documento {
   texto_extraido?: string | null;
 }
 
+export type TipoFoto =
+  | 'vehiculo_frontal'
+  | 'vehiculo_trasero'
+  | 'vehiculo_lateral_izq'
+  | 'vehiculo_lateral_dch'
+  | 'vehiculo_detalle_dano'
+  | 'vehiculo_interior'
+  | 'vehiculo_general'
+  | 'escena_general'
+  | 'escena_huellas'
+  | 'escena_senalizacion'
+  | 'atestado_pagina'
+  | 'croquis'
+  | 'lesion'
+  | 'otro';
+
 export interface Foto {
   id: string;
   url: string;
   descripcion?: string | null;
   analisis?: string | null;
+  tipo?: TipoFoto | null;
+  tags?: string[];
+  vehiculo_id?: string | null;
+  elementos_visibles?: string[];
+  calidad?: string | null;
+  indexada?: boolean;
+  error_indexacion?: string | null;
 }
 
 export interface Evento {
@@ -365,6 +388,7 @@ export interface InfoFaltante {
   afecta_a: string[];        // ids de respuestas afectadas
   respondida: boolean;
   respuesta_perito?: string | null;
+  requiere_foto?: boolean;
 }
 
 export interface MensajeChat {

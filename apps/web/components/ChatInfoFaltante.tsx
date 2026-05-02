@@ -5,7 +5,7 @@ import { api } from "@/lib/api";
 import type { InformePericial, InfoFaltante } from "@veridict/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Send, Loader2, AlertCircle, CheckCircle2, Sparkles } from "lucide-react";
+import { MessageCircle, Send, Loader2, AlertCircle, CheckCircle2, Sparkles, Camera } from "lucide-react";
 
 interface Props {
   casoId: string;
@@ -102,6 +102,16 @@ export function ChatInfoFaltante({ casoId, informe, onUpdate }: Props) {
                 onChange={setDraft}
                 onSend={enviar}
                 sending={sending}
+                casoId={casoId}
+                onPhotoUploaded={async () => {
+                  // Tras subir foto, regeneramos el informe automáticamente
+                  try {
+                    const nuevo = await api.generarInforme(casoId);
+                    onUpdate(nuevo);
+                  } catch (e) {
+                    console.error(e);
+                  }
+                }}
               />
             ))}
           </div>
@@ -126,6 +136,61 @@ export function ChatInfoFaltante({ casoId, informe, onUpdate }: Props) {
   );
 }
 
+function FotoUploadInline({
+  casoId,
+  contexto,
+  onUploaded,
+}: {
+  casoId: string;
+  contexto: string;
+  onUploaded: () => void;
+}) {
+  const [uploading, setUploading] = useState(false);
+  const [info, setInfo] = useState<string | null>(null);
+
+  const handle = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setInfo(null);
+    try {
+      const result = await api.uploadFoto(casoId, file);
+      setInfo(
+        result?.descripcion
+          ? `✓ Indexada: ${result.descripcion}`
+          : "✓ Foto subida e indexada."
+      );
+      onUploaded();
+    } catch (err) {
+      console.error(err);
+      setInfo("Error al subir la foto.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <label
+      className={`mt-2 mb-2 flex items-center gap-2 px-2 py-1.5 rounded border border-dashed cursor-pointer text-xs transition-colors ${
+        uploading
+          ? "border-blue-500 bg-blue-500/10 text-blue-300"
+          : "border-amber-500/40 bg-amber-500/5 text-amber-200 hover:bg-amber-500/10"
+      }`}
+      title={contexto}
+    >
+      {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Camera className="w-3.5 h-3.5" />}
+      <span>{uploading ? "Indexando…" : info ?? "Subir la foto que pide Veridict"}</span>
+      <input
+        type="file"
+        accept="image/*"
+        onChange={handle}
+        disabled={uploading}
+        className="hidden"
+      />
+    </label>
+  );
+}
+
 function PreguntaItem({
   pregunta,
   isActive,
@@ -134,6 +199,8 @@ function PreguntaItem({
   onChange,
   onSend,
   sending,
+  casoId,
+  onPhotoUploaded,
 }: {
   pregunta: InfoFaltante;
   isActive: boolean;
@@ -142,6 +209,8 @@ function PreguntaItem({
   onChange: (s: string) => void;
   onSend: () => void;
   sending: boolean;
+  casoId: string;
+  onPhotoUploaded: () => void;
 }) {
   const colorByPriority =
     pregunta.prioridad === "bloqueante"
@@ -175,13 +244,21 @@ function PreguntaItem({
         </div>
       </div>
 
+      {pregunta.requiere_foto && (
+        <FotoUploadInline
+          casoId={casoId}
+          contexto={pregunta.pregunta}
+          onUploaded={onPhotoUploaded}
+        />
+      )}
+
       {!isActive ? (
         <button
           type="button"
           onClick={onActivate}
           className="text-xs text-blue-400 hover:text-blue-300"
         >
-          Responder →
+          Responder por texto →
         </button>
       ) : (
         <div className="space-y-2">
