@@ -1,6 +1,7 @@
 """Configuration settings for the API."""
 
 from functools import lru_cache
+import anthropic
 from pydantic_settings import BaseSettings
 
 
@@ -8,6 +9,10 @@ class Settings(BaseSettings):
     # LLMs
     anthropic_api_key: str = ""
     openai_api_key: str = ""
+
+    # Models
+    model_sonnet: str = "claude-sonnet-4-6"
+    model_opus: str = "claude-opus-4-7"
 
     # External APIs
     aemet_api_key: str = ""
@@ -39,8 +44,14 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"
 
 
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+def get_claude() -> anthropic.AsyncAnthropic:
+    settings = get_settings()
+    return anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)

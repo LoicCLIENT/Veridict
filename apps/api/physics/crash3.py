@@ -15,50 +15,62 @@ def calculate_ebs(
     mediciones_C: List[float],  # C1-C6 deformation measurements in cm
     ancho_zona: float,  # Width of damaged zone in cm
     masa: float,  # Vehicle mass in kg
-    coef_a: float = 45.0,  # Stiffness coefficient A (N/cm)
-    coef_b: float = 0.15,  # Stiffness coefficient B (N/cm^2)
+    coef_a: float = 700.0,  # Stiffness coefficient A (kPa)
+    coef_b: float = 2400.0,  # Stiffness coefficient B (kPa/m)
+    c0: float = 0.0,  # Natural pre-impact profile depth (cm) — C0 correction
+    e: float = 0.1,  # Coefficient of restitution (0=plastic, typical car crash: 0.1)
 ) -> float:
     """
     Calculate Equivalent Barrier Speed (EBS) using CRASH3 model.
 
-    The CRASH3 model estimates impact speed from crush measurements using:
-    EBS = sqrt((A*C_avg + B*C_avg^2/2) * L / m)
+    Uses per-point energy integration (trapezoidal approach over C1-C6),
+    C0 correction for natural vehicle profile, and restitution correction.
+
+    Formula per measurement point i:
+        e_i = A*(Ci - C0) + B*(Ci - C0)²/2   [energy density, kJ/m]
+    Total energy:
+        E [kJ] = mean(e_i) * L
+    Restitution correction (accounts for elastic bounce-back):
+        EBS_corrected = EBS_plastic / sqrt(1 - e²)
 
     Args:
-        mediciones_C: List of 6 crush measurements (C1-C6) in cm
+        mediciones_C: 6 crush measurements C1-C6 in cm
         ancho_zona: Width of crush zone in cm
         masa: Vehicle mass in kg
-        coef_a: Stiffness coefficient A (from NHTSA database)
-        coef_b: Stiffness coefficient B (from NHTSA database)
+        coef_a: Stiffness A in kPa (kN/m²) — from NHTSA database
+        coef_b: Stiffness B in kPa/m (kN/m³)
+        c0: Pre-impact natural profile depth in cm (default 0 = flat front)
+        e: Coefficient of restitution — 0.10 typical high-speed, 0.30 low-speed
 
     Returns:
         EBS in km/h
     """
     if not mediciones_C or len(mediciones_C) < 6:
         raise ValueError("Need 6 crush measurements (C1-C6)")
-
     if masa <= 0:
         raise ValueError("Mass must be positive")
+    if not (0.0 <= e < 1.0):
+        raise ValueError("Restitution coefficient must be in [0, 1)")
 
-    # Calculate average crush depth
-    c_avg = sum(mediciones_C) / len(mediciones_C)
+    ancho_m = ancho_zona / 100  # cm → m
 
-    # Convert cm to m for calculations
-    c_avg_m = c_avg / 100
-    ancho_m = ancho_zona / 100
+    # Per-point energy integration — more accurate than (C_avg)² for non-uniform profiles
+    energy_sum = 0.0
+    for ci_cm in mediciones_C:
+        ci_net_m = max(0.0, ci_cm - c0) / 100  # C0 correction, cm → m
+        energy_sum += coef_a * ci_net_m + coef_b * ci_net_m ** 2 / 2
 
-    # Energy absorbed (simplified CRASH3)
-    # E = (A * C_avg + B * C_avg^2 / 2) * L
-    energy_per_meter = coef_a * c_avg_m + coef_b * (c_avg_m ** 2) / 2
-    total_energy = energy_per_meter * ancho_m * 1000  # Convert to Joules
+    energy_per_width = energy_sum / len(mediciones_C)  # kJ/m  (mean across 6 points)
+    total_energy_J = energy_per_width * ancho_m * 1000   # kJ → J
 
-    # EBS = sqrt(2 * E / m)
-    ebs_ms = math.sqrt(2 * total_energy / masa) if total_energy > 0 else 0
+    ebs_ms = math.sqrt(2 * total_energy_J / masa) if total_energy_J > 0 else 0.0
 
-    # Convert m/s to km/h
-    ebs_kmh = ebs_ms * 3.6
+    # Restitution correction: plastic assumption underestimates speed when e > 0
+    # Physical basis: E_crush = (1/2)*m*v² * (1 - e²)  →  v = EBS / sqrt(1 - e²)
+    if e > 0:
+        ebs_ms = ebs_ms / math.sqrt(1.0 - e ** 2)
 
-    return round(ebs_kmh, 1)
+    return round(ebs_ms * 3.6, 1)
 
 
 def calculate_delta_v(
