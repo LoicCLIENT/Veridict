@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
 
-from routers import casos, upload, analisis, dictamen, demo, data
+from routers import casos, upload, analisis, dictamen, demo, data, peritaje
 
 
 @asynccontextmanager
@@ -39,10 +39,16 @@ app.add_middleware(
 )
 
 # Routers
+# Servir uploads como estático para que Claude visión y el frontend puedan acceder
+_uploads_dir = os.path.join(os.path.dirname(__file__), "uploads")
+os.makedirs(_uploads_dir, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=_uploads_dir), name="uploads")
+
 app.include_router(casos.router, prefix="/api/casos", tags=["casos"])
 app.include_router(upload.router, prefix="/api/casos", tags=["upload"])
 app.include_router(analisis.router, prefix="/api/casos", tags=["analisis"])
 app.include_router(dictamen.router, prefix="/api/casos", tags=["dictamen"])
+app.include_router(peritaje.router, prefix="/api/casos", tags=["peritaje"])
 app.include_router(demo.router, prefix="/api/demo", tags=["demo"])
 app.include_router(data.router, prefix="/api/data", tags=["data"])
 

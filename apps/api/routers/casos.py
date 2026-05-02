@@ -13,11 +13,15 @@ casos_db: Dict[str, Caso] = {}
 
 @router.post("", response_model=Caso)
 async def crear_caso(caso_input: CasoCreate) -> Caso:
-    """Create a new caso."""
+    """Create a new caso (v2 payload: encargo + identificación + hechos + lesiones)."""
     caso = Caso(
         fecha_accidente=caso_input.fecha_accidente,
         ubicacion=caso_input.ubicacion,
         tipo_colision=caso_input.tipo_colision,
+        encargo=caso_input.encargo,
+        vehiculos_identificacion=caso_input.vehiculos_identificacion,
+        hechos_atestado=caso_input.hechos_atestado,
+        lesiones=caso_input.lesiones,
     )
     casos_db[caso.id] = caso
     return caso

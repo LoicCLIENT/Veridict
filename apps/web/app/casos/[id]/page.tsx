@@ -16,6 +16,9 @@ import { ContextoPanel } from "@/components/caso/ContextoPanel";
 import { VehiculosPanel } from "@/components/caso/VehiculosPanel";
 import { EscenaPanel } from "@/components/caso/EscenaPanel";
 import { DocumentosPanel } from "@/components/caso/DocumentosPanel";
+import { InformeDocumento } from "@/components/InformeDocumento";
+import { ChatInfoFaltante } from "@/components/ChatInfoFaltante";
+import type { InformePericial } from "@veridict/types";
 import { mapEventosToTimeline } from "@/lib/mapTimeline";
 import { useToast } from "@/components/ui/toast";
 import {
@@ -41,6 +44,10 @@ import {
   Car,
   Eye,
   FileText,
+  FileSignature,
+  Sparkles,
+  RefreshCw,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -60,6 +67,9 @@ export default function CasoDetailPage() {
   const [overallProgress, setOverallProgress] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const { panelActivo, setPanelActivo } = useAppStore();
+  const [informe, setInforme] = useState<InformePericial | null>(null);
+  const [informeLoading, setInformeLoading] = useState(true);
+  const [informeRegenerating, setInformeRegenerating] = useState(false);
 
   useEffect(() => {
     async function loadCaso() {
@@ -79,6 +89,41 @@ export default function CasoDetailPage() {
     }
     loadCaso();
   }, [casoId, toast]);
+
+  // Cargar informe v2 + polling
+  useEffect(() => {
+    let cancelled = false;
+    const fetchInforme = async () => {
+      try {
+        const data = await api.getInforme(casoId);
+        if (!cancelled) setInforme(data);
+      } catch {
+        if (!cancelled) setInforme(null);
+      } finally {
+        if (!cancelled) setInformeLoading(false);
+      }
+    };
+    fetchInforme();
+    const id = setInterval(fetchInforme, 3000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, [casoId]);
+
+  const handleRegenerarInforme = async () => {
+    setInformeRegenerating(true);
+    try {
+      const data = await api.generarInforme(casoId);
+      setInforme(data);
+      toast.success("Informe regenerado", "Veridict ha actualizado el borrador.");
+    } catch (e) {
+      console.error(e);
+      toast.error("Error", "No se pudo regenerar el informe.");
+    } finally {
+      setInformeRegenerating(false);
+    }
+  };
 
   const handleAnalizar = async () => {
     if (!caso) return;
@@ -191,16 +236,16 @@ export default function CasoDetailPage() {
   }
 
   const tabs = [
-    { id: "mapa", label: "Mapa", icon: Map },
+    { id: "informe", label: "Informe", icon: FileSignature },
+    { id: "mapa", label: "Simulación", icon: Map },
     { id: "cronologia", label: "Cronología", icon: Clock },
     { id: "calculos", label: "Cálculos", icon: Calculator },
-    { id: "legal", label: "Legal", icon: Scale },
     { id: "confrontacion", label: "Confrontación", icon: Shield },
+    { id: "legal", label: "Marco legal", icon: Scale },
     { id: "contexto", label: "Contexto", icon: Cloud },
     { id: "vehiculos", label: "Vehículos", icon: Car },
     { id: "escena", label: "Escena", icon: Eye },
     { id: "docs", label: "Docs/Fotos", icon: FileText },
-    { id: "dictamen", label: "Dictamen", icon: Scale },
   ] as const;
 
   const estadoBadge = {
@@ -322,6 +367,71 @@ export default function CasoDetailPage() {
                   transition={{ duration: 0.2 }}
                   className="h-full"
                 >
+                  {panelActivo === "informe" && (
+                    <div className="p-4 md:p-6">
+                      {informeLoading ? (
+                        <div className="flex items-center gap-3 text-zinc-400 p-6">
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Cargando informe…
+                        </div>
+                      ) : !informe ? (
+                        <div className="flex flex-col items-center justify-center py-16 text-center gap-4">
+                          <FileSignature className="w-12 h-12 text-zinc-600" />
+                          <div>
+                            <p className="text-white font-medium">El informe aún no se ha generado.</p>
+                            <p className="text-xs text-zinc-500 mt-1">
+                              Pulsa para que Veridict redacte el borrador con los datos del caso.
+                            </p>
+                          </div>
+                          <Button
+                            onClick={handleRegenerarInforme}
+                            disabled={informeRegenerating}
+                            className="bg-blue-600 hover:bg-blue-500"
+                          >
+                            {informeRegenerating ? (
+                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            ) : (
+                              <Sparkles className="w-4 h-4 mr-2" />
+                            )}
+                            Generar informe
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                          {/* Documento del informe */}
+                          <div className="lg:col-span-2">
+                            <div className="flex justify-end mb-3">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={handleRegenerarInforme}
+                                disabled={informeRegenerating}
+                                className="border-zinc-700 text-zinc-300"
+                              >
+                                {informeRegenerating ? (
+                                  <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
+                                ) : (
+                                  <RefreshCw className="w-3.5 h-3.5 mr-2" />
+                                )}
+                                Regenerar
+                              </Button>
+                            </div>
+                            <InformeDocumento informe={informe} caso={caso} />
+                          </div>
+                          {/* Chat lateral */}
+                          <div className="lg:col-span-1">
+                            <div className="sticky top-4">
+                              <ChatInfoFaltante
+                                casoId={casoId}
+                                informe={informe}
+                                onUpdate={setInforme}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   {panelActivo === "mapa" && (
                     <MapaReconstruccion ubicacion={caso.ubicacion} />
                   )}

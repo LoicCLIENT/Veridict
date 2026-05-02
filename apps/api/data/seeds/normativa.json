@@ -1,0 +1,137 @@
+{
+  "_doc": "Normativa y bibliografía indexada por TipoEncargo. El research agent las inyecta al prompt según el encargo del perito.",
+  "responsabilidad_trafico": {
+    "normativa": [
+      {
+        "referencia": "Art. 74.1 RGC",
+        "titulo": "Cambio de carril: el conductor que pretenda cambiar debe asegurarse de que no pone en peligro a otros usuarios y señalizar la maniobra.",
+        "boe": "BOE-A-2003-23514",
+        "extracto": "El conductor de un vehículo que pretenda... cambiar de carril deberá cerciorarse antes de iniciar la maniobra de que no produce peligro o entorpecimiento."
+      },
+      {
+        "referencia": "Art. 72.1 RGC",
+        "titulo": "Distancia de seguridad: separación con el vehículo precedente que permita detenerse sin colisionar.",
+        "boe": "BOE-A-2003-23514"
+      },
+      {
+        "referencia": "Art. 54.1 RGC",
+        "titulo": "Pasos para peatones: el conductor cederá el paso a los peatones que ya iniciaron el cruce.",
+        "boe": "BOE-A-2003-23514"
+      },
+      {
+        "referencia": "Art. 65.3.a LSV",
+        "titulo": "Infracción muy grave: conducir con velocidad superior a la reglamentariamente establecida en más de los límites del Anexo IV.",
+        "boe": "BOE-A-2015-11722"
+      }
+    ],
+    "bibliografia": [
+      "Limpert R., Motor Vehicle Accident Reconstruction and Cause Analysis, 6ª ed. (LexisNexis, 2012).",
+      "Reed M., Keskin A., Vehicular Accident Reconstruction (CRC Press, 2014)."
+    ]
+  },
+  "velocidad_impacto": {
+    "normativa": [
+      {
+        "referencia": "Art. 49 LSV",
+        "titulo": "Velocidades máximas y mínimas en vías urbanas e interurbanas.",
+        "boe": "BOE-A-2015-11722"
+      },
+      {
+        "referencia": "Anexo II RGC",
+        "titulo": "Velocidades máximas en vías interurbanas.",
+        "boe": "BOE-A-2003-23514"
+      }
+    ],
+    "bibliografia": [
+      "Stannard Baker, Traffic Accident Investigation Manual (Northwestern University, 2002).",
+      "Brach R., Brach R.M., Vehicle Accident Analysis and Reconstruction Methods (SAE International, 2nd ed., 2011).",
+      "Campbell K.L., Energy basis for collision severity, SAE 740565 (1974) — base teórica del modelo CRASH3."
+    ]
+  },
+  "seguridad_pasiva": {
+    "normativa": [
+      {
+        "referencia": "Reglamento ECE-R12",
+        "titulo": "Protección del conductor frente al sistema de dirección en caso de impacto.",
+        "boe": "DOUE L 89/2010"
+      },
+      {
+        "referencia": "FMVSS-208",
+        "titulo": "Federal Motor Vehicle Safety Standard 208 — Occupant crash protection.",
+        "boe": "49 CFR §571.208"
+      },
+      {
+        "referencia": "RD 2822/1998",
+        "titulo": "Reglamento General de Vehículos. Antiempotramiento ≥ 0.40 m del suelo.",
+        "boe": "BOE-A-1999-1826"
+      },
+      {
+        "referencia": "Reglamento ECE-R94",
+        "titulo": "Protección de los ocupantes en caso de colisión frontal.",
+        "boe": "DOUE L 219/2013"
+      }
+    ],
+    "bibliografia": [
+      "Mertz H.J., Anthropomorphic Test Devices, en Accidental Injury (Springer, 2002).",
+      "Abellas Rosende J.C., Sistemas airbag y su evolución, Anales de Mecánica y Electricidad ICAI, ene-feb 2005.",
+      "NHTSA, Air Bag Deployment Thresholds — Technical Report DOT HS 811 411 (2010)."
+    ]
+  },
+  "atropello": {
+    "normativa": [
+      {
+        "referencia": "Art. 54.1 RGC",
+        "titulo": "Pasos para peatones: el conductor cederá el paso a los peatones.",
+        "boe": "BOE-A-2003-23514"
+      },
+      {
+        "referencia": "Art. 46 RGC",
+        "titulo": "Velocidad adecuada: en función de las condiciones de la vía y del entorno (peatones).",
+        "boe": "BOE-A-2003-23514"
+      }
+    ],
+    "bibliografia": [
+      "Searle J.A., The physics of throw distance in accident reconstruction, SAE 930659 (1993).",
+      "Han I., Brach R.M., Throw model for frontal pedestrian collisions, ASME (2001).",
+      "Wood D.P., Pedestrian throw distance: pre- and post-impact modelling, ITAI (2005)."
+    ]
+  },
+  "mecanica_fallo": {
+    "normativa": [
+      {
+        "referencia": "RD 2822/1998",
+        "titulo": "Reglamento General de Vehículos. Condiciones técnicas obligatorias.",
+        "boe": "BOE-A-1999-1826"
+      },
+      {
+        "referencia": "RD 2042/1994",
+        "titulo": "Inspección Técnica de Vehículos (ITV).",
+        "boe": "BOE-A-1994-25761"
+      }
+    ],
+    "bibliografia": [
+      "Bosch, Automotive Handbook, 10ª ed. (2018) — capítulo de fallos mecánicos en accidentología."
+    ]
+  },
+  "cuantia_danos": {
+    "normativa": [
+      {
+        "referencia": "RDL 8/2004",
+        "titulo": "Texto refundido de la Ley sobre responsabilidad civil y seguro en la circulación (Baremo).",
+        "boe": "BOE-A-2004-18911"
+      },
+      {
+        "referencia": "Ley 35/2015",
+        "titulo": "Sistema de valoración de daños y perjuicios causados a las personas en accidentes de circulación.",
+        "boe": "BOE-A-2015-10197"
+      }
+    ],
+    "bibliografia": [
+      "Centro Zaragoza, Estudio comparativo de costes de reparación por modelo y siniestralidad."
+    ]
+  },
+  "otro": {
+    "normativa": [],
+    "bibliografia": []
+  }
+}

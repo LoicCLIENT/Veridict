@@ -1,0 +1,189 @@
+{
+  "_doc": "Fichas técnicas de vehículos. Clave: 'marca|modelo' en minúscula. Datos públicos (web fabricante, fichas DGT, EuroNCAP).",
+  "nissan|cabstar": {
+    "masa_kg": 2160,
+    "masa_max_kg": 3500,
+    "longitud_m": 4.69,
+    "ancho_m": 1.78,
+    "altura_m": 2.13,
+    "altura_parachoques_m": [0.35, 0.66],
+    "altura_largueros_m": 0.50,
+    "rigidez_a": 70.0,
+    "rigidez_b": 14.0,
+    "sistemas_seguridad": [
+      "Paragolpes delantero reforzado con absorbedor de energía",
+      "Barras de protección laterales integradas en puertas",
+      "Barra antiempotramiento trasera de serie",
+      "Airbag conductor y pasajero (opcional)",
+      "Cinturones con pretensor y limitador de esfuerzo (con airbag)"
+    ],
+    "fuente": "Nissan España — ficha técnica Cabstar (2008)",
+    "notas": "Estructura camión de largueros y travesaños. Airbag opcional, equipado en muchas versiones."
+  },
+  "man|tgl": {
+    "masa_kg": 7490,
+    "masa_max_kg": 12000,
+    "longitud_m": 6.20,
+    "ancho_m": 2.30,
+    "altura_m": 2.70,
+    "altura_parachoques_m": [0.40, 0.85],
+    "altura_largueros_m": 0.95,
+    "rigidez_a": 110.0,
+    "rigidez_b": 22.0,
+    "sistemas_seguridad": [
+      "Tacógrafo digital obligatorio",
+      "ABS",
+      "Antiempotramiento trasero ≥ 0.40 m (RD 2822/1998)"
+    ],
+    "fuente": "MAN España — ficha técnica TGL",
+    "notas": "Tractocamión rígido. Configuración tractor + semirremolque articulado."
+  },
+  "leciñena|ml19330": {
+    "masa_kg": 6500,
+    "masa_max_kg": 33000,
+    "longitud_m": 13.60,
+    "ancho_m": 2.55,
+    "altura_m": 1.25,
+    "altura_parachoques_m": null,
+    "altura_largueros_m": null,
+    "rigidez_a": 200.0,
+    "rigidez_b": 40.0,
+    "sistemas_seguridad": [
+      "Dispositivo antiempotramiento integrado (Directiva CE / RD 2822/1998)"
+    ],
+    "fuente": "Leciñena — semirremolque plataforma ML19330",
+    "notas": "Altura de plataforma 1.112–1.247 m según carga. Sin parachoques convencional, canto rígido."
+  },
+  "seat|ibiza": {
+    "masa_kg": 1115,
+    "longitud_m": 4.06,
+    "ancho_m": 1.78,
+    "altura_m": 1.44,
+    "altura_parachoques_m": [0.42, 0.70],
+    "altura_largueros_m": 0.48,
+    "rigidez_a": 55.0,
+    "rigidez_b": 8.0,
+    "sistemas_seguridad": [
+      "Airbag conductor, pasajero y laterales",
+      "ABS y ESC",
+      "Cinturones con pretensores"
+    ],
+    "fuente": "SEAT España — ficha técnica Ibiza (5ª gen.)",
+    "notas": "Turismo segmento B. Plataforma MQB A0."
+  },
+  "renault|megane": {
+    "masa_kg": 1295,
+    "longitud_m": 4.36,
+    "ancho_m": 1.81,
+    "altura_m": 1.45,
+    "altura_parachoques_m": [0.40, 0.70],
+    "altura_largueros_m": 0.50,
+    "rigidez_a": 60.0,
+    "rigidez_b": 9.5,
+    "sistemas_seguridad": [
+      "6 airbags",
+      "ABS, ESC, asistente de frenada",
+      "Aviso fatiga conductor"
+    ],
+    "fuente": "Renault España — ficha técnica Mégane IV",
+    "notas": "Turismo segmento C."
+  },
+  "volkswagen|golf": {
+    "masa_kg": 1320,
+    "longitud_m": 4.28,
+    "ancho_m": 1.79,
+    "altura_m": 1.46,
+    "altura_parachoques_m": [0.42, 0.71],
+    "altura_largueros_m": 0.50,
+    "rigidez_a": 62.0,
+    "rigidez_b": 10.0,
+    "sistemas_seguridad": [
+      "7 airbags incluido rodilla",
+      "ABS, ESC, frenado autónomo de emergencia",
+      "Detección de cansancio"
+    ],
+    "fuente": "Volkswagen España — Golf VIII",
+    "notas": "Plataforma MQB."
+  },
+  "ford|focus": {
+    "masa_kg": 1340,
+    "longitud_m": 4.38,
+    "ancho_m": 1.83,
+    "altura_m": 1.45,
+    "altura_parachoques_m": [0.41, 0.70],
+    "altura_largueros_m": 0.49,
+    "rigidez_a": 60.0,
+    "rigidez_b": 9.0,
+    "sistemas_seguridad": [
+      "6 airbags",
+      "ABS, ESC",
+      "Pre-Collision Assist"
+    ],
+    "fuente": "Ford España — Focus IV"
+  },
+  "peugeot|208": {
+    "masa_kg": 1090,
+    "longitud_m": 4.05,
+    "ancho_m": 1.75,
+    "altura_m": 1.43,
+    "altura_parachoques_m": [0.40, 0.68],
+    "altura_largueros_m": 0.48,
+    "rigidez_a": 54.0,
+    "rigidez_b": 8.0,
+    "sistemas_seguridad": [
+      "6 airbags",
+      "ABS, ESC",
+      "Reconocimiento de señales"
+    ],
+    "fuente": "Peugeot España — 208 II"
+  },
+  "_default_turismo": {
+    "masa_kg": 1300,
+    "longitud_m": 4.30,
+    "ancho_m": 1.80,
+    "altura_m": 1.45,
+    "altura_parachoques_m": [0.40, 0.70],
+    "altura_largueros_m": 0.50,
+    "rigidez_a": 60.0,
+    "rigidez_b": 9.5,
+    "sistemas_seguridad": [
+      "Airbag delantero conductor y pasajero",
+      "ABS",
+      "Cinturones con pretensores"
+    ],
+    "fuente": "Promedio segmento C europeo (estimación)",
+    "notas": "Valores genéricos por defecto. Sustituir cuando se identifique marca/modelo concreto."
+  },
+  "_default_furgoneta": {
+    "masa_kg": 2000,
+    "longitud_m": 4.90,
+    "ancho_m": 1.95,
+    "altura_m": 2.10,
+    "altura_parachoques_m": [0.38, 0.68],
+    "altura_largueros_m": 0.52,
+    "rigidez_a": 75.0,
+    "rigidez_b": 14.0,
+    "sistemas_seguridad": [
+      "Airbag conductor",
+      "ABS",
+      "Antiempotramiento trasero"
+    ],
+    "fuente": "Promedio furgoneta ligera (estimación)"
+  },
+  "_default_camion": {
+    "masa_kg": 7500,
+    "longitud_m": 6.50,
+    "ancho_m": 2.40,
+    "altura_m": 2.80,
+    "altura_parachoques_m": [0.40, 0.85],
+    "altura_largueros_m": 0.95,
+    "rigidez_a": 110.0,
+    "rigidez_b": 22.0,
+    "sistemas_seguridad": [
+      "Tacógrafo digital",
+      "ABS",
+      "Antiempotramiento trasero"
+    ],
+    "fuente": "Promedio camión rígido (estimación)"
+  }
+}

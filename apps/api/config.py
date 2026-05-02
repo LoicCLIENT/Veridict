@@ -17,6 +17,11 @@ class Settings(BaseSettings):
     # External APIs
     aemet_api_key: str = ""
     mapbox_access_token: str = ""
+    mapillary_access_token: str = ""
+    overpass_url: str = "https://overpass-api.de/api/interpreter"
+    open_elevation_url: str = "https://api.open-elevation.com/api/v1/lookup"
+    open_meteo_url: str = "https://archive-api.open-meteo.com/v1/archive"
+    boe_search_url: str = "https://www.boe.es/datosabiertos/api"
 
     # Storage
     supabase_url: str = ""

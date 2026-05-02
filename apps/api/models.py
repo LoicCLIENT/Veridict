@@ -249,21 +249,234 @@ class Caso(BaseModel):
     fotos: list[Foto] = Field(default_factory=list)
     escena: Optional[EscenaAccidente] = None
     resultado: Optional[Resultado] = None
+    # ── Input v2 ────────────────────────────────────────────────────────────
+    encargo: Optional["Encargo"] = None
+    vehiculos_identificacion: list["IdentificacionVehiculo"] = Field(default_factory=list)
+    hechos_atestado: Optional["HechosAtestado"] = None
+    lesiones: list["Lesion"] = Field(default_factory=list)
+    # ── Output v2 ───────────────────────────────────────────────────────────
+    informe: Optional["InformePericial"] = None
+    # ── Metadatos ───────────────────────────────────────────────────────────
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
 
 
 # ── Request/Response helpers ──────────────────────────────────────────────────
 
+# ── Encargo, identificación, hechos, lesiones (input v2) ──────────────────────
+
+class TipoEncargo(str, Enum):
+    RESPONSABILIDAD_TRAFICO = "responsabilidad_trafico"
+    VELOCIDAD_IMPACTO = "velocidad_impacto"
+    SEGURIDAD_PASIVA = "seguridad_pasiva"
+    MECANICA_FALLO = "mecanica_fallo"
+    ATROPELLO = "atropello"
+    CUANTIA_DANOS = "cuantia_danos"
+    OTRO = "otro"
+
+
+class ParteSolicitante(str, Enum):
+    DEMANDANTE = "demandante"
+    DEMANDADO = "demandado"
+    IMPARCIAL = "imparcial"
+    ASEGURADORA = "aseguradora"
+
+
+class Encargo(BaseModel):
+    tipo: TipoEncargo = TipoEncargo.RESPONSABILIDAD_TRAFICO
+    preguntas: list[str] = Field(default_factory=list)
+    solicitante: Optional[str] = None
+    parte: Optional[ParteSolicitante] = None
+    procedimiento: Optional[str] = None
+    observaciones: Optional[str] = None
+
+
+class IdentificacionVehiculo(BaseModel):
+    id: str = "A"
+    matricula: Optional[str] = None
+    marca: str
+    modelo: str
+    anio: Optional[int] = None
+    color: Optional[str] = None
+    conductor: Optional[str] = None
+
+
+class FuenteVelocidad(str, Enum):
+    DECLARACION = "declaracion_conductor"
+    TACOGRAFO = "tacografo"
+    EDR = "edr"
+    TESTIGO = "testigo"
+    OTRO = "otro"
+
+
+class VelocidadDeclarada(BaseModel):
+    vehiculo_id: str
+    valor_kmh: float
+    fuente: FuenteVelocidad = FuenteVelocidad.DECLARACION
+
+
+class HechosAtestado(BaseModel):
+    numero_atestado: Optional[str] = None
+    cuerpo_actuante: Optional[str] = None
+    velocidades_declaradas: list[VelocidadDeclarada] = Field(default_factory=list)
+    hay_huellas_frenada: Optional[bool] = None
+    condiciones_meteorologicas: Optional[str] = None
+    estado_calzada: Optional[str] = None
+    visibilidad: Optional[str] = None
+    declaraciones: Optional[str] = None
+    observaciones: Optional[str] = None
+
+
+class GravedadLesion(str, Enum):
+    LEVE = "leve"
+    MODERADA = "moderada"
+    GRAVE = "grave"
+    MUY_GRAVE = "muy_grave"
+    FALLECIMIENTO = "fallecimiento"
+
+
+class Lesion(BaseModel):
+    ocupante: str
+    vehiculo_id: Optional[str] = None
+    zona_corporal: str
+    gravedad: GravedadLesion = GravedadLesion.LEVE
+    dias_baja: Optional[int] = None
+    secuelas: Optional[str] = None
+
+
+# ── Output del peritaje (Informe v2) ─────────────────────────────────────────
+
+class FichaTecnicaVehiculo(BaseModel):
+    """Datos enriquecidos automáticamente desde la base de fichas técnicas."""
+    vehiculo_id: str
+    marca: str
+    modelo: str
+    anio: Optional[int] = None
+    masa_kg: Optional[float] = None
+    longitud_m: Optional[float] = None
+    ancho_m: Optional[float] = None
+    altura_m: Optional[float] = None
+    altura_parachoques_m: Optional[tuple[float, float]] = None  # (inf, sup)
+    altura_largueros_m: Optional[float] = None
+    rigidez_a: Optional[float] = None
+    rigidez_b: Optional[float] = None
+    sistemas_seguridad: list[str] = Field(default_factory=list)
+    fuente: Optional[str] = None
+    notas: Optional[str] = None
+
+
+class FuenteNormativa(BaseModel):
+    referencia: str          # "Art. 74.1 RGC"
+    titulo: str              # texto descriptivo
+    boe: Optional[str] = None
+    extracto: Optional[str] = None
+
+
+class Cita(BaseModel):
+    tipo: str                # "calculo" | "normativa" | "ficha_tecnica" | "hecho"
+    referencia: str          # id del cálculo, art., etc.
+    extracto: Optional[str] = None
+
+
+class RespuestaPregunta(BaseModel):
+    pregunta_id: str         # "C1", "C2", ...
+    pregunta: str
+    respuesta: str           # redacción pericial
+    confianza: float = 0.0   # 0-1
+    citas: list[Cita] = Field(default_factory=list)
+
+
+class PrioridadInfoFaltante(str, Enum):
+    BLOQUEANTE = "bloqueante"
+    RECOMENDABLE = "recomendable"
+    MEJORA = "mejora"
+
+
+class InfoFaltante(BaseModel):
+    """Pregunta que Claude le hace al perito para mejorar el informe."""
+    id: str                                     # "Q1", "Q2"...
+    pregunta: str
+    motivo: str                                 # por qué le hace falta
+    prioridad: PrioridadInfoFaltante = PrioridadInfoFaltante.RECOMENDABLE
+    afecta_a: list[str] = Field(default_factory=list)   # ["C1", "C2"] preguntas afectadas
+    respondida: bool = False
+    respuesta_perito: Optional[str] = None
+
+
+class MensajeChat(BaseModel):
+    rol: str                                    # "claude" | "perito"
+    contenido: str
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    referencia_info_id: Optional[str] = None    # id de InfoFaltante al que responde
+
+
+class ImagenAnalizada(BaseModel):
+    """Imagen consultada/analizada por un agente — Mapillary, foto del perito, etc."""
+    url: Optional[str] = None
+    thumb_url: Optional[str] = None
+    descripcion: Optional[str] = None      # qué se ve, según análisis del agente
+    fuente: str = ""                       # "Mapillary", "perito", "atestado"...
+    captured_at: Optional[str] = None
+    compass_angle: Optional[float] = None
+    lat: Optional[float] = None
+    lon: Optional[float] = None
+    relevancia: Optional[str] = None       # por qué se incluye en el informe
+
+
+class ToolCallLog(BaseModel):
+    """Registro de cada invocación que el Perito hace a un specialist."""
+    id: str = Field(default_factory=lambda: str(uuid4())[:8])
+    agente: str                            # "EscenaAgent", "FichaAgent"...
+    pregunta: str                          # qué le ha pedido el Perito (resumido)
+    inputs: dict = Field(default_factory=dict)
+    resultado_resumen: Optional[str] = None
+    fuentes_consultadas: list[str] = Field(default_factory=list)
+    imagenes: list[ImagenAnalizada] = Field(default_factory=list)
+    falta_info: Optional[str] = None       # si el agente no pudo, qué pide al perito
+    requiere_foto: bool = False
+    duracion_ms: Optional[int] = None
+    timestamp: datetime = Field(default_factory=datetime.utcnow)
+
+
+class InformePericial(BaseModel):
+    """Resultado del peritaje v2: estructurado por preguntas del encargo."""
+    resumen_caso: str = ""
+    fichas_tecnicas: list[FichaTecnicaVehiculo] = Field(default_factory=list)
+    normativa_aplicable: list[FuenteNormativa] = Field(default_factory=list)
+    bibliografia: list[str] = Field(default_factory=list)
+    calculos: list[CalculoFisico] = Field(default_factory=list)
+    cronologia: list[Evento] = Field(default_factory=list)
+    respuestas: list[RespuestaPregunta] = Field(default_factory=list)
+    info_faltante: list[InfoFaltante] = Field(default_factory=list)
+    chat: list[MensajeChat] = Field(default_factory=list)
+    tool_calls: list[ToolCallLog] = Field(default_factory=list)
+    imagenes: list[ImagenAnalizada] = Field(default_factory=list)
+    confianza_global: float = 0.0
+    pdf_url: Optional[str] = None
+    sigstore_hash: Optional[str] = None
+
+
+# ── CRUD ────────────────────────────────────────────────────────────────────
+
 class CasoCreate(BaseModel):
     fecha_accidente: datetime
     ubicacion: Ubicacion
     tipo_colision: TipoColision
+    encargo: Optional[Encargo] = None
+    vehiculos_identificacion: list[IdentificacionVehiculo] = Field(default_factory=list)
+    hechos_atestado: Optional[HechosAtestado] = None
+    lesiones: list[Lesion] = Field(default_factory=list)
 
 
 class CasoUpdate(BaseModel):
     estado: Optional[EstadoCaso] = None
     vehiculos: Optional[list[Vehiculo]] = None
+
+
+class RespuestaPeritoInput(BaseModel):
+    """Lo que el perito responde al chat de info faltante."""
+    info_id: str
+    respuesta: str
 
 
 class EstadoAnalisis(BaseModel):

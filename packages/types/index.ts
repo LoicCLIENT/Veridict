@@ -225,6 +225,14 @@ export interface Caso {
   escena?: EscenaAccidente | null;
   contexto?: Contexto | null;
   resultado?: Resultado | null;
+  // ── Input v2 ────────────────────────────────────────────────────────
+  encargo?: Encargo | null;
+  vehiculos_identificacion?: IdentificacionVehiculo[];
+  hechos_atestado?: HechosAtestado | null;
+  lesiones?: Lesion[];
+  // ── Output v2 ───────────────────────────────────────────────────────
+  informe?: InformePericial | null;
+  // ── Metadatos ───────────────────────────────────────────────────────
   created_at?: string;
   updated_at?: string;
 }
@@ -233,6 +241,185 @@ export interface CasoCreate {
   fecha_accidente: string;
   ubicacion: Ubicacion;
   tipo_colision: TipoColision;
+  encargo?: Encargo;
+  vehiculos_identificacion?: IdentificacionVehiculo[];
+  hechos_atestado?: HechosAtestado;
+  lesiones?: Lesion[];
+}
+
+// ── Encargo pericial ─────────────────────────────────────────────────────────
+
+export type TipoEncargo =
+  | 'responsabilidad_trafico'
+  | 'velocidad_impacto'
+  | 'seguridad_pasiva'
+  | 'mecanica_fallo'
+  | 'atropello'
+  | 'cuantia_danos'
+  | 'otro';
+
+export type ParteSolicitante = 'demandante' | 'demandado' | 'imparcial' | 'aseguradora';
+
+export interface Encargo {
+  tipo: TipoEncargo;
+  preguntas: string[];
+  solicitante?: string;
+  parte?: ParteSolicitante;
+  procedimiento?: string;
+  observaciones?: string;
+}
+
+// ── Identificación mínima del vehículo (lo que el perito SÍ aporta) ──────────
+
+export interface IdentificacionVehiculo {
+  id: 'A' | 'B' | string;
+  matricula?: string;
+  marca: string;
+  modelo: string;
+  anio?: number;
+  color?: string;
+  conductor?: string;
+}
+
+// ── Hechos verificables del atestado ─────────────────────────────────────────
+
+export interface VelocidadDeclarada {
+  vehiculo_id: string;
+  valor_kmh: number;
+  fuente: 'declaracion_conductor' | 'tacografo' | 'edr' | 'testigo' | 'otro';
+}
+
+export interface HechosAtestado {
+  numero_atestado?: string;
+  cuerpo_actuante?: 'guardia_civil' | 'policia_local' | 'policia_nacional' | 'mossos' | 'ertzaintza' | string;
+  velocidades_declaradas?: VelocidadDeclarada[];
+  hay_huellas_frenada?: boolean;
+  condiciones_meteorologicas?: string;
+  estado_calzada?: string;
+  visibilidad?: string;
+  declaraciones?: string;
+  observaciones?: string;
+}
+
+// ── Lesiones ─────────────────────────────────────────────────────────────────
+
+export type GravedadLesion = 'leve' | 'moderada' | 'grave' | 'muy_grave' | 'fallecimiento';
+
+export interface Lesion {
+  ocupante: string;
+  vehiculo_id?: string;
+  zona_corporal: string;
+  gravedad: GravedadLesion;
+  dias_baja?: number;
+  secuelas?: string;
+}
+
+// ── Informe pericial v2 (output) ─────────────────────────────────────────────
+
+export interface FichaTecnicaVehiculo {
+  vehiculo_id: string;
+  marca: string;
+  modelo: string;
+  anio?: number | null;
+  masa_kg?: number | null;
+  longitud_m?: number | null;
+  ancho_m?: number | null;
+  altura_m?: number | null;
+  altura_parachoques_m?: [number, number] | null;
+  altura_largueros_m?: number | null;
+  rigidez_a?: number | null;
+  rigidez_b?: number | null;
+  sistemas_seguridad: string[];
+  fuente?: string | null;
+  notas?: string | null;
+}
+
+export interface FuenteNormativa {
+  referencia: string;
+  titulo: string;
+  boe?: string | null;
+  extracto?: string | null;
+}
+
+export interface Cita {
+  tipo: 'calculo' | 'normativa' | 'ficha_tecnica' | 'hecho' | string;
+  referencia: string;
+  extracto?: string | null;
+}
+
+export interface RespuestaPregunta {
+  pregunta_id: string;       // "C1", "C2"
+  pregunta: string;
+  respuesta: string;
+  confianza: number;
+  citas: Cita[];
+}
+
+export type PrioridadInfoFaltante = 'bloqueante' | 'recomendable' | 'mejora';
+
+export interface InfoFaltante {
+  id: string;                // "Q1", "Q2"
+  pregunta: string;
+  motivo: string;
+  prioridad: PrioridadInfoFaltante;
+  afecta_a: string[];        // ids de respuestas afectadas
+  respondida: boolean;
+  respuesta_perito?: string | null;
+}
+
+export interface MensajeChat {
+  rol: 'claude' | 'perito' | string;
+  contenido: string;
+  timestamp?: string;
+  referencia_info_id?: string | null;
+}
+
+export interface ImagenAnalizada {
+  url?: string | null;
+  thumb_url?: string | null;
+  descripcion?: string | null;
+  fuente: string;
+  captured_at?: string | null;
+  compass_angle?: number | null;
+  lat?: number | null;
+  lon?: number | null;
+  relevancia?: string | null;
+}
+
+export interface ToolCallLog {
+  id: string;
+  agente: string;
+  pregunta: string;
+  inputs: Record<string, unknown>;
+  resultado_resumen?: string | null;
+  fuentes_consultadas: string[];
+  imagenes: ImagenAnalizada[];
+  falta_info?: string | null;
+  requiere_foto: boolean;
+  duracion_ms?: number | null;
+  timestamp?: string;
+}
+
+export interface InformePericial {
+  resumen_caso: string;
+  fichas_tecnicas: FichaTecnicaVehiculo[];
+  normativa_aplicable: FuenteNormativa[];
+  bibliografia: string[];
+  calculos: CalculoFisico[];
+  cronologia: Evento[];
+  respuestas: RespuestaPregunta[];
+  info_faltante: InfoFaltante[];
+  chat: MensajeChat[];
+  tool_calls: ToolCallLog[];
+  imagenes: ImagenAnalizada[];
+  confianza_global: number;
+  pdf_url?: string | null;
+  sigstore_hash?: string | null;
+}
+
+export interface RespuestaPeritoInput {
+  info_id: string;
+  respuesta: string;
 }
 
 export interface EstadoAnalisis {

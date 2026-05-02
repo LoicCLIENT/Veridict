@@ -3,6 +3,7 @@ import type {
   CasoCreate,
   Resultado,
   EstadoAnalisis,
+  InformePericial as InformePericialT,
 } from "@veridict/types";
 
 export type {
@@ -36,6 +37,23 @@ export type {
   TipoHuella,
   CurvaturaHuella,
   TipoDanoSecundario,
+  Encargo,
+  TipoEncargo,
+  ParteSolicitante,
+  IdentificacionVehiculo,
+  HechosAtestado,
+  VelocidadDeclarada,
+  Lesion,
+  GravedadLesion,
+  InformePericial,
+  RespuestaPregunta,
+  InfoFaltante,
+  PrioridadInfoFaltante,
+  FichaTecnicaVehiculo,
+  FuenteNormativa,
+  MensajeChat,
+  Cita,
+  RespuestaPeritoInput,
 } from "@veridict/types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -113,6 +131,28 @@ export const api = {
     const res = await fetch(`${API_BASE}/api/demo/casos/${casoId}/reset`, { method: "POST" });
     if (!res.ok) throw new Error(`Error resetting demo caso (${res.status})`);
   },
+
+  // ── Peritaje v2: informe estructurado + chat info faltante ────────────────
+  generarInforme: (casoId: string): Promise<InformePericialT> =>
+    fetch(`${API_BASE}/api/casos/${casoId}/informe`, { method: "POST" }).then((r) =>
+      handle<InformePericialT>(r, "Error generando informe")
+    ),
+
+  getInforme: (casoId: string): Promise<InformePericialT> =>
+    fetch(`${API_BASE}/api/casos/${casoId}/informe`).then((r) =>
+      handle<InformePericialT>(r, "Error obteniendo informe")
+    ),
+
+  responderInfoFaltante: (
+    casoId: string,
+    infoId: string,
+    respuesta: string
+  ): Promise<InformePericialT> =>
+    fetch(`${API_BASE}/api/casos/${casoId}/responder`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ info_id: infoId, respuesta }),
+    }).then((r) => handle<InformePericialT>(r, "Error enviando respuesta")),
 
   health: async (): Promise<boolean> => {
     try {
