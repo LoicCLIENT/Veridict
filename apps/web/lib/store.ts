@@ -18,8 +18,8 @@ interface AppState {
   setTiempoActual: (tiempo: number) => void;
 
   // UI
-  panelActivo: "mapa" | "cronologia" | "calculos" | "legal";
-  setPanelActivo: (panel: "mapa" | "cronologia" | "calculos" | "legal") => void;
+  panelActivo: "mapa" | "cronologia" | "calculos" | "legal" | "dictamen" | "confrontacion";
+  setPanelActivo: (panel: "mapa" | "cronologia" | "calculos" | "legal" | "dictamen" | "confrontacion") => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({

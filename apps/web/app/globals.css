@@ -2,54 +2,891 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =============================================================================
+   VERIDICT DESIGN SYSTEM - globals.css
+   =============================================================================
+   Documento sagrado de estilos. Toda decision de UI debe respetar estas reglas.
+
+   Paleta:
+   - Verde oscuro dominante: #1F3329 (85% pantalla)
+   - Lima acento: #C2E94B (15% maximo)
+   - Error: #E94B4B
+
+   Filosofia: Minimalista, practico, moderno, serio.
+   ============================================================================= */
+
 @layer base {
+  /* ===========================================================================
+     VARIABLES CSS - SISTEMA VERIDICT
+     =========================================================================== */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* ----- Colores Core Veridict (valores HEX para uso directo) ----- */
+    --veridict-green-900: #1F3329;
+    --veridict-green-800: #2A4435;
+    --veridict-green-700: #355541;
+    --veridict-green-600: #40664D;
+    --veridict-green-500: #4B7759;
+
+    --veridict-lime: #C2E94B;
+    --veridict-lime-hover: #D4F06A;
+    --veridict-lime-muted: rgba(194, 233, 75, 0.2);
+    --veridict-lime-subtle: rgba(194, 233, 75, 0.1);
+
+    --veridict-white: #F5F5F0;
+    --veridict-gray: #A3A99E;
+    --veridict-gray-muted: #7A7F76;
+    --veridict-error: #E94B4B;
+    --veridict-error-muted: rgba(233, 75, 75, 0.2);
+    --veridict-success: #C2E94B;
+    --veridict-warning: #E9C74B;
+
+    /* ----- Variables Shadcn/UI (HSL sin funcion hsl()) ----- */
+    /* Background: Verde oscuro Veridict #1F3329 */
+    --background: 150 24% 16%;
+    --foreground: 60 14% 95%;
+
+    /* Card: Verde-800 elevado #2A4435 */
+    --card: 150 24% 18%;
+    --card-foreground: 60 14% 95%;
+
+    /* Popover */
+    --popover: 150 24% 16%;
+    --popover-foreground: 60 14% 95%;
+
+    /* Primary: Lima Veridict #C2E94B */
+    --primary: 75 79% 60%;
+    --primary-foreground: 150 24% 16%;
+
+    /* Secondary: Verde-700 */
+    --secondary: 150 24% 24%;
+    --secondary-foreground: 60 14% 95%;
+
+    /* Muted: Verde-800 */
+    --muted: 150 24% 20%;
+    --muted-foreground: 70 4% 63%;
+
+    /* Accent: Verde con toque lima */
+    --accent: 150 30% 28%;
+    --accent-foreground: 60 14% 95%;
+
+    /* Destructive: Rojo Veridict #E94B4B */
+    --destructive: 0 74% 60%;
+    --destructive-foreground: 60 14% 95%;
+
+    /* Borders e Inputs */
+    --border: 150 10% 25%;
+    --input: 150 24% 20%;
+    --ring: 75 79% 60%;
+
+    /* Radius - Sistema Veridict */
     --radius: 0.5rem;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+
+    /* ----- Tipografia ----- */
+    --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-mono: "JetBrains Mono", "Fira Code", "Consolas", monospace;
+
+    /* Escala tipografica */
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-base: 1rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.5rem;
+    --text-3xl: 2rem;
+    --text-4xl: 2.5rem;
+
+    /* ----- Espaciado (base 4px) ----- */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+    --space-8: 32px;
+    --space-10: 40px;
+    --space-12: 48px;
+    --space-16: 64px;
+
+    /* ----- Sombras ----- */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.3);
+    --shadow-glow-lime: 0 0 20px rgba(194, 233, 75, 0.15);
+
+    /* ----- Transiciones ----- */
+    --transition-fast: 150ms ease;
+    --transition-base: 200ms ease;
+    --transition-slow: 300ms ease;
+
+    /* ----- Bordes ----- */
+    --border-subtle: 1px solid rgba(255, 255, 255, 0.06);
+    --border-visible: 1px solid rgba(255, 255, 255, 0.12);
+    --border-active: 1px solid rgba(194, 233, 75, 0.5);
+
+    /* ----- Sidebar (para shadcn) ----- */
+    --sidebar-background: 150 24% 14%;
+    --sidebar-foreground: 60 14% 95%;
+    --sidebar-primary: 75 79% 60%;
+    --sidebar-primary-foreground: 150 24% 16%;
+    --sidebar-accent: 150 24% 22%;
+    --sidebar-accent-foreground: 60 14% 95%;
+    --sidebar-border: 150 10% 20%;
+    --sidebar-ring: 75 79% 60%;
+
+    /* ----- Chart colors (verdes Veridict) ----- */
+    --chart-1: 75 79% 60%;
+    --chart-2: 150 24% 35%;
+    --chart-3: 150 24% 45%;
+    --chart-4: 150 24% 55%;
+    --chart-5: 0 74% 60%;
   }
 
+  /* Dark mode ES el default - aplicamos los mismos valores */
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --background: 150 24% 16%;
+    --foreground: 60 14% 95%;
+    --card: 150 24% 18%;
+    --card-foreground: 60 14% 95%;
+    --popover: 150 24% 16%;
+    --popover-foreground: 60 14% 95%;
+    --primary: 75 79% 60%;
+    --primary-foreground: 150 24% 16%;
+    --secondary: 150 24% 24%;
+    --secondary-foreground: 60 14% 95%;
+    --muted: 150 24% 20%;
+    --muted-foreground: 70 4% 63%;
+    --accent: 150 30% 28%;
+    --accent-foreground: 60 14% 95%;
+    --destructive: 0 74% 60%;
+    --destructive-foreground: 60 14% 95%;
+    --border: 150 10% 25%;
+    --input: 150 24% 20%;
+    --ring: 75 79% 60%;
+    --sidebar-background: 150 24% 14%;
+    --sidebar-foreground: 60 14% 95%;
+    --sidebar-primary: 75 79% 60%;
+    --sidebar-primary-foreground: 150 24% 16%;
+    --sidebar-accent: 150 24% 22%;
+    --sidebar-accent-foreground: 60 14% 95%;
+    --sidebar-border: 150 10% 20%;
+    --sidebar-ring: 75 79% 60%;
+  }
+
+  /* ===========================================================================
+     RESET BASE
+     =========================================================================== */
+  *,
+  *::before,
+  *::after {
+    @apply border-border;
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background-color: var(--veridict-green-900);
+    color: var(--veridict-white);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    min-height: 100vh;
+    line-height: 1.6;
+  }
+
+  /* Seleccion de texto con colores Veridict */
+  ::selection {
+    background-color: var(--veridict-lime);
+    color: var(--veridict-green-900);
+  }
+
+  ::-moz-selection {
+    background-color: var(--veridict-lime);
+    color: var(--veridict-green-900);
+  }
+
+  /* Scrollbar personalizada */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: var(--veridict-green-900);
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--veridict-green-700);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--veridict-green-600);
+  }
+
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--veridict-green-700) var(--veridict-green-900);
+  }
+
+  /* Focus visible global */
+  :focus-visible {
+    outline: 2px solid var(--veridict-lime);
+    outline-offset: 2px;
+  }
+
+  /* Links */
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  /* Headings */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--veridict-white);
+  }
+
+  /* Parrafos */
+  p {
+    color: var(--veridict-gray);
+  }
+
+  /* Codigo */
+  code, pre {
+    font-family: var(--font-mono);
+  }
+
+  /* Inputs y textareas */
+  input, textarea, select {
+    font-family: inherit;
+  }
+
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--veridict-gray-muted);
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
+@layer components {
+  /* ===========================================================================
+     GRADIENTES HERO CON RUIDO - ABSTRACTOS, NO LINEALES
+     =========================================================================== */
+
+  /* Gradiente principal hero */
+  .gradient-hero {
+    background:
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(42, 68, 53, 0.5) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 40% at 100% 100%, rgba(53, 85, 65, 0.125) 0%, transparent 40%),
+      var(--veridict-green-900);
   }
-  body {
-    @apply bg-background text-foreground;
+
+  /* Gradiente hero con acento lima sutil */
+  .gradient-hero-accent {
+    background:
+      radial-gradient(ellipse 50% 30% at 70% 10%, rgba(194, 233, 75, 0.08) 0%, transparent 50%),
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(42, 68, 53, 0.5) 0%, transparent 50%),
+      radial-gradient(ellipse 60% 40% at 100% 100%, rgba(53, 85, 65, 0.125) 0%, transparent 40%),
+      var(--veridict-green-900);
+  }
+
+  /* Gradiente para cards destacadas */
+  .gradient-card {
+    background:
+      radial-gradient(ellipse 100% 100% at 0% 0%, rgba(53, 85, 65, 0.3) 0%, transparent 50%),
+      var(--veridict-green-800);
+  }
+
+  /* Gradiente radial centrado */
+  .gradient-radial {
+    background: radial-gradient(circle at 50% 50%, var(--veridict-green-700) 0%, var(--veridict-green-900) 70%);
+  }
+
+  /* Gradiente mesh abstracto complejo */
+  .gradient-mesh {
+    background:
+      radial-gradient(at 40% 20%, rgba(42, 68, 53, 0.8) 0%, transparent 50%),
+      radial-gradient(at 80% 0%, rgba(53, 85, 65, 0.4) 0%, transparent 40%),
+      radial-gradient(at 0% 50%, rgba(64, 102, 77, 0.3) 0%, transparent 50%),
+      radial-gradient(at 80% 50%, rgba(31, 51, 41, 0.6) 0%, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(42, 68, 53, 0.5) 0%, transparent 40%),
+      radial-gradient(at 80% 100%, rgba(53, 85, 65, 0.3) 0%, transparent 50%),
+      var(--veridict-green-900);
+  }
+
+  /* Gradiente para header/nav */
+  .gradient-header {
+    background:
+      linear-gradient(180deg, rgba(31, 51, 41, 1) 0%, rgba(31, 51, 41, 0.95) 100%);
+    backdrop-filter: blur(8px);
+  }
+
+  /* ===========================================================================
+     NOISE OVERLAY - Textura de ruido para fondos hero
+     =========================================================================== */
+
+  /* Overlay de ruido base - aplicar con position relative al padre */
+  .noise-overlay {
+    position: relative;
+  }
+
+  .noise-overlay::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .noise-overlay > * {
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Variante de ruido mas sutil */
+  .noise-subtle::before {
+    opacity: 0.015;
+  }
+
+  /* Variante de ruido mas pronunciado */
+  .noise-strong::before {
+    opacity: 0.05;
+  }
+
+  /* Clase alternativa standalone para ruido */
+  .noise-texture {
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    mix-blend-mode: overlay;
+    pointer-events: none;
+  }
+
+  /* ===========================================================================
+     COMPONENTES VERIDICT
+     =========================================================================== */
+
+  /* ----- Botones ----- */
+
+  /* Boton primario lima (REGLA: solo 1 por pantalla visible) */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-semibold;
+    background-color: var(--veridict-lime);
+    color: var(--veridict-green-900);
+    transition: all var(--transition-base);
+  }
+
+  .btn-primary:hover {
+    background-color: var(--veridict-lime-hover);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-glow-lime);
+  }
+
+  .btn-primary:active {
+    transform: translateY(0);
+  }
+
+  .btn-primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Boton secundario outline */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-lg font-medium;
+    background-color: transparent;
+    color: var(--veridict-white);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all var(--transition-base);
+  }
+
+  .btn-secondary:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+
+  .btn-secondary:active {
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+
+  /* Boton ghost (solo texto) */
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg font-medium;
+    background-color: transparent;
+    color: var(--veridict-gray);
+    transition: all var(--transition-base);
+  }
+
+  .btn-ghost:hover {
+    color: var(--veridict-white);
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  /* Boton icon */
+  .btn-icon {
+    @apply inline-flex items-center justify-center p-2 rounded-lg;
+    background-color: transparent;
+    color: var(--veridict-gray);
+    transition: all var(--transition-base);
+  }
+
+  .btn-icon:hover {
+    color: var(--veridict-white);
+    background-color: rgba(255, 255, 255, 0.08);
+  }
+
+  /* ----- Cards ----- */
+
+  .card-veridict {
+    background-color: var(--veridict-green-800);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-base);
+  }
+
+  .card-veridict:hover {
+    border-color: rgba(255, 255, 255, 0.1);
+    box-shadow: var(--shadow-md);
+  }
+
+  .card-elevated {
+    background-color: var(--veridict-green-700);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-lg);
+  }
+
+  .card-interactive {
+    background-color: var(--veridict-green-800);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: var(--radius-lg);
+    transition: all var(--transition-base);
+    cursor: pointer;
+  }
+
+  .card-interactive:hover {
+    background-color: var(--veridict-green-700);
+    border-color: rgba(255, 255, 255, 0.12);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* ----- Badges ----- */
+
+  .badge-positive {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium;
+    background-color: var(--veridict-lime-muted);
+    color: var(--veridict-lime);
+  }
+
+  .badge-neutral {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium;
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--veridict-gray);
+  }
+
+  .badge-negative {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium;
+    background-color: var(--veridict-error-muted);
+    color: var(--veridict-error);
+  }
+
+  /* ----- Inputs ----- */
+
+  .input-veridict {
+    @apply w-full px-4 py-3 rounded-lg;
+    background-color: var(--veridict-green-800);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--veridict-white);
+    transition: all var(--transition-base);
+  }
+
+  .input-veridict::placeholder {
+    color: var(--veridict-gray-muted);
+  }
+
+  .input-veridict:focus {
+    outline: none;
+    border-color: var(--veridict-lime);
+    box-shadow: 0 0 0 3px var(--veridict-lime-subtle);
+  }
+
+  .input-veridict:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* ----- Texto utilitario ----- */
+
+  .text-veridict-white {
+    color: var(--veridict-white);
+  }
+
+  .text-veridict-gray {
+    color: var(--veridict-gray);
+  }
+
+  .text-veridict-muted {
+    color: var(--veridict-gray-muted);
+  }
+
+  .text-veridict-lime {
+    color: var(--veridict-lime);
+  }
+
+  .text-veridict-error {
+    color: var(--veridict-error);
+  }
+
+  /* ----- Backgrounds utilitarios ----- */
+
+  .bg-veridict-900 {
+    background-color: var(--veridict-green-900);
+  }
+
+  .bg-veridict-800 {
+    background-color: var(--veridict-green-800);
+  }
+
+  .bg-veridict-700 {
+    background-color: var(--veridict-green-700);
+  }
+
+  .bg-veridict-600 {
+    background-color: var(--veridict-green-600);
+  }
+
+  .bg-veridict-500 {
+    background-color: var(--veridict-green-500);
+  }
+
+  .bg-veridict-lime {
+    background-color: var(--veridict-lime);
+  }
+
+  .bg-veridict-lime-muted {
+    background-color: var(--veridict-lime-muted);
+  }
+
+  /* ----- Bordes utilitarios ----- */
+
+  .border-veridict-subtle {
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .border-veridict-visible {
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .border-veridict-active {
+    border: 1px solid rgba(194, 233, 75, 0.5);
+  }
+
+  /* ----- Dividers ----- */
+
+  .divider-veridict {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.08) 20%,
+      rgba(255, 255, 255, 0.08) 80%,
+      transparent 100%
+    );
+  }
+
+  .divider-solid {
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.06);
+  }
+
+  /* ----- Glass effect ----- */
+
+  .glass-veridict {
+    background: rgba(31, 51, 41, 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .glass-light {
+    background: rgba(42, 68, 53, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  /* ----- Progress/Score bars ----- */
+
+  .progress-veridict {
+    @apply w-full h-2 rounded-full overflow-hidden;
+    background-color: var(--veridict-green-700);
+  }
+
+  .progress-veridict-bar {
+    @apply h-full rounded-full;
+    background-color: var(--veridict-lime);
+    transition: width var(--transition-slow);
+  }
+
+  /* ===========================================================================
+     ANIMACIONES - Sutiles, funcionales, nunca decorativas
+     =========================================================================== */
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slide-down {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  @keyframes pulse-lime {
+    0%, 100% {
+      box-shadow: 0 0 0 0 rgba(194, 233, 75, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgba(194, 233, 75, 0);
+    }
+  }
+
+  @keyframes spin-slow {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in var(--transition-base) ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slide-up var(--transition-slow) ease-out;
+  }
+
+  .animate-slide-down {
+    animation: slide-down var(--transition-slow) ease-out;
+  }
+
+  .animate-scale-in {
+    animation: scale-in var(--transition-base) ease-out;
+  }
+
+  .animate-pulse-lime {
+    animation: pulse-lime 2s infinite;
+  }
+
+  .animate-spin-slow {
+    animation: spin-slow 3s linear infinite;
+  }
+}
+
+@layer utilities {
+  /* ===========================================================================
+     UTILIDADES ADICIONALES
+     =========================================================================== */
+
+  /* Container maximo Veridict (1280px) */
+  .container-veridict {
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--space-6);
+    padding-right: var(--space-6);
+  }
+
+  /* Grid de 12 columnas */
+  .grid-veridict {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: var(--space-6);
+  }
+
+  /* Text balance */
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  /* Texto truncado */
+  .text-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Texto con clamp */
+  .text-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .text-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Transiciones rapidas */
+  .transition-veridict {
+    transition: all var(--transition-base);
+  }
+
+  .transition-veridict-fast {
+    transition: all var(--transition-fast);
+  }
+
+  .transition-veridict-slow {
+    transition: all var(--transition-slow);
+  }
+
+  /* Hide scrollbar pero mantener scroll */
+  .scrollbar-hidden {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Aspect ratios utiles */
+  .aspect-video-veridict {
+    aspect-ratio: 16 / 9;
+  }
+
+  .aspect-square-veridict {
+    aspect-ratio: 1 / 1;
+  }
+
+  /* Focus ring consistente */
+  .focus-ring-veridict {
+    @apply focus:outline-none focus:ring-2 focus:ring-offset-2;
+    --tw-ring-color: var(--veridict-lime);
+    --tw-ring-offset-color: var(--veridict-green-900);
+  }
+
+  /* Hover glow sutil */
+  .hover-glow:hover {
+    box-shadow: var(--shadow-glow-lime);
+  }
+
+  /* Responsive text */
+  .text-responsive-hero {
+    font-size: clamp(2rem, 5vw, 2.5rem);
+    line-height: 1.2;
+  }
+
+  .text-responsive-title {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    line-height: 1.3;
+  }
+
+  /* Skeleton loading */
+  .skeleton-veridict {
+    background: linear-gradient(
+      90deg,
+      var(--veridict-green-800) 25%,
+      var(--veridict-green-700) 50%,
+      var(--veridict-green-800) 75%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-shimmer 1.5s infinite;
+  }
+
+  @keyframes skeleton-shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  /* Radios personalizados */
+  .rounded-veridict-sm {
+    border-radius: var(--radius-sm);
+  }
+
+  .rounded-veridict-md {
+    border-radius: var(--radius-md);
+  }
+
+  .rounded-veridict-lg {
+    border-radius: var(--radius-lg);
+  }
+
+  .rounded-veridict-xl {
+    border-radius: var(--radius-xl);
+  }
+
+  /* Sombras personalizadas */
+  .shadow-veridict-sm {
+    box-shadow: var(--shadow-sm);
+  }
+
+  .shadow-veridict-md {
+    box-shadow: var(--shadow-md);
+  }
+
+  .shadow-veridict-lg {
+    box-shadow: var(--shadow-lg);
+  }
+
+  .shadow-veridict-glow {
+    box-shadow: var(--shadow-glow-lime);
   }
 }

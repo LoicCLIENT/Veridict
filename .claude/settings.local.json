@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git clone:*)",
+      "Bash(git add:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)",
+      "Bash(npx shadcn@latest mcp init:*)",
+      "mcp__context7__resolve-library-id",
+      "Bash(curl:*)",
+      "Bash(npx tsc:*)",
+      "Bash(node -e:*)",
+      "Bash(ping:*)",
+      "Bash(cmd.exe /c \"taskkill /F /IM node.exe\")",
+      "mcp__sequential-thinking__sequentialthinking",
+      "mcp__vercel__getteams",
+      "mcp__vercel__getprojects",
+      "mcp__vercel__createproject",
+      "Bash(taskkill:*)",
+      "WebSearch"
+    ]
+  }
+}

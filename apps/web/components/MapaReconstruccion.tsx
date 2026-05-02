@@ -1,43 +1,70 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import { useEffect, useRef, useState, useCallback } from "react";
+import { MapPin } from "lucide-react";
+import { AccidentScene2D, AccidentSceneData, mockSceneDataCaso1 } from "./reconstruction";
+import {
+  VisualizationControls,
+  VisualizationSettings,
+  defaultVisualizationSettings,
+} from "./reconstruction/VisualizationControls";
 
 interface MapaReconstruccionProps {
   ubicacion: { lat: number; lon: number };
+  sceneData?: AccidentSceneData;
   trayectorias?: {
     vehiculo: "A" | "B";
     puntos: { lat: number; lon: number; tiempo: number }[];
   }[];
   tiempoActual?: number;
+  onTimeChange?: (time: number) => void;
+  compact?: boolean;
 }
 
 export function MapaReconstruccion({
   ubicacion,
+  sceneData = mockSceneDataCaso1,
   trayectorias = [],
   tiempoActual = 0,
+  onTimeChange,
+  compact = false,
 }: MapaReconstruccionProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
+  const map = useRef<any>(null);
+  const [mapboxLoaded, setMapboxLoaded] = useState(false);
+  const [hasToken, setHasToken] = useState(false);
+  const [viewMode, setViewMode] = useState<"reconstruction" | "satellite">("reconstruction");
+  const [currentTime, setCurrentTime] = useState(tiempoActual);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [settings, setSettings] = useState<VisualizationSettings>(defaultVisualizationSettings);
+  const [centerTarget, setCenterTarget] = useState<"A" | "B" | "impact" | "overview" | null>(null);
+
+  // Playback interval ref
+  const playbackRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (!mapContainer.current || map.current) return;
+    const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
+    setHasToken(!!token && token.length > 0);
 
-    mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || "";
+    if (!token || !mapContainer.current || map.current) return;
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: "mapbox://styles/mapbox/dark-v11",
-      center: [ubicacion.lon, ubicacion.lat],
-      zoom: 17,
-      pitch: 45,
-    });
+    import("mapbox-gl").then((mapboxgl) => {
+      mapboxgl.default.accessToken = token;
 
-    // Agregar marcador de colision
-    new mapboxgl.Marker({ color: "#ef4444" })
-      .setLngLat([ubicacion.lon, ubicacion.lat])
-      .addTo(map.current);
+      map.current = new mapboxgl.default.Map({
+        container: mapContainer.current!,
+        style: "mapbox://styles/mapbox/dark-v11",
+        center: [ubicacion.lon, ubicacion.lat],
+        zoom: 17,
+        pitch: 45,
+      });
+
+      new mapboxgl.default.Marker({ color: "#ef4444" })
+        .setLngLat([ubicacion.lon, ubicacion.lat])
+        .addTo(map.current);
+
+      setMapboxLoaded(true);
+    }).catch(console.error);
 
     return () => {
       map.current?.remove();
@@ -45,24 +72,204 @@ export function MapaReconstruccion({
     };
   }, [ubicacion]);
 
-  // Actualizar trayectorias cuando cambia el tiempo
+  // Auto-play with speed control
   useEffect(() => {
-    if (!map.current || trayectorias.length === 0) return;
+    if (isPlaying) {
+      const intervalMs = 50 / settings.playbackSpeed;
+      playbackRef.current = setInterval(() => {
+        setCurrentTime((prev) => {
+          const next = prev + 1;
+          if (next >= 100) {
+            if (settings.loop) {
+              return 0;
+            }
+            setIsPlaying(false);
+            return 100;
+          }
+          return next;
+        });
+      }, intervalMs);
+    }
+    return () => {
+      if (playbackRef.current) clearInterval(playbackRef.current);
+    };
+  }, [isPlaying, settings.playbackSpeed, settings.loop]);
 
-    // Aqui se animarian las trayectorias segun tiempoActual
-    // Por ahora solo mostramos las lineas completas
-  }, [trayectorias, tiempoActual]);
+  // Sync with external time
+  useEffect(() => {
+    setCurrentTime(tiempoActual);
+  }, [tiempoActual]);
+
+  // Notify time changes
+  useEffect(() => {
+    onTimeChange?.(currentTime);
+  }, [currentTime, onTimeChange]);
+
+  const handlePlayPause = useCallback(() => {
+    if (currentTime >= 100) {
+      setCurrentTime(0);
+    }
+    setIsPlaying(!isPlaying);
+  }, [isPlaying, currentTime]);
+
+  const handleTimeChange = useCallback((time: number) => {
+    setCurrentTime(time);
+    setIsPlaying(false);
+  }, []);
+
+  const handleReset = useCallback(() => {
+    setCurrentTime(0);
+    setIsPlaying(false);
+  }, []);
+
+  const handleCenterOn = useCallback((target: "A" | "B" | "impact" | "overview") => {
+    setCenterTarget(target);
+    // Reset after a short delay to allow re-centering
+    setTimeout(() => setCenterTarget(null), 100);
+  }, []);
+
+  // Compact mode (for embeds)
+  if (compact) {
+    return (
+      <div className="relative w-full h-72 rounded-lg overflow-hidden">
+        <AccidentScene2D
+          data={sceneData}
+          currentTime={currentTime}
+          showMeasurements={settings.showMeasurements}
+          showTrajectories={settings.showTrajectories}
+          showGrid={settings.showGrid}
+          compact={true}
+        />
+        {/* Simple playback bar */}
+        <div className="absolute bottom-3 left-3 right-3 z-20">
+          <div className="bg-[#0a0a0a]/90 backdrop-blur-sm rounded-lg p-2 border border-white/[0.06]">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handlePlayPause}
+                className={`p-1.5 rounded transition-colors ${
+                  isPlaying ? "bg-red-500/20 text-red-400" : "bg-[#C2E94B]/20 text-[#C2E94B]"
+                }`}
+              >
+                {isPlaying ? (
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                    <rect x="6" y="4" width="4" height="16" />
+                    <rect x="14" y="4" width="4" height="16" />
+                  </svg>
+                ) : (
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M8 5v14l11-7z" />
+                  </svg>
+                )}
+              </button>
+              <input
+                type="range"
+                min="0"
+                max="100"
+                value={currentTime}
+                onChange={(e) => handleTimeChange(Number(e.target.value))}
+                className="flex-1 h-1 bg-zinc-800 rounded-full appearance-none cursor-pointer
+                  [&::-webkit-slider-thumb]:appearance-none
+                  [&::-webkit-slider-thumb]:w-2
+                  [&::-webkit-slider-thumb]:h-2
+                  [&::-webkit-slider-thumb]:rounded-full
+                  [&::-webkit-slider-thumb]:bg-[#C2E94B]"
+              />
+              <span className="text-[10px] font-mono text-zinc-500">{currentTime}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Full mode with controls
+  const renderReconstructionView = () => (
+    <div className="relative w-full h-full min-h-[500px]">
+      <AccidentScene2D
+        data={{
+          ...sceneData,
+          // Apply vehicle colors from settings
+        }}
+        currentTime={currentTime}
+        showMeasurements={settings.showMeasurements}
+        showTrajectories={settings.showTrajectories}
+        showGrid={settings.showGrid}
+        vehicleAColor={settings.vehicleA.color}
+        vehicleBColor={settings.vehicleB.color}
+        centerTarget={centerTarget}
+        showSpeedLabels={settings.showSpeedLabels}
+        showImpactZone={settings.showImpactZone}
+        viewMode={settings.viewMode}
+      />
+
+      {/* Coordinates badge */}
+      <div className="absolute bottom-3 left-3 bg-[#0a0a0a]/80 px-3 py-2 rounded-lg backdrop-blur-sm z-20 border border-white/[0.04]">
+        <div className="flex items-center gap-2 text-xs text-zinc-500">
+          <MapPin className="w-3 h-3 text-[#C2E94B]" />
+          <span className="font-mono">
+            {ubicacion.lat.toFixed(4)}, {ubicacion.lon.toFixed(4)}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (hasToken && viewMode === "satellite") {
+    return (
+      <div className="space-y-3">
+        <div className="relative w-full h-[500px] rounded-lg overflow-hidden">
+          <div ref={mapContainer} className="absolute inset-0" />
+          {!mapboxLoaded && (
+            <div className="absolute inset-0 flex items-center justify-center bg-[#0d110d]">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-8 h-8 border-2 border-[#C2E94B] border-t-transparent rounded-full animate-spin" />
+                <span className="text-sm text-zinc-500">Cargando mapa...</span>
+              </div>
+            </div>
+          )}
+          <div className="absolute top-4 right-4 z-10">
+            <button
+              onClick={() => setViewMode("reconstruction")}
+              className="px-3 py-1.5 rounded text-xs font-medium bg-[#0a0a0a]/80 text-zinc-400 hover:text-white border border-white/[0.06] transition-colors"
+            >
+              Vista Técnica
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="relative w-full h-full min-h-[400px] rounded-lg overflow-hidden">
-      <div ref={mapContainer} className="absolute inset-0" />
-      {!process.env.NEXT_PUBLIC_MAPBOX_TOKEN && (
-        <div className="absolute inset-0 flex items-center justify-center bg-secondary/80">
-          <p className="text-muted-foreground">
-            Configura NEXT_PUBLIC_MAPBOX_TOKEN para ver el mapa
-          </p>
-        </div>
-      )}
+    <div className="space-y-3">
+      {/* Visualization controls */}
+      <VisualizationControls
+        settings={settings}
+        onSettingsChange={setSettings}
+        currentTime={currentTime}
+        isPlaying={isPlaying}
+        onPlayPause={handlePlayPause}
+        onTimeChange={handleTimeChange}
+        onReset={handleReset}
+        onCenterOn={handleCenterOn}
+      />
+
+      {/* Scene */}
+      <div className="relative w-full rounded-lg overflow-hidden border border-white/[0.06]">
+        {renderReconstructionView()}
+
+        {/* View mode toggle (only show if Mapbox available) */}
+        {hasToken && (
+          <div className="absolute top-4 right-4 z-20">
+            <button
+              onClick={() => setViewMode("satellite")}
+              className="px-3 py-1.5 rounded text-xs font-medium bg-[#0a0a0a]/80 text-zinc-400 hover:text-white border border-white/[0.06] transition-colors"
+            >
+              Vista Satélite
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
