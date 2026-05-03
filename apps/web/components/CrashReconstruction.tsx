@@ -44,11 +44,11 @@ const DEBRIS = (() => {
 })();
 
 const PHASE_LABEL: Record<Phase, string> = {
-  approach: "// MONITORIZANDO TRAYECTORIA",
-  impact: "// IMPACTO DETECTADO",
-  chaos: "// ANÁLISIS DE COLISIÓN",
-  reconstruct: "// RECONSTRUYENDO SECUENCIA",
-  forensic: "// DICTAMEN FORENSE",
+  approach: "// MONITORING TRAJECTORY",
+  impact: "// IMPACT DETECTED",
+  chaos: "// COLLISION ANALYSIS",
+  reconstruct: "// RECONSTRUCTING SEQUENCE",
+  forensic: "// FORENSIC REPORT",
 };
 
 export default function CrashReconstruction({
@@ -432,7 +432,7 @@ export default function CrashReconstruction({
                     fontSize="10"
                     letterSpacing="0.12em"
                   >
-                    VEHÍCULO A · CRASH3
+                    VEHICLE A · CRASH3
                   </text>
                   <text
                     x="115"
@@ -490,7 +490,7 @@ export default function CrashReconstruction({
                     fontSize="10"
                     letterSpacing="0.12em"
                   >
-                    VEHÍCULO B · CRASH3
+                    VEHICLE B · CRASH3
                   </text>
                   <text
                     x={VBW - 245}
@@ -514,7 +514,7 @@ export default function CrashReconstruction({
                   />
                 </motion.g>
 
-                {/* Center "Análisis completado" badge */}
+                {/* Center "Analysis completed" badge */}
                 <motion.g
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -548,7 +548,7 @@ export default function CrashReconstruction({
                     letterSpacing="0.18em"
                     fontWeight="600"
                   >
-                    DICTAMEN · UNE-EN 16775
+                    EXPERT REPORT · UNE-EN 16775
                   </text>
                 </motion.g>
               </g>

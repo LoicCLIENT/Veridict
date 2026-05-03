@@ -1,0 +1,76 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - navigation [ref=e6]:
+        - link "Veridict" [ref=e7] [cursor=pointer]:
+          - /url: /
+          - img "Veridict" [ref=e8]
+        - link "Ver Demo" [ref=e9] [cursor=pointer]:
+          - /url: /demo
+          - button "Ver Demo" [ref=e10]
+      - generic [ref=e12]:
+        - paragraph [ref=e13]: Reconstruccion forense con IA
+        - heading "Dictamenes en minutos" [level=1] [ref=e14]:
+          - text: Dictamenes
+          - text: en minutos
+        - paragraph [ref=e15]: IA que analiza accidentes y genera informes periciales listos para juicio.
+        - generic [ref=e16]:
+          - link "Ver Demo" [ref=e17] [cursor=pointer]:
+            - /url: /demo
+            - button "Ver Demo" [ref=e18]:
+              - img [ref=e19]
+              - text: Ver Demo
+          - link "Documentacion" [ref=e21] [cursor=pointer]:
+            - /url: /docs
+            - button "Documentacion" [ref=e22]
+    - generic [ref=e27]:
+      - heading "De 3 dias de trabajo a 2 minutos." [level=2] [ref=e29]:
+        - text: De 3 dias de trabajo
+        - text: a 2 minutos.
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - generic [ref=e32]: "01"
+          - heading "Analisis automatizado" [level=3] [ref=e33]
+          - paragraph [ref=e34]: Procesa atestados, fotos y datos EDR.
+        - generic [ref=e35]:
+          - generic [ref=e36]: "02"
+          - heading "5 agentes IA" [level=3] [ref=e37]
+          - paragraph [ref=e38]: Pipeline multi-agente con verificacion.
+        - generic [ref=e39]:
+          - generic [ref=e40]: "03"
+          - heading "Formato UNE-EN 16775" [level=3] [ref=e41]
+          - paragraph [ref=e42]: Dictamenes con estandar europeo.
+        - generic [ref=e43]:
+          - generic [ref=e44]: "04"
+          - heading "Firma Sigstore" [level=3] [ref=e45]
+          - paragraph [ref=e46]: Trazabilidad criptografica verificable.
+    - generic [ref=e49]:
+      - generic [ref=e50]:
+        - generic [ref=e51]: "2"
+        - generic [ref=e52]: minutos
+      - generic [ref=e53]:
+        - generic [ref=e54]: "5"
+        - generic [ref=e55]: agentes IA
+      - generic [ref=e56]:
+        - generic [ref=e57]: UNE
+        - generic [ref=e58]: certificado
+    - generic [ref=e61]:
+      - heading "Pruebalo ahora" [level=2] [ref=e62]
+      - paragraph [ref=e63]: Sin registro. Caso de ejemplo incluido.
+      - link "Abrir Demo" [ref=e64] [cursor=pointer]:
+        - /url: /demo
+        - button "Abrir Demo" [ref=e65]:
+          - text: Abrir Demo
+          - img [ref=e66]
+    - generic [ref=e69]:
+      - link "Veridict" [ref=e70] [cursor=pointer]:
+        - /url: /
+        - img "Veridict" [ref=e71]
+      - generic [ref=e72]:
+        - link "Docs" [ref=e73] [cursor=pointer]:
+          - /url: /docs
+        - link "Demo" [ref=e74] [cursor=pointer]:
+          - /url: /demo
+  - button "Open Next.js Dev Tools" [ref=e80] [cursor=pointer]:
+    - img [ref=e81]
+  - alert [ref=e84]

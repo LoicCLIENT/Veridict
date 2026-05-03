@@ -1,0 +1,70 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]: Demo Interactivo
+    - heading "Veridict AI en Acción" [level=1] [ref=e6]
+    - paragraph [ref=e7]: Observa cómo 4 agentes de IA especializados analizan un accidente de tráfico y generan un dictamen pericial verificable en tiempo real.
+  - generic [ref=e8]:
+    - generic [ref=e10]:
+      - 'heading "Caso: DEMO-2026-001" [level=2] [ref=e11]':
+        - img [ref=e12]
+        - text: "Caso: DEMO-2026-001"
+      - generic [ref=e16]:
+        - generic [ref=e17]:
+          - text: "Fecha:"
+          - generic [ref=e18]: 15 de Abril de 2026, 14:30h
+        - generic [ref=e19]:
+          - text: "Ubicación:"
+          - generic [ref=e20]: Madrid, M-30 km 12.5
+        - generic [ref=e21]:
+          - text: "Condiciones:"
+          - generic [ref=e22]: Lluvia intensa
+        - generic [ref=e23]:
+          - text: "Tipo:"
+          - generic [ref=e24]: Colisión lateral con cambio de carril
+      - generic [ref=e25]:
+        - heading "Documentos adjuntos:" [level=3] [ref=e26]
+        - generic [ref=e27]:
+          - generic [ref=e28]:
+            - generic [ref=e29]:
+              - img [ref=e30]
+              - generic [ref=e33]: Atestado Policial
+            - generic [ref=e34]: 12 págs • 2.4 MB
+          - generic [ref=e35]:
+            - generic [ref=e36]:
+              - img [ref=e37]
+              - generic [ref=e40]: Parte Amistoso
+            - generic [ref=e41]: 2 págs • 340 KB
+          - generic [ref=e42]:
+            - generic [ref=e43]:
+              - img [ref=e44]
+              - generic [ref=e47]: Informe Meteo AEMET
+            - generic [ref=e48]: 1 págs • 120 KB
+      - generic [ref=e49]:
+        - heading "Fotografías:" [level=3] [ref=e50]
+        - generic [ref=e51]:
+          - img [ref=e53]
+          - img [ref=e58]
+          - img [ref=e63]
+          - img [ref=e68]
+          - img [ref=e73]
+          - img [ref=e78]
+          - img [ref=e83]
+          - img [ref=e88]
+      - button "Iniciar Análisis con IA" [ref=e93] [cursor=pointer]:
+        - img [ref=e94]
+        - text: Iniciar Análisis con IA
+    - generic [ref=e98]:
+      - img [ref=e100]
+      - heading "Pipeline de IA Forense" [level=3] [ref=e110]
+      - paragraph [ref=e111]: 4 agentes especializados trabajarán en secuencia para analizar el caso y generar un dictamen pericial completo.
+      - generic [ref=e112]:
+        - img [ref=e113]
+        - text: "Tiempo estimado: ~20 segundos"
+  - generic [ref=e117]:
+    - generic [ref=e118]:
+      - img [ref=e119]
+      - text: Powered by Claude AI
+    - generic [ref=e121]: •
+    - generic [ref=e122]: Cumple UNE-EN 16775
+    - generic [ref=e123]: •
+    - generic [ref=e124]: Trazabilidad Sigstore

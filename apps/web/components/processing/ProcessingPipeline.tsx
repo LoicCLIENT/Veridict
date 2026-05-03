@@ -54,7 +54,7 @@ export default function ProcessingPipeline({
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-veridict-gray">
-              Procesando análisis...
+              Processing analysis...
             </span>
             <span className="text-sm font-mono text-veridict-lime">
               {Math.round(overallProgress)}%
@@ -119,12 +119,12 @@ export default function ProcessingPipeline({
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-lg font-medium text-veridict-white">
-            {allDone ? "Análisis Completado" : "Analizando Caso"}
+            {allDone ? "Analysis Completed" : "Analyzing Case"}
           </h2>
           <p className="text-sm text-veridict-gray">
             {allDone
-              ? "Todos los agentes han finalizado"
-              : "Los agentes de IA están procesando..."}
+              ? "All agents have finished"
+              : "AI agents are processing..."}
           </p>
         </div>
         {!allDone && (
@@ -186,7 +186,7 @@ export default function ProcessingPipeline({
           transition={{ delay: 0.3 }}
         >
           <p className="text-sm text-veridict-lime text-center">
-            El dictamen está listo para revisión
+            The expert report is ready for review
           </p>
         </motion.div>
       )}

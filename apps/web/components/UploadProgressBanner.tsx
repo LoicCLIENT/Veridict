@@ -12,17 +12,19 @@ export function UploadProgressBanner({ casoId }: Props) {
   const upload = useAppStore((s) => s.uploadsPorCaso[casoId]);
   const limpiarUpload = useAppStore((s) => s.limpiarUpload);
 
+  const finalizado = upload ? upload.completed >= upload.total : false;
+  const fallidos = upload?.failed.length ?? 0;
+
   // Auto-limpiar el estado a los 6 s de finalizado para que la barra desaparezca
   useEffect(() => {
-    if (!upload?.finalizado) return;
+    if (!finalizado) return;
     const id = setTimeout(() => limpiarUpload(casoId), 6000);
     return () => clearTimeout(id);
-  }, [upload?.finalizado, casoId, limpiarUpload]);
+  }, [finalizado, casoId, limpiarUpload]);
 
   if (!upload || upload.total === 0) return null;
 
-  const pct = Math.round((upload.completados / upload.total) * 100);
-  const finalizado = upload.finalizado;
+  const pct = Math.round((upload.completed / upload.total) * 100);
 
   return (
     <div
@@ -43,28 +45,23 @@ export function UploadProgressBanner({ casoId }: Props) {
             <Upload className="w-3.5 h-3.5 text-zinc-300" />
             {finalizado ? (
               <>
-                Adjuntos subidos · <span className="text-emerald-300">{upload.completados}/{upload.total}</span>
-                {upload.fallidos > 0 && (
+                Attachments uploaded · <span className="text-emerald-300">{upload.completed}/{upload.total}</span>
+                {fallidos > 0 && (
                   <span className="text-yellow-300 inline-flex items-center gap-1 text-xs">
                     <AlertTriangle className="w-3 h-3" />
-                    {upload.fallidos} con error
+                    {fallidos} failed
                   </span>
                 )}
               </>
             ) : (
               <>
-                Subiendo e indexando adjuntos en background ·{" "}
+                Uploading attachments in background ·{" "}
                 <span className="text-blue-300">
-                  {upload.completados}/{upload.total}
+                  {upload.completed}/{upload.total}
                 </span>
               </>
             )}
           </div>
-          {!finalizado && upload.ultimo && (
-            <div className="text-xs text-zinc-300 truncate">
-              último: {upload.ultimo}
-            </div>
-          )}
         </div>
         <div className="text-sm font-bold text-white tabular-nums">{pct}%</div>
       </div>
@@ -78,7 +75,7 @@ export function UploadProgressBanner({ casoId }: Props) {
       </div>
       {!finalizado && (
         <div className="text-[11px] text-zinc-400 mt-2">
-          La generación del informe ya está corriendo en paralelo. Puedes ver el progreso en la pestaña Razonamiento.
+          Report generation is running in parallel. You can see progress in the Reasoning tab.
         </div>
       )}
     </div>

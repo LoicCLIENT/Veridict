@@ -41,7 +41,7 @@ function VersionPanel({
           <Car className={`w-6 h-6 ${colorText}`} />
         </div>
         <div>
-          <h3 className="font-semibold text-veridict-white">Vehículo {side}</h3>
+          <h3 className="font-semibold text-veridict-white">Vehicle {side}</h3>
           <p className="text-xs text-veridict-gray">
             {vehiculo?.modelo || "—"} · {vehiculo?.matricula || "—"}
           </p>
@@ -51,12 +51,12 @@ function VersionPanel({
       <div className={`p-4 rounded-lg border ${colorBg}`}>
         <div className="flex items-center gap-2 mb-2">
           <User className={`w-4 h-4 ${colorText}`} />
-          <span className={`text-xs font-medium ${colorText}`}>DECLARACIÓN</span>
+          <span className={`text-xs font-medium ${colorText}`}>STATEMENT</span>
         </div>
         <p className="text-sm text-veridict-white italic">
           {vehiculo?.version_conductor
             ? `"${vehiculo.version_conductor}"`
-            : "Sin declaración registrada."}
+            : "No statement recorded."}
         </p>
       </div>
 
@@ -64,11 +64,11 @@ function VersionPanel({
         <div className="p-4 rounded-lg bg-veridict-green-800 border border-veridict-green-600 space-y-2">
           <div className="text-xs font-medium text-veridict-gray flex items-center gap-2">
             <Zap className="w-3 h-3" />
-            CONTRASTE TÉCNICO
+            TECHNICAL CONTRAST
           </div>
           <div className="grid grid-cols-2 gap-2 text-sm">
             <div>
-              <div className="text-xs text-veridict-gray">Declarada</div>
+              <div className="text-xs text-veridict-gray">Stated</div>
               <div className="font-mono text-veridict-white">
                 {contraste.velocidad_declarada_kmh != null
                   ? `${contraste.velocidad_declarada_kmh.toFixed(1)} km/h`
@@ -76,7 +76,7 @@ function VersionPanel({
               </div>
             </div>
             <div>
-              <div className="text-xs text-veridict-gray">Calculada</div>
+              <div className="text-xs text-veridict-gray">Calculated</div>
               <div className="font-mono text-veridict-lime">
                 {contraste.velocidad_calculada_kmh != null
                   ? `${contraste.velocidad_calculada_kmh.toFixed(1)} km/h`
@@ -98,16 +98,16 @@ function VersionPanel({
         }`}
       >
         {compatNotKnown ? (
-          <span className="text-sm">Compatibilidad no determinada</span>
+          <span className="text-sm">Compatibility not determined</span>
         ) : compatible ? (
           <>
             <CheckCircle2 className="w-4 h-4" />
-            <span className="text-sm font-medium">Versión compatible con la evidencia física</span>
+            <span className="text-sm font-medium">Version compatible with physical evidence</span>
           </>
         ) : (
           <>
             <XCircle className="w-4 h-4" />
-            <span className="text-sm font-medium">Versión incompatible con la evidencia física</span>
+            <span className="text-sm font-medium">Version incompatible with physical evidence</span>
           </>
         )}
       </div>
@@ -136,9 +136,9 @@ export default function ConfrontacionTab({
             Devil&apos;s Advocate Analysis
           </span>
         </div>
-        <h2 className="text-2xl font-bold text-veridict-white mb-1">Confrontación de versiones</h2>
+        <h2 className="text-2xl font-bold text-veridict-white mb-1">Version Confrontation</h2>
         <p className="text-veridict-gray text-sm max-w-xl mx-auto">
-          Declaraciones de los conductores contrastadas contra la evidencia física objetiva.
+          Driver statements contrasted against objective physical evidence.
         </p>
       </div>
 
@@ -149,7 +149,7 @@ export default function ConfrontacionTab({
           <div className="text-center mb-2">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-veridict-lime/10 border border-veridict-lime/30">
               <Scale className="w-4 h-4 text-veridict-lime" />
-              <span className="text-xs font-medium text-veridict-lime">EVIDENCIA OBJETIVA</span>
+              <span className="text-xs font-medium text-veridict-lime">OBJECTIVE EVIDENCE</span>
             </div>
           </div>
 
@@ -169,7 +169,7 @@ export default function ConfrontacionTab({
 
           {compatibilidad && (
             <div className="p-3 rounded-lg bg-veridict-green-800 border border-veridict-green-600">
-              <div className="text-xs text-veridict-gray mb-1">Justificación de compatibilidad</div>
+              <div className="text-xs text-veridict-gray mb-1">Compatibility justification</div>
               <p className="text-xs text-veridict-white">{compatibilidad.justificacion}</p>
             </div>
           )}
@@ -194,8 +194,8 @@ export default function ConfrontacionTab({
                   }`}
                 >
                   {adversarial.passed
-                    ? "Verificación adversarial superada"
-                    : `${adversarial.failures.length} fallos detectados`}
+                    ? "Adversarial verification passed"
+                    : `${adversarial.failures.length} failures detected`}
                 </span>
               </div>
               {!adversarial.passed && (

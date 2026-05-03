@@ -18,6 +18,9 @@ import { EscenaPanel } from "@/components/caso/EscenaPanel";
 import { DocumentosPanel } from "@/components/caso/DocumentosPanel";
 import { InformeDocumento } from "@/components/InformeDocumento";
 import { ChatInfoFaltante } from "@/components/ChatInfoFaltante";
+import { RazonamientoOrquestadorView } from "@/components/RazonamientoOrquestador";
+import { SpecialistTrace } from "@/components/SpecialistTrace";
+import { UploadProgressBanner } from "@/components/UploadProgressBanner";
 import type { InformePericial } from "@veridict/types";
 import { mapEventosToTimeline } from "@/lib/mapTimeline";
 import { useToast } from "@/components/ui/toast";
@@ -46,14 +49,17 @@ import {
   Loader2,
   ChevronRight,
   Crosshair,
-  ShieldCheck,
   Activity,
-  BarChart3,
   Zap,
+  Brain,
+  ClipboardList,
+  X,
+  Copy,
+  Map,
 } from "lucide-react";
 import Link from "next/link";
 
-type TabId = "informe" | "simulacion" | "cronologia" | "calculos" | "confrontacion" | "legal" | "contexto" | "vehiculos" | "escena" | "docs";
+type TabId = "informe" | "razonamiento" | "simulacion" | "cronologia" | "calculos" | "confrontacion" | "legal" | "contexto" | "vehiculos" | "escena" | "docs";
 
 interface NavItem {
   id: TabId;
@@ -63,22 +69,23 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { id: "informe", label: "Informe", icon: FileText, group: "analisis" },
-  { id: "simulacion", label: "Simulación 3D", icon: Play, group: "analisis" },
-  { id: "cronologia", label: "Cronología", icon: Clock, group: "analisis" },
-  { id: "calculos", label: "Cálculos", icon: Calculator, group: "analisis" },
-  { id: "confrontacion", label: "Confrontación", icon: Crosshair, group: "analisis" },
-  { id: "legal", label: "Marco Legal", icon: Scale, group: "analisis" },
-  { id: "contexto", label: "Contexto", icon: Cloud, group: "datos" },
-  { id: "vehiculos", label: "Vehículos", icon: Car, group: "datos" },
-  { id: "escena", label: "Escena", icon: Eye, group: "evidencia" },
-  { id: "docs", label: "Documentos", icon: FileImage, group: "evidencia" },
+  { id: "informe", label: "Report", icon: FileText, group: "analisis" },
+  { id: "razonamiento", label: "Reasoning", icon: Brain, group: "analisis" },
+  { id: "simulacion", label: "3D Simulation", icon: Map, group: "analisis" },
+  { id: "cronologia", label: "Timeline", icon: Clock, group: "analisis" },
+  { id: "calculos", label: "Calculations", icon: Calculator, group: "analisis" },
+  { id: "confrontacion", label: "Confrontation", icon: Crosshair, group: "analisis" },
+  { id: "legal", label: "Legal Framework", icon: Scale, group: "analisis" },
+  { id: "contexto", label: "Context", icon: Cloud, group: "datos" },
+  { id: "vehiculos", label: "Vehicles", icon: Car, group: "datos" },
+  { id: "escena", label: "Scene", icon: Eye, group: "evidencia" },
+  { id: "docs", label: "Documents", icon: FileImage, group: "evidencia" },
 ];
 
 const groupLabels = {
-  analisis: "Análisis",
-  datos: "Datos",
-  evidencia: "Evidencia",
+  analisis: "Analysis",
+  datos: "Data",
+  evidencia: "Evidence",
 };
 
 export default function CasoDetailPage() {
@@ -101,6 +108,35 @@ export default function CasoDetailPage() {
   const [informeLoading, setInformeLoading] = useState(true);
   const [informeRegenerating, setInformeRegenerating] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showFormulario, setShowFormulario] = useState(false);
+  const [recentlyEdited, setRecentlyEdited] = useState<string[]>([]);
+  const [simulacionLoading, setSimulacionLoading] = useState(false);
+  const [simulacionError, setSimulacionError] = useState<string | null>(null);
+
+  const regenerarSimulacion = async () => {
+    if (simulacionLoading) return;
+    setSimulacionLoading(true);
+    setSimulacionError(null);
+    try {
+      const updated = await api.regenerarSimulacion(casoId);
+      setInforme(updated);
+      const escena = updated.simulacion_escena;
+      if (!escena || !Array.isArray(escena.actores) || escena.actores.length === 0) {
+        const falta = (escena?.falta_info && escena.falta_info[0]) || "SimulationAgent did not return valid actors.";
+        setSimulacionError(`No reconstructed scene: ${falta}`);
+      }
+    } catch (e: any) {
+      setSimulacionError(e?.message || "Could not regenerate simulation");
+    } finally {
+      setSimulacionLoading(false);
+    }
+  };
+
+  const marcarRecentlyEdited = (ids: string[]) => {
+    if (ids.length === 0) return;
+    setRecentlyEdited(ids);
+    setTimeout(() => setRecentlyEdited([]), 6000);
+  };
 
   useEffect(() => {
     async function loadCaso() {
@@ -110,8 +146,8 @@ export default function CasoDetailPage() {
       } catch (error) {
         console.error("Error loading caso:", error);
         toast.error(
-          "Error de red",
-          "No se pudo cargar el caso. Verifica que el backend esté disponible."
+          "Network error",
+          "Could not load the case. Verify that the backend is available."
         );
         setCaso(null);
       } finally {
@@ -149,10 +185,10 @@ export default function CasoDetailPage() {
     try {
       const data = await api.generarInforme(casoId);
       setInforme(data);
-      toast.success("Informe regenerado", "Veridict ha actualizado el borrador.");
+      toast.success("Report regenerated", "Veridict has updated the draft.");
     } catch (e) {
       console.error(e);
-      toast.error("Error", "No se pudo regenerar el informe.");
+      toast.error("Error", "Could not regenerate the report.");
     } finally {
       setInformeRegenerating(false);
     }
@@ -163,8 +199,8 @@ export default function CasoDetailPage() {
     try {
       await api.iniciarAnalisis(caso.id);
     } catch (error) {
-      console.error("Error iniciando análisis:", error);
-      toast.error("Error", "No se pudo iniciar el análisis.");
+      console.error("Error starting analysis:", error);
+      toast.error("Error", "Could not start the analysis.");
       return;
     }
     setIsProcessing(true);
@@ -186,12 +222,12 @@ export default function CasoDetailPage() {
               prev ? { ...prev, estado: "completado", resultado } : prev
             );
             toast.success(
-              "Análisis completado",
-              "Los 4 agentes han procesado el caso exitosamente."
+              "Analysis completed",
+              "All 4 agents have successfully processed the case."
             );
           } catch (e) {
             console.error("Error fetching dictamen:", e);
-            toast.error("Error", "No se pudo obtener el dictamen final.");
+            toast.error("Error", "Could not retrieve the final verdict.");
           }
           setIsProcessing(false);
         } else if (terminal === "error") {
@@ -201,15 +237,15 @@ export default function CasoDetailPage() {
             prev ? { ...prev, estado: "escalado_humano" } : prev
           );
           toast.error(
-            "Análisis fallido",
-            estado.etapa_actual || "El análisis no pudo completarse."
+            "Analysis failed",
+            estado.etapa_actual || "The analysis could not be completed."
           );
         }
       } catch (e) {
         console.error("Error polling estado:", e);
         clearInterval(intervalId);
         setIsProcessing(false);
-        toast.error("Error de red", "Se perdió la conexión con el backend.");
+        toast.error("Network error", "Connection to the backend was lost.");
       }
     }, 1500);
   };
@@ -225,14 +261,14 @@ export default function CasoDetailPage() {
       a.click();
       URL.revokeObjectURL(url);
       toast.success(
-        "PDF descargado",
-        `Dictamen UNE-EN 16775 del caso #${caso.id}`
+        "PDF downloaded",
+        `UNE-EN 16775 expert report for case #${caso.id}`
       );
     } catch (error) {
       console.error("Error downloading PDF:", error);
       toast.error(
-        "Error al descargar",
-        "No se pudo generar el PDF. Intenta de nuevo."
+        "Download error",
+        "Could not generate the PDF. Please try again."
       );
     }
   };
@@ -246,7 +282,7 @@ export default function CasoDetailPage() {
             <div className="w-12 h-12 border-2 border-[#C2E94B]/20 rounded-full" />
             <div className="absolute inset-0 w-12 h-12 border-2 border-[#C2E94B] border-t-transparent rounded-full animate-spin" />
           </div>
-          <span className="text-zinc-500 text-sm">Cargando caso...</span>
+          <span className="text-zinc-500 text-sm">Loading case...</span>
         </div>
       </div>
     );
@@ -260,14 +296,14 @@ export default function CasoDetailPage() {
           <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-6">
             <AlertTriangle className="w-8 h-8 text-red-400" />
           </div>
-          <h2 className="text-2xl font-semibold text-white mb-2">Caso no encontrado</h2>
+          <h2 className="text-2xl font-semibold text-white mb-2">Case not found</h2>
           <p className="text-zinc-500 mb-8">
-            El caso #{casoId} no existe o ha sido eliminado del sistema.
+            Case #{casoId} does not exist or has been deleted from the system.
           </p>
           <Link href="/casos">
             <Button className="bg-zinc-800 hover:bg-zinc-700 text-white">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Volver al historial
+              Back to history
             </Button>
           </Link>
         </div>
@@ -276,10 +312,10 @@ export default function CasoDetailPage() {
   }
 
   const estadoConfig = {
-    creado: { label: "Pendiente", color: "bg-zinc-600", textColor: "text-zinc-300" },
-    procesando: { label: "Procesando", color: "bg-[#C2E94B]", textColor: "text-[#0a0a0a]" },
-    completado: { label: "Completado", color: "bg-[#C2E94B]", textColor: "text-[#0a0a0a]" },
-    escalado_humano: { label: "Revisión", color: "bg-amber-500", textColor: "text-amber-950" },
+    creado: { label: "Pending", color: "bg-zinc-600", textColor: "text-zinc-300" },
+    procesando: { label: "Processing", color: "bg-[#C2E94B]", textColor: "text-[#0a0a0a]" },
+    completado: { label: "Completed", color: "bg-[#C2E94B]", textColor: "text-[#0a0a0a]" },
+    escalado_humano: { label: "Review", color: "bg-amber-500", textColor: "text-amber-950" },
   };
 
   const currentTab = (panelActivo as TabId) || "informe";
@@ -370,10 +406,10 @@ export default function CasoDetailPage() {
                 hover:bg-[#d4f06d] transition-colors
                 ${sidebarCollapsed ? "justify-center" : ""}
               `}
-              title={sidebarCollapsed ? "Descargar PDF" : undefined}
+              title={sidebarCollapsed ? "Download PDF" : undefined}
             >
               <Download className="w-[18px] h-[18px]" />
-              {!sidebarCollapsed && <span>Descargar PDF</span>}
+              {!sidebarCollapsed && <span>Download PDF</span>}
             </button>
           )}
         </div>
@@ -398,7 +434,7 @@ export default function CasoDetailPage() {
               <div>
                 <div className="flex items-center gap-3">
                   <h1 className="text-lg font-semibold text-white">
-                    Caso #{caso.id}
+                    Case #{caso.id}
                   </h1>
                   <span className={`
                     px-2.5 py-0.5 rounded-full text-xs font-medium
@@ -408,7 +444,7 @@ export default function CasoDetailPage() {
                   </span>
                 </div>
                 <p className="text-xs text-zinc-500">
-                  {new Date(caso.fecha_accidente).toLocaleDateString("es-ES", {
+                  {new Date(caso.fecha_accidente).toLocaleDateString("en-US", {
                     weekday: "long",
                     year: "numeric",
                     month: "long",
@@ -428,7 +464,7 @@ export default function CasoDetailPage() {
                       <Car className="w-4 h-4 text-blue-400" />
                     </div>
                     <div>
-                      <p className="text-[10px] text-zinc-500 uppercase">Vehículo A</p>
+                      <p className="text-[10px] text-zinc-500 uppercase">Vehicle A</p>
                       <p className="text-sm font-semibold text-blue-400">
                         {Math.round(caso.resultado.veredicto.culpa_a * 100)}%
                       </p>
@@ -440,7 +476,7 @@ export default function CasoDetailPage() {
                       <Car className="w-4 h-4 text-orange-400" />
                     </div>
                     <div>
-                      <p className="text-[10px] text-zinc-500 uppercase">Vehículo B</p>
+                      <p className="text-[10px] text-zinc-500 uppercase">Vehicle B</p>
                       <p className="text-sm font-semibold text-orange-400">
                         {Math.round(caso.resultado.veredicto.culpa_b * 100)}%
                       </p>
@@ -452,7 +488,7 @@ export default function CasoDetailPage() {
                       <Activity className="w-4 h-4 text-[#C2E94B]" />
                     </div>
                     <div>
-                      <p className="text-[10px] text-zinc-500 uppercase">Confianza</p>
+                      <p className="text-[10px] text-zinc-500 uppercase">Confidence</p>
                       <p className="text-sm font-semibold text-[#C2E94B]">
                         {Math.round(caso.resultado.veredicto.confidence * 100)}%
                       </p>
@@ -462,21 +498,36 @@ export default function CasoDetailPage() {
               )}
 
               {/* Action buttons */}
-              {caso.estado === "creado" && (
-                <Button
-                  onClick={handleAnalizar}
-                  className="bg-[#C2E94B] text-[#0a0a0a] hover:bg-[#d4f06d] font-medium"
-                >
-                  <Zap className="w-4 h-4 mr-2" />
-                  Analizar con IA
-                </Button>
-              )}
+              <div className="flex items-center gap-2">
+                {caso.formulario_origen && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowFormulario(true)}
+                    className="border-zinc-700 text-zinc-300 hover:text-white hover:border-zinc-600"
+                  >
+                    <ClipboardList className="w-4 h-4 mr-2" />
+                    View Form
+                  </Button>
+                )}
+                {caso.estado === "creado" && (
+                  <Button
+                    onClick={handleAnalizar}
+                    className="bg-[#C2E94B] text-[#0a0a0a] hover:bg-[#d4f06d] font-medium"
+                  >
+                    <Zap className="w-4 h-4 mr-2" />
+                    Analyze with AI
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </header>
 
         {/* Content area */}
         <div className="p-6">
+          {/* Upload progress banner */}
+          <UploadProgressBanner casoId={casoId} />
+
           <AnimatePresence mode="wait">
             {isProcessing ? (
               <motion.div
@@ -517,7 +568,7 @@ export default function CasoDetailPage() {
                             <div className="flex items-center justify-center py-20">
                               <div className="flex items-center gap-3 text-zinc-500">
                                 <Loader2 className="w-5 h-5 animate-spin" />
-                                <span>Cargando informe...</span>
+                                <span>Loading report...</span>
                               </div>
                             </div>
                           ) : !informe ? (
@@ -526,11 +577,11 @@ export default function CasoDetailPage() {
                                 <FileText className="w-10 h-10 text-zinc-600" />
                               </div>
                               <h3 className="text-xl font-medium text-white mb-2">
-                                Informe no generado
+                                Report not generated
                               </h3>
                               <p className="text-zinc-500 text-center max-w-md mb-8">
-                                Genera el borrador del informe pericial con los datos del caso.
-                                Veridict lo redactará automáticamente.
+                                Generate the expert report draft with the case data.
+                                Veridict will write it automatically.
                               </p>
                               <Button
                                 onClick={handleRegenerarInforme}
@@ -542,16 +593,27 @@ export default function CasoDetailPage() {
                                 ) : (
                                   <Sparkles className="w-4 h-4 mr-2" />
                                 )}
-                                Generar informe
+                                Generate report
                               </Button>
                             </div>
                           ) : (
                             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                              <div className="xl:col-span-2">
-                                <div className="flex items-center justify-between mb-4">
-                                  <h2 className="text-lg font-medium text-white">
-                                    Informe Pericial
-                                  </h2>
+                              <div className="xl:col-span-2 space-y-6">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <h2 className="text-lg font-medium text-white">
+                                      Expert Report
+                                    </h2>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => setPanelActivo("razonamiento")}
+                                      className="border-[#C2E94B]/40 text-[#C2E94B] hover:bg-[#C2E94B]/10"
+                                    >
+                                      <Brain className="w-3.5 h-3.5 mr-2" />
+                                      View orchestrator reasoning
+                                    </Button>
+                                  </div>
                                   <Button
                                     variant="outline"
                                     size="sm"
@@ -564,10 +626,15 @@ export default function CasoDetailPage() {
                                     ) : (
                                       <RefreshCw className="w-4 h-4 mr-2" />
                                     )}
-                                    Regenerar
+                                    Regenerate
                                   </Button>
                                 </div>
-                                <InformeDocumento informe={informe} caso={caso} />
+                                <InformeDocumento
+                                  informe={informe}
+                                  caso={caso}
+                                  onInformeUpdate={setInforme}
+                                  recentlyEditedIds={recentlyEdited}
+                                />
                               </div>
                               <div className="xl:col-span-1">
                                 <div className="sticky top-24">
@@ -575,6 +642,7 @@ export default function CasoDetailPage() {
                                     casoId={casoId}
                                     informe={informe}
                                     onUpdate={setInforme}
+                                    onAffectedRespuestas={marcarRecentlyEdited}
                                   />
                                 </div>
                               </div>
@@ -583,8 +651,63 @@ export default function CasoDetailPage() {
                         </div>
                       )}
 
+                      {currentTab === "razonamiento" && (
+                        <div className="p-6">
+                          <RazonamientoOrquestadorView
+                            casoId={casoId}
+                            onNavigateToPanel={(panel) => setPanelActivo(panel)}
+                          />
+                        </div>
+                      )}
+
                       {currentTab === "simulacion" && (
-                        <MapaReconstruccion ubicacion={caso.ubicacion} />
+                        <div className="p-6 space-y-4">
+                          <div className="flex items-center justify-between gap-3 flex-wrap">
+                            <div className="flex flex-col gap-0.5">
+                              <h3 className="text-sm font-semibold text-zinc-200">
+                                Scene Reconstruction
+                              </h3>
+                              <p className="text-xs text-zinc-500">
+                                {informe?.simulacion_escena?.actores?.length
+                                  ? `${informe.simulacion_escena.actores.length} actor(s) · SimulationAgent (Opus 4.7)`
+                                  : "No dynamic reconstruction generated for this case yet."}
+                              </p>
+                            </div>
+                            <Button
+                              onClick={regenerarSimulacion}
+                              disabled={simulacionLoading || !informe}
+                              variant="outline"
+                              className="border-[#C2E94B]/30 text-[#C2E94B] hover:bg-[#C2E94B]/10"
+                              title={!informe ? "Generate the report first" : "Reuse report data (fast)"}
+                            >
+                              {simulacionLoading ? (
+                                <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
+                              ) : (
+                                <Sparkles className="w-3.5 h-3.5 mr-2" />
+                              )}
+                              {informe?.simulacion_escena?.actores?.length
+                                ? "Regenerate simulation"
+                                : "Generate simulation"}
+                            </Button>
+                          </div>
+                          {simulacionError && (
+                            <div className="text-xs text-red-400 bg-red-500/10 border border-red-500/30 rounded px-3 py-2 font-mono">
+                              ⚠ {simulacionError}
+                            </div>
+                          )}
+                          <SpecialistTrace
+                            casoId={casoId}
+                            tools={["generar_frame_simulacion", "obtener_frame_simulacion"]}
+                            title="SimulationAgent Work"
+                            description="Visual recreation of the accident: SVG sketches generated from velocities, masses, and positions validated by the PhysicsAgent."
+                          />
+                          <MapaReconstruccion
+                            ubicacion={caso.ubicacion}
+                            escenaSimulacion={informe?.simulacion_escena ?? undefined}
+                            onGenerarSimulacion={regenerarSimulacion}
+                            generandoSimulacion={simulacionLoading}
+                          />
+                        </div>
                       )}
 
                       {currentTab === "cronologia" && (
@@ -598,43 +721,103 @@ export default function CasoDetailPage() {
                       )}
 
                       {currentTab === "calculos" && (
-                        <CalculosFisicos calculos={caso.resultado?.calculos || []} />
+                        <div className="p-6 space-y-4">
+                          <SpecialistTrace
+                            casoId={casoId}
+                            tools={["calcular_fisica", "simular_fisica", "analizar_biomecanica"]}
+                            title="PhysicsAgent and BiomechanicsAgent Work"
+                            description="Deterministic physics calculations (Stannard-Baker, momentum balance, stopping distance, kinetic energy) and biomechanical patterns (WAD, AIS) cited by the orchestrator to infer velocities and injury compatibility."
+                          />
+                          <CalculosFisicos calculos={caso.resultado?.calculos || []} />
+                        </div>
                       )}
 
                       {currentTab === "legal" && (
-                        <RazonamientoLegal
-                          infracciones={caso.resultado?.infracciones || []}
-                          veredicto={caso.resultado?.veredicto}
-                        />
+                        <div className="p-6 space-y-4">
+                          <SpecialistTrace
+                            casoId={casoId}
+                            tools={["consultar_legal"]}
+                            title="LegalAgent Work"
+                            description="RGC/LSV/RGV articles consulted from the BOE and jurisprudence cited by the legal specialist."
+                          />
+                          <RazonamientoLegal
+                            infracciones={caso.resultado?.infracciones || []}
+                            veredicto={caso.resultado?.veredicto}
+                          />
+                        </div>
                       )}
 
                       {currentTab === "confrontacion" && (
-                        <ConfrontacionTab
-                          vehiculos={caso.vehiculos ?? []}
-                          contrastes={caso.resultado?.contraste_versiones}
-                          compatibilidad={caso.resultado?.compatibilidad_versiones}
-                          calculos={caso.resultado?.calculos}
-                          adversarial={caso.resultado?.verificacion_adversarial}
-                        />
+                        <div className="p-6 space-y-4">
+                          <SpecialistTrace
+                            casoId={casoId}
+                            tools={["verificar_atestado", "analizar_conformidad_atestado"]}
+                            title="AtestadoAgent and ConformidadAgent Work"
+                            description="Verification of inconsistencies between report versions and physical evidence, and procedural compliance analysis."
+                          />
+                          <ConfrontacionTab
+                            vehiculos={caso.vehiculos ?? []}
+                            contrastes={caso.resultado?.contraste_versiones}
+                            compatibilidad={caso.resultado?.compatibilidad_versiones}
+                            calculos={caso.resultado?.calculos}
+                            adversarial={caso.resultado?.verificacion_adversarial}
+                          />
+                        </div>
                       )}
 
                       {currentTab === "contexto" && (
-                        <ContextoPanel contexto={caso.resultado?.contexto ?? caso.contexto} />
+                        <div className="p-6 space-y-4">
+                          <SpecialistTrace
+                            casoId={casoId}
+                            tools={["consultar_meteo"]}
+                            title="MeteoAgent Work"
+                            description="Historical weather data (Open-Meteo) and solar position (glare) at the time of the accident."
+                          />
+                          <ContextoPanel contexto={caso.resultado?.contexto ?? caso.contexto} />
+                        </div>
                       )}
 
                       {currentTab === "vehiculos" && (
-                        <VehiculosPanel vehiculos={caso.vehiculos ?? []} />
+                        <div className="p-6 space-y-4">
+                          <SpecialistTrace
+                            casoId={casoId}
+                            tools={["consultar_ficha_tecnica"]}
+                            title="FichaAgent Work"
+                            description="Complete technical sheet for each vehicle (mass, dimensions, rigidity, safety systems) consulted by the specialist."
+                          />
+                          <VehiculosPanel vehiculos={caso.vehiculos ?? []} />
+                        </div>
                       )}
 
                       {currentTab === "escena" && (
-                        <EscenaPanel escena={caso.escena} />
+                        <div className="p-6 space-y-4">
+                          <SpecialistTrace
+                            casoId={casoId}
+                            tools={["consultar_escena"]}
+                            title="SceneAgent Work"
+                            description="Road geometry (OSM Overpass), signage, slope (DEM), and ground-level images (Mapillary) collected by the specialist."
+                          />
+                          <EscenaPanel escena={caso.escena} />
+                        </div>
                       )}
 
                       {currentTab === "docs" && (
-                        <DocumentosPanel
-                          documentos={caso.documentos ?? []}
-                          fotos={caso.fotos ?? []}
-                        />
+                        <div className="p-6 space-y-4">
+                          <SpecialistTrace
+                            casoId={casoId}
+                            tools={[
+                              "listar_biblioteca_fotos",
+                              "buscar_foto_perito",
+                              "analizar_imagen_dano",
+                            ]}
+                            title="Photo Library and Vision Work"
+                            description="Claude vision indexing of the case photo library and damage analysis on specific photographs requested by the orchestrator."
+                          />
+                          <DocumentosPanel
+                            documentos={caso.documentos ?? []}
+                            fotos={caso.fotos ?? []}
+                          />
+                        </div>
                       )}
                     </motion.div>
                   </AnimatePresence>
@@ -644,6 +827,71 @@ export default function CasoDetailPage() {
           </AnimatePresence>
         </div>
       </main>
+
+      {/* Modal: View original form */}
+      {showFormulario && caso.formulario_origen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          onClick={() => setShowFormulario(false)}
+        >
+          <div
+            className="bg-[#111] border border-zinc-700 rounded-2xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
+              <div className="flex items-center gap-2">
+                <ClipboardList className="w-5 h-5 text-[#C2E94B]" />
+                <h3 className="text-white font-medium">Original Case Form</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    const blob = new Blob(
+                      [JSON.stringify(caso.formulario_origen, null, 2)],
+                      { type: "application/json" },
+                    );
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `caso_${caso.id.slice(0, 8)}_formulario.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                  className="text-zinc-400 hover:text-white"
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Download JSON
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      JSON.stringify(caso.formulario_origen, null, 2),
+                    );
+                    toast.success("Copied", "Form JSON copied to clipboard.");
+                  }}
+                  className="text-zinc-400 hover:text-white"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy
+                </Button>
+                <button
+                  onClick={() => setShowFormulario(false)}
+                  className="p-1 text-zinc-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <pre className="flex-1 overflow-auto p-5 text-xs text-zinc-200 font-mono whitespace-pre-wrap break-words">
+              {JSON.stringify(caso.formulario_origen, null, 2)}
+            </pre>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

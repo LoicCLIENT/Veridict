@@ -130,12 +130,12 @@ export function EscenaSimulacionView({
       for (const p of a.trayectoria || []) expand(p.x, p.y);
     }
     if (data.impacto) expand(data.impacto.x, data.impacto.y);
-    // Sin nada → bounds por defecto
+    // Nothing → default bounds
     if (!Number.isFinite(minX) || !Number.isFinite(maxX)) {
       minX = -20; maxX = 20; minY = -15; maxY = 15;
     }
-    // Asegurar tamaño mínimo (escenas con todo en ±2 m daban un viewBox minúsculo
-    // que disparaba el tamaño visual del texto SVG).
+    // Ensure minimum size (scenes with everything in ±2m gave a tiny viewBox
+    // that inflated the visual size of SVG text).
     const wRaw = maxX - minX;
     const hRaw = maxY - minY;
     if (wRaw < 30) { const c = (minX + maxX) / 2; minX = c - 15; maxX = c + 15; }
@@ -228,7 +228,7 @@ export function EscenaSimulacionView({
         </div>
       </div>
 
-      {/* Description chip — colapsable, no tapa la escena */}
+      {/* Description chip — collapsible, doesn't cover the scene */}
       {data.descripcion && (
         <div className="absolute top-12 left-3 right-3 z-10 pointer-events-auto">
           <DescripcionChip texto={data.descripcion} />
@@ -360,13 +360,13 @@ export function EscenaSimulacionView({
               </div>
               <div className="text-xs font-mono text-zinc-400 leading-tight">
                 <div>
-                  <span className="text-[9px] uppercase opacity-60 mr-1">ahora</span>
+                  <span className="text-[9px] uppercase opacity-60 mr-1">now</span>
                   <span className="font-bold text-sm" style={{ color: colorForActor(s.actor) }}>
                     {Math.round(s.speed)}
                   </span>
                   <span className="text-[10px] ml-0.5">km/h</span>
                   {s.braking && (
-                    <span className="ml-2 text-red-400 animate-pulse text-[10px]">● FRENA</span>
+                    <span className="ml-2 text-red-400 animate-pulse text-[10px]">● BRAKING</span>
                   )}
                 </div>
                 {vImpacto != null && (
@@ -407,11 +407,11 @@ export function EscenaSimulacionView({
         </motion.div>
       )}
 
-      {/* Falta info banner */}
+      {/* Missing info banner */}
       {data.falta_info && data.falta_info.length > 0 && (
         <div className="absolute top-3 right-3 z-20 max-w-[40%]">
           <div className="bg-amber-500/15 border border-amber-500/40 rounded-md px-3 py-2 text-[11px] text-amber-300 font-mono">
-            <strong>Falta:</strong> {data.falta_info[0]}
+            <strong>Missing:</strong> {data.falta_info[0]}
             {data.falta_info.length > 1 && ` (+${data.falta_info.length - 1})`}
           </div>
         </div>
@@ -584,12 +584,12 @@ function ObstaculoNode({
     fill = "#52525B"; stroke = "#3F3F46"; opacity = 0.7;
   }
 
-  // Etiqueta: solo si el primer punto del polígono cae dentro del viewBox.
+  // Label: only if the first polygon point falls within the viewBox.
   const [lx, ly] = obstaculo.poligono?.[0] ?? [0, 0];
   const within =
     lx >= bounds.minX && lx <= bounds.minX + bounds.width &&
     ly >= bounds.minY && ly <= bounds.minY + bounds.height;
-  // Texto chico, escala fija independiente del zoom: 0.8 unidades SVG.
+  // Small text, fixed scale independent of zoom: 0.8 SVG units.
   const FONT = 0.8;
   const label = (obstaculo.descripcion || "").slice(0, 38);
   const labelW = Math.max(2.5, label.length * FONT * 0.55);
@@ -685,7 +685,7 @@ function DescripcionChip({ texto }: { texto: string }) {
     <button
       onClick={() => setOpen(o => !o)}
       className="block max-w-full text-left bg-[#0d110d]/90 border border-white/10 hover:border-[#C2E94B]/40 text-xs text-zinc-300 px-3 py-1.5 rounded-md font-mono cursor-pointer transition-colors"
-      title={open ? "Click para colapsar" : "Click para expandir"}
+      title={open ? "Click to collapse" : "Click to expand"}
     >
       <span className="text-[#C2E94B] mr-2">🔬</span>
       {open ? texto : corto}

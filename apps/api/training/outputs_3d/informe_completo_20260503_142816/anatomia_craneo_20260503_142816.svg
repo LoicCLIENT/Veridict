@@ -1,0 +1,194 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="500" 
+viewBox="0 0 700 500" font-family="Arial, sans-serif">
+
+    <rect width="700" height="500" fill="#FFFFFF"/>
+
+    <!-- Header -->
+    <rect x="0" y="0" width="700" height="50" fill="#1E3A5F"/>
+    <text x="20" y="32" fill="#FFFFFF" font-size="16" font-weight="bold">
+        Anatomia Craneal - Zonas de Lesion por Impacto
+    </text>
+    
+
+    <g transform="translate(280, 280)">
+        <!-- Contorno principal del craneo -->
+        <path d="M 0,-120
+                 C 80,-120 140,-80 150,-20
+                 C 155,20 150,60 130,90
+                 C 110,120 60,140 20,150
+                 C -20,155 -60,140 -90,110
+                 C -130,70 -150,20 -145,-30
+                 C -140,-80 -100,-120 0,-120 Z"
+              fill="none" stroke="#374151" stroke-width="3"/>
+
+        <!-- Hueso Frontal -->
+        <path d="M -80,-100
+                 C -40,-115 40,-115 80,-100
+                 C 100,-85 110,-60 100,-40
+                 L 50,-30
+                 L -50,-30
+                 L -100,-40
+                 C -110,-60 -100,-85 -80,-100 Z"
+              fill="#FBBF24" stroke="#374151" stroke-width="1" opacity="0.7"/>
+        <text x="-30" y="-60" fill="#111827" font-size="11" font-weight="bold">Frontal</text>
+
+        <!-- Hueso Parietal -->
+        <path d="M 80,-100
+                 C 120,-80 140,-40 145,0
+                 C 145,40 130,70 100,90
+                 L 50,60
+                 L 50,-30
+                 L 100,-40
+                 C 110,-60 100,-85 80,-100 Z"
+              fill="#60A5FA" stroke="#374151" stroke-width="1" opacity="0.7"/>
+        <text x="80" y="0" fill="#111827" font-size="11" font-weight="bold">Parietal</text>
+
+        <!-- Hueso Temporal -->
+        <path d="M 100,90
+                 C 80,110 50,120 20,125
+                 L 30,80
+                 L 50,60
+                 L 100,90 Z"
+              fill="#F97316" stroke="#374151" stroke-width="1" opacity="0.7"/>
+        <text x="50" y="100" fill="#111827" font-size="10">Temporal</text>
+
+        <!-- Hueso Occipital -->
+        <path d="M -80,-100
+                 C -110,-80 -135,-40 -140,0
+                 C -140,40 -120,80 -90,100
+                 L -50,70
+                 L -50,-30
+                 L -100,-40
+                 C -110,-60 -100,-85 -80,-100 Z"
+              fill="#22C55E" stroke="#374151" stroke-width="1" opacity="0.7"/>
+        <text x="-110" y="30" fill="#111827" font-size="10">Occipital</text>
+
+        <!-- Mandibula -->
+        <path d="M 20,125
+                 C 0,140 -30,145 -60,135
+                 C -90,125 -95,100 -90,80
+                 L -50,70
+                 L 30,80
+                 L 20,125 Z"
+              fill="#FDE68A" stroke="#374151" stroke-width="1" opacity="0.7"/>
+        <text x="-40" y="115" fill="#111827" font-size="10">Mandibula</text>
+
+        <!-- Orbita (ojo) -->
+        <ellipse cx="30" cy="-10" rx="25" ry="20" fill="#F3F4F6" stroke="#374151" stroke-width="1"/>
+
+        <!-- Nasal -->
+        <path d="M 10,-5 L 20,30 L 0,40 L -10,30 L 0,-5 Z"
+              fill="#FCD34D" stroke="#374151" stroke-width="1" opacity="0.7"/>
+
+        <!-- Cigomatico -->
+        <path d="M 55,-5
+                 C 70,10 75,40 60,60
+                 L 30,50
+                 L 45,20
+                 L 55,-5 Z"
+              fill="#A78BFA" stroke="#374151" stroke-width="1" opacity="0.7"/>
+    </g>
+    
+
+        <g class="zona-impacto">
+            <circle cx="250" cy="210" r="35" fill="none"
+                    stroke="#DC2626" stroke-width="3">
+                <animate attributeName="r" values="30;40;30" dur="1.5s" repeatCount="indefinite"/>
+            </circle>
+            <text x="250" y="165" text-anchor="middle"
+                  fill="#DC2626" font-size="12" font-weight="bold">
+                ZONA DE IMPACTO
+            </text>
+        </g>
+        
+
+    <rect x="480" y="80" width="200" height="280"
+          fill="white" stroke="#E5E7EB" rx="8"/>
+    <text x="495" y="105" fill="#111827" font-size="13" font-weight="bold">
+        Huesos del Craneo
+    </text>
+    <line x1="490" y1="115" x2="670" y2="115"
+          stroke="#E5E7EB"/>
+    
+
+        <rect x="495" y="135" width="18" height="18" rx="3"
+              fill="#FBBF24" opacity="0.7"/>
+        <text x="522" y="149" fill="#374151" font-size="12">
+            Frontal
+        </text>
+        
+
+        <rect x="495" y="167" width="18" height="18" rx="3"
+              fill="#60A5FA" opacity="0.7"/>
+        <text x="522" y="181" fill="#374151" font-size="12">
+            Parietal
+        </text>
+        
+
+        <rect x="495" y="199" width="18" height="18" rx="3"
+              fill="#F97316" opacity="0.7"/>
+        <text x="522" y="213" fill="#374151" font-size="12">
+            Temporal
+        </text>
+        
+
+        <rect x="495" y="231" width="18" height="18" rx="3"
+              fill="#22C55E" opacity="0.7"/>
+        <text x="522" y="245" fill="#374151" font-size="12">
+            Occipital
+        </text>
+        
+
+        <rect x="495" y="263" width="18" height="18" rx="3"
+              fill="#FCD34D" opacity="0.7"/>
+        <text x="522" y="277" fill="#374151" font-size="12">
+            Nasal
+        </text>
+        
+
+        <rect x="495" y="295" width="18" height="18" rx="3"
+              fill="#A78BFA" opacity="0.7"/>
+        <text x="522" y="309" fill="#374151" font-size="12">
+            Cigomatico
+        </text>
+        
+
+        <rect x="495" y="327" width="18" height="18" rx="3"
+              fill="#FDE68A" opacity="0.7"/>
+        <text x="522" y="341" fill="#374151" font-size="12">
+            Mandibula
+        </text>
+        
+
+        <rect x="25" y="380" width="460" height="100"
+              fill="#FEF2F2" stroke="#FECACA" rx="8"/>
+        <text x="40" y="405" fill="#DC2626" font-size="13" font-weight="bold">
+            Lesiones Identificadas:
+        </text>
+        
+
+            <text x="50" y="425" fill="#7F1D1D" font-size="11">
+                • TCE severo con perdida de conocimiento
+            </text>
+            
+
+            <text x="50" y="443" fill="#7F1D1D" font-size="11">
+                • Fractura de base de craneo
+            </text>
+            
+
+            <text x="50" y="461" fill="#7F1D1D" font-size="11">
+                • Hemorragia subaracnoidea
+            </text>
+            
+
+            <text x="50" y="479" fill="#7F1D1D" font-size="11">
+                • Fracturas multiples en EEII
+            </text>
+            
+
+    <text x="680" y="490" text-anchor="end" fill="#9CA3AF" font-size="9">
+        Veridict AI - Analisis Biomecanico Forense
+    </text>
+    
+</svg>

@@ -1,0 +1,11 @@
+Model Information:
+* title:	motorcycle
+* source:	https://sketchfab.com/3d-models/motorcycle-3834fb8c1fc748f19439f9bfaf1d89f3
+* author:	gdev.swapon (https://sketchfab.com/gdev.swapon)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "motorcycle" (https://sketchfab.com/3d-models/motorcycle-3834fb8c1fc748f19439f9bfaf1d89f3) by gdev.swapon (https://sketchfab.com/gdev.swapon) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

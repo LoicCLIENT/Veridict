@@ -1,0 +1,359 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="650" viewBox="0 0 900 650" font-family="Geist Sans, Arial, sans-serif">
+<rect width="900" height="650" fill="#FFFFFF"/>
+<rect x="0" y="0" width="900" height="50" fill="#1F3329"/>
+<text x="50" y="30.0" fill="#FFFFFF" font-family="Geist Sans, Arial, sans-serif" font-size="16" font-weight="bold">Diagrama WAD - Impacto Frontal</text>
+<text x="850" y="30.0" fill="#C2E94B" font-family="Geist Sans, Arial, sans-serif" font-size="12" text-anchor="end">Zonas de Contacto Cabeza</text>
+<!-- WAD Reference Lines -->
+
+            <line x1="50" y1="210.0" x2="680" y2="210.0"
+                  stroke="#EAB308" stroke-width="2" opacity="0.9"/>
+            <text x="690" y="214.0"
+                  fill="#374151" font-family="Geist Sans, Arial, sans-serif"
+                  font-size="11" font-weight="bold">WAD 1000</text>
+            <text x="40" y="214.0" text-anchor="end"
+                  fill="#6B7280" font-family="Geist Mono, monospace"
+                  font-size="10">1.0m</text>
+                
+
+            <line x1="50" y1="135.0" x2="680" y2="135.0"
+                  stroke="#EAB308" stroke-width="2" opacity="0.9"/>
+            <text x="690" y="139.0"
+                  fill="#374151" font-family="Geist Sans, Arial, sans-serif"
+                  font-size="11" font-weight="bold">WAD 1500</text>
+            <text x="40" y="139.0" text-anchor="end"
+                  fill="#6B7280" font-family="Geist Mono, monospace"
+                  font-size="10">1.5m</text>
+                
+
+            <line x1="50" y1="60.0" x2="680" y2="60.0"
+                  stroke="#EAB308" stroke-width="2" opacity="0.9"/>
+            <text x="690" y="64.0"
+                  fill="#374151" font-family="Geist Sans, Arial, sans-serif"
+                  font-size="11" font-weight="bold">WAD 2000</text>
+            <text x="40" y="64.0" text-anchor="end"
+                  fill="#6B7280" font-family="Geist Mono, monospace"
+                  font-size="10">2.0m</text>
+                
+
+        <g id="car_side_wad_vehicle" transform="translate(380, 360) scale(0.5, 0.5) translate(-215.0, -72.5)">
+            <line xmlns="http://www.w3.org/2000/svg" x1="0" y1="143" x2="430" y2="143" stroke="#E5E7EB" stroke-width="1" stroke-dasharray="5,5" />
+
+  
+  <circle xmlns="http://www.w3.org/2000/svg" cx="85" cy="120" r="25" fill="#1F2937" stroke="#374151" stroke-width="3" />
+  <circle xmlns="http://www.w3.org/2000/svg" cx="85" cy="120" r="12" fill="#6B7280" />
+  <circle xmlns="http://www.w3.org/2000/svg" cx="85" cy="120" r="4" fill="#374151" />
+
+  <circle xmlns="http://www.w3.org/2000/svg" cx="340" cy="120" r="25" fill="#1F2937" stroke="#374151" stroke-width="3" />
+  <circle xmlns="http://www.w3.org/2000/svg" cx="340" cy="120" r="12" fill="#6B7280" />
+  <circle xmlns="http://www.w3.org/2000/svg" cx="340" cy="120" r="4" fill="#374151" />
+
+  
+  <path xmlns="http://www.w3.org/2000/svg" d="     M 30 95     L 30 85     Q 30 75, 40 70     L 100 65     L 120 65     L 145 30     Q 150 20, 170 18     L 280 15     Q 300 15, 310 25     L 340 60     L 395 65     Q 410 65, 415 75     L 420 90     Q 422 95, 420 100     L 400 100     L 400 95     Q 385 95, 365 95     L 365 100     L 55 100     L 55 95     Q 45 95, 30 95     Z   " fill="#4B5563" stroke="#1F2937" stroke-width="2" />
+
+  
+  <path xmlns="http://www.w3.org/2000/svg" d="     M 40 70     L 100 65     L 120 65     L 145 30     Q 147 26, 145 30     L 100 68     L 45 73     Q 40 74, 40 70   " fill="#374151" />
+
+  
+  <path xmlns="http://www.w3.org/2000/svg" d="     M 147 30     Q 150 22, 168 20     L 195 18     L 195 62     L 150 62     L 147 30     Z   " fill="#93C5FD" stroke="#1F2937" stroke-width="1" />
+
+  
+  <path xmlns="http://www.w3.org/2000/svg" d="     M 195 18     L 275 16     Q 295 16, 305 28     L 315 40     L 195 40     L 195 18     Z   " fill="#6B7280" stroke="#1F2937" stroke-width="1" />
+
+  
+  <rect xmlns="http://www.w3.org/2000/svg" x="198" y="42" width="45" height="22" rx="2" fill="#93C5FD" stroke="#1F2937" stroke-width="1" />
+  <rect xmlns="http://www.w3.org/2000/svg" x="248" y="42" width="45" height="22" rx="2" fill="#93C5FD" stroke="#1F2937" stroke-width="1" />
+
+  
+  <path xmlns="http://www.w3.org/2000/svg" d="     M 305 30     L 315 40     L 330 55     L 295 55     L 295 42     L 305 30     Z   " fill="#93C5FD" stroke="#1F2937" stroke-width="1" />
+
+  
+  <path xmlns="http://www.w3.org/2000/svg" d="     M 330 55     L 340 60     L 395 65     Q 405 66, 410 72     L 400 72     L 335 68     L 330 55     Z   " fill="#374151" />
+
+  
+  <path xmlns="http://www.w3.org/2000/svg" d="     M 395 65     Q 410 65, 415 75     L 420 90     Q 420 95, 418 98     L 400 98     L 400 72     L 395 65     Z   " fill="#4B5563" stroke="#1F2937" stroke-width="1" />
+
+  
+  <ellipse xmlns="http://www.w3.org/2000/svg" cx="25" cy="80" rx="8" ry="5" fill="#FEF08A" stroke="#1F2937" stroke-width="1" />
+
+  
+  <rect xmlns="http://www.w3.org/2000/svg" x="412" y="78" width="8" height="12" rx="2" fill="#DC2626" stroke="#1F2937" stroke-width="1" />
+
+  
+  <rect xmlns="http://www.w3.org/2000/svg" x="15" y="88" width="20" height="10" rx="3" fill="#374151" stroke="#1F2937" stroke-width="1" />
+
+  
+  <rect xmlns="http://www.w3.org/2000/svg" x="405" y="88" width="18" height="10" rx="3" fill="#374151" stroke="#1F2937" stroke-width="1" />
+
+  
+  <rect xmlns="http://www.w3.org/2000/svg" x="180" y="58" width="12" height="3" rx="1" fill="#6B7280" />
+  <rect xmlns="http://www.w3.org/2000/svg" x="265" y="58" width="12" height="3" rx="1" fill="#6B7280" />
+
+  
+  <ellipse xmlns="http://www.w3.org/2000/svg" cx="135" cy="55" rx="8" ry="5" fill="#374151" stroke="#1F2937" stroke-width="1" />
+
+  
+  <path xmlns="http://www.w3.org/2000/svg" d="M 50 95 Q 60 100, 85 100 Q 110 100, 120 95" fill="none" stroke="#374151" stroke-width="2" />
+  <path xmlns="http://www.w3.org/2000/svg" d="M 305 95 Q 320 100, 340 100 Q 360 100, 375 95" fill="none" stroke="#374151" stroke-width="2" />
+
+        </g>
+        
+<!-- Impact Markers -->
+
+            <g class="marker-pedestrian-20">
+                <polygon points="621.875,224.9375 613.875,239.9375 629.875,239.9375"
+                         fill="#F97316" stroke="#000000" stroke-width="1"/>
+                <text x="636.875" y="234.9375"
+                      fill="#F97316" font-family="Geist Mono, monospace"
+                      font-size="11" font-weight="bold">20 km/h</text>
+            </g>
+            
+
+                <g class="marker-cyclist-20">
+                    <line x1="585.875" y1="209.9375" x2="597.875" y2="209.9375"
+                          stroke="#000000" stroke-width="2.5"/>
+                    <line x1="591.875" y1="203.9375" x2="591.875" y2="215.9375"
+                          stroke="#000000" stroke-width="2.5"/>
+                </g>
+                
+
+            <g class="marker-pedestrian-25">
+                <polygon points="573.5,208.625 565.5,223.625 581.5,223.625"
+                         fill="#F97316" stroke="#000000" stroke-width="1"/>
+                <text x="588.5" y="218.625"
+                      fill="#F97316" font-family="Geist Mono, monospace"
+                      font-size="11" font-weight="bold">25 km/h</text>
+            </g>
+            
+
+                <g class="marker-cyclist-25">
+                    <line x1="537.5" y1="193.625" x2="549.5" y2="193.625"
+                          stroke="#000000" stroke-width="2.5"/>
+                    <line x1="543.5" y1="187.625" x2="543.5" y2="199.625"
+                          stroke="#000000" stroke-width="2.5"/>
+                </g>
+                
+
+            <g class="marker-pedestrian-30">
+                <polygon points="525.125,181.4375 517.125,196.4375 533.125,196.4375"
+                         fill="#F97316" stroke="#000000" stroke-width="1"/>
+                <text x="540.125" y="191.4375"
+                      fill="#F97316" font-family="Geist Mono, monospace"
+                      font-size="11" font-weight="bold">30 km/h</text>
+            </g>
+            
+
+                <g class="marker-cyclist-30">
+                    <line x1="489.125" y1="166.4375" x2="501.125" y2="166.4375"
+                          stroke="#000000" stroke-width="2.5"/>
+                    <line x1="495.125" y1="160.4375" x2="495.125" y2="172.4375"
+                          stroke="#000000" stroke-width="2.5"/>
+                </g>
+                
+
+            <g class="marker-pedestrian-35">
+                <polygon points="488.84375,161.046875 480.84375,176.046875 496.84375,176.046875"
+                         fill="#F97316" stroke="#000000" stroke-width="1"/>
+                <text x="503.84375" y="171.046875"
+                      fill="#F97316" font-family="Geist Mono, monospace"
+                      font-size="11" font-weight="bold">35 km/h</text>
+            </g>
+            
+
+                <g class="marker-cyclist-35">
+                    <line x1="452.84375" y1="146.046875" x2="464.84375" y2="146.046875"
+                          stroke="#000000" stroke-width="2.5"/>
+                    <line x1="458.84375" y1="140.046875" x2="458.84375" y2="152.046875"
+                          stroke="#000000" stroke-width="2.5"/>
+                </g>
+                
+
+            <g class="marker-pedestrian-40">
+                <polygon points="460.625,149.89999999999998 452.625,164.89999999999998 468.625,164.89999999999998"
+                         fill="#F97316" stroke="#000000" stroke-width="1"/>
+                <text x="475.625" y="159.89999999999998"
+                      fill="#F97316" font-family="Geist Mono, monospace"
+                      font-size="11" font-weight="bold">40 km/h</text>
+            </g>
+            
+
+                <g class="marker-cyclist-40">
+                    <line x1="424.625" y1="134.89999999999998" x2="436.625" y2="134.89999999999998"
+                          stroke="#000000" stroke-width="2.5"/>
+                    <line x1="430.625" y1="128.89999999999998" x2="430.625" y2="140.89999999999998"
+                          stroke="#000000" stroke-width="2.5"/>
+                </g>
+                
+
+                <circle cx="460.625" cy="159.89999999999998" r="25" fill="none"
+                        stroke="#DC2626" stroke-width="3">
+                    <animate attributeName="r" values="20;28;20" dur="1.5s" repeatCount="indefinite"/>
+                    <animate attributeName="opacity" values="1;0.6;1" dur="1.5s" repeatCount="indefinite"/>
+                </circle>
+                
+
+            <g class="marker-pedestrian-45">
+                <polygon points="436.4375,143.37499999999997 428.4375,158.37499999999997 444.4375,158.37499999999997"
+                         fill="#F97316" stroke="#000000" stroke-width="1"/>
+                <text x="451.4375" y="153.37499999999997"
+                      fill="#F97316" font-family="Geist Mono, monospace"
+                      font-size="11" font-weight="bold">45 km/h</text>
+            </g>
+            
+
+                <g class="marker-cyclist-45">
+                    <line x1="400.4375" y1="128.37499999999997" x2="412.4375" y2="128.37499999999997"
+                          stroke="#000000" stroke-width="2.5"/>
+                    <line x1="406.4375" y1="122.37499999999997" x2="406.4375" y2="134.37499999999997"
+                          stroke="#000000" stroke-width="2.5"/>
+                </g>
+                
+
+            <g class="marker-pedestrian-50">
+                <polygon points="412.25,136.85 404.25,151.85 420.25,151.85"
+                         fill="#F97316" stroke="#000000" stroke-width="1"/>
+                <text x="427.25" y="146.85"
+                      fill="#F97316" font-family="Geist Mono, monospace"
+                      font-size="11" font-weight="bold">50 km/h</text>
+            </g>
+            
+
+                <g class="marker-cyclist-50">
+                    <line x1="376.25" y1="121.85" x2="388.25" y2="121.85"
+                          stroke="#000000" stroke-width="2.5"/>
+                    <line x1="382.25" y1="115.85" x2="382.25" y2="127.85"
+                          stroke="#000000" stroke-width="2.5"/>
+                </g>
+                
+
+            <g class="marker-pedestrian-55">
+                <polygon points="380.0,132.5 372.0,147.5 388.0,147.5"
+                         fill="#F97316" stroke="#000000" stroke-width="1"/>
+                <text x="395.0" y="142.5"
+                      fill="#F97316" font-family="Geist Mono, monospace"
+                      font-size="11" font-weight="bold">55 km/h</text>
+            </g>
+            
+
+                <g class="marker-cyclist-55">
+                    <line x1="344.0" y1="117.5" x2="356.0" y2="117.5"
+                          stroke="#000000" stroke-width="2.5"/>
+                    <line x1="350.0" y1="111.5" x2="350.0" y2="123.5"
+                          stroke="#000000" stroke-width="2.5"/>
+                </g>
+                
+
+            <rect x="700" y="70" width="185" height="320"
+                  fill="#FFFFFF" stroke="#E5E7EB"
+                  stroke-width="1" rx="6"/>
+
+            <text x="715" y="92"
+                  fill="#374151" font-family="Geist Sans, Arial, sans-serif"
+                  font-size="13" font-weight="bold">Leyenda - Zonas WAD</text>
+            <line x1="710" y1="102" x2="875" y2="102"
+                  stroke="#E5E7EB"/>
+
+            <!-- Pedestrian symbol -->
+            <polygon points="725,118 717,132 733,132"
+                     fill="#F97316" stroke="#000000" stroke-width="1"/>
+            <text x="745" y="128"
+                  fill="#374151" font-family="Geist Sans, Arial, sans-serif"
+                  font-size="11">Impacto peaton</text>
+
+            <!-- Cyclist symbol -->
+            <line x1="719" y1="152" x2="731" y2="152"
+                  stroke="#000000" stroke-width="2.5"/>
+            <line x1="725" y1="146" x2="725" y2="158"
+                  stroke="#000000" stroke-width="2.5"/>
+            <text x="745" y="156"
+                  fill="#374151" font-family="Geist Sans, Arial, sans-serif"
+                  font-size="11">Impacto ciclista</text>
+
+            <line x1="710" y1="170" x2="875" y2="170"
+                  stroke="#E5E7EB"/>
+
+            <text x="715" y="188"
+                  fill="#374151" font-family="Geist Sans, Arial, sans-serif"
+                  font-size="11" font-weight="bold">Velocidad → Zona:</text>
+            
+
+            <text x="720" y="208"
+                  fill="#F97316" font-family="Geist Mono, monospace"
+                  font-size="10" font-weight="bold">20 km/h</text>
+            <text x="775" y="208"
+                  fill="#374151" font-family="Geist Sans, Arial, sans-serif"
+                  font-size="9">→ Capo posterior</text>
+            
+
+            <text x="720" y="234"
+                  fill="#F97316" font-family="Geist Mono, monospace"
+                  font-size="10" font-weight="bold">25 km/h</text>
+            <text x="775" y="234"
+                  fill="#374151" font-family="Geist Sans, Arial, sans-serif"
+                  font-size="9">→ Capo central</text>
+            
+
+            <text x="720" y="260"
+                  fill="#F97316" font-family="Geist Mono, monospace"
+                  font-size="10" font-weight="bold">30 km/h</text>
+            <text x="775" y="260"
+                  fill="#374151" font-family="Geist Sans, Arial, sans-serif"
+                  font-size="9">→ Capo anterior</text>
+            
+
+            <text x="720" y="286"
+                  fill="#F97316" font-family="Geist Mono, monospace"
+                  font-size="10" font-weight="bold">35 km/h</text>
+            <text x="775" y="286"
+                  fill="#374151" font-family="Geist Sans, Arial, sans-serif"
+                  font-size="9">→ Base parabrisas</text>
+            
+
+            <text x="720" y="312"
+                  fill="#F97316" font-family="Geist Mono, monospace"
+                  font-size="10" font-weight="bold">40 km/h</text>
+            <text x="775" y="312"
+                  fill="#374151" font-family="Geist Sans, Arial, sans-serif"
+                  font-size="9">→ Parabrisas inferior</text>
+            
+
+            <text x="720" y="338"
+                  fill="#F97316" font-family="Geist Mono, monospace"
+                  font-size="10" font-weight="bold">45 km/h</text>
+            <text x="775" y="338"
+                  fill="#374151" font-family="Geist Sans, Arial, sans-serif"
+                  font-size="9">→ Parabrisas superior</text>
+            
+
+            <line x1="710" y1="365" x2="875" y2="365"
+                  stroke="#E5E7EB"/>
+            <text x="715" y="380"
+                  fill="#6B7280" font-family="Geist Sans, Arial, sans-serif"
+                  font-size="8" font-style="italic">Basado en ITRASA/Euro NCAP</text>
+        
+
+        <rect x="25" y="535" width="620" height="95"
+              fill="#F9FAFB" stroke="#E5E7EB" stroke-width="1" rx="6"/>
+
+        <text x="40" y="560"
+              fill="#374151" font-family="Geist Sans, Arial, sans-serif"
+              font-size="12" font-weight="bold">Interpretacion - Impacto Frontal</text>
+
+        <text x="40" y="582"
+              fill="#374151" font-family="Geist Sans, Arial, sans-serif" font-size="10">
+            • 15-25 km/h: Impacto en capo → Lesiones moderadas (AIS 1-2)
+        </text>
+        <text x="40" y="600"
+              fill="#374151" font-family="Geist Sans, Arial, sans-serif" font-size="10">
+            • 30-40 km/h: Impacto en parabrisas → Lesiones graves, TCE (AIS 3-4)
+        </text>
+        <text x="340" y="582"
+              fill="#374151" font-family="Geist Sans, Arial, sans-serif" font-size="10">
+            • 45-55 km/h: Impacto en techo/pilar → Lesiones criticas (AIS 5+)
+        </text>
+        <text x="340" y="600"
+              fill="#374151" font-family="Geist Sans, Arial, sans-serif" font-size="10">
+            • &gt;55 km/h: Proyeccion completa → Riesgo vital muy alto
+        </text>
+        
+<text x="890" y="640" fill="#6B7280" font-family="Geist Sans, Arial, sans-serif" font-size="9" text-anchor="end">Veridict AI - Reconstruccion Forense</text>
+</svg>

@@ -526,21 +526,21 @@ export function AccidentScene2D({
           <button
             onClick={handleZoomIn}
             className="p-2.5 rounded-lg bg-veridict-green-800/95 hover:bg-veridict-green-700 text-veridict-lime border border-veridict-green-600 transition-all hover:scale-105 active:scale-95 shadow-lg"
-            title="Acercar"
+            title="Zoom in"
           >
             <ZoomIn size={20} />
           </button>
           <button
             onClick={handleZoomOut}
             className="p-2.5 rounded-lg bg-veridict-green-800/95 hover:bg-veridict-green-700 text-veridict-lime border border-veridict-green-600 transition-all hover:scale-105 active:scale-95 shadow-lg"
-            title="Alejar"
+            title="Zoom out"
           >
             <ZoomOut size={20} />
           </button>
           <button
             onClick={handleResetView}
             className="p-2.5 rounded-lg bg-veridict-green-800/95 hover:bg-veridict-green-700 text-veridict-lime border border-veridict-green-600 transition-all hover:scale-105 active:scale-95 shadow-lg"
-            title="Resetear vista"
+            title="Reset view"
           >
             <Maximize size={20} />
           </button>
@@ -551,7 +551,7 @@ export function AccidentScene2D({
                 ? "bg-veridict-lime/25 text-veridict-lime border-veridict-lime/50"
                 : "bg-veridict-green-800/95 text-veridict-gray border-veridict-green-600 hover:bg-veridict-green-700"
             }`}
-            title={autoFollow ? "Siguiendo vehículos" : "Seguir vehículos"}
+            title={autoFollow ? "Following vehicles" : "Follow vehicles"}
           >
             <Navigation size={20} />
           </button>
@@ -562,7 +562,7 @@ export function AccidentScene2D({
       {autoFollow && (
         <div className="absolute top-14 left-4 z-30 px-3 py-2 rounded-lg bg-veridict-lime/15 border border-veridict-lime/30 text-xs font-mono text-veridict-lime flex items-center gap-2 shadow-lg pointer-events-none">
           <Navigation size={14} className="animate-pulse" />
-          Siguiendo vehículos
+          Following vehicles
         </div>
       )}
 
@@ -698,13 +698,13 @@ export function AccidentScene2D({
           >
             <div className="flex items-center gap-2 mb-1">
               <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: vehicleAColor }} />
-              <span className="text-[10px] font-mono font-bold" style={{ color: vehicleAColor }}>VEHÍCULO A</span>
+              <span className="text-[10px] font-mono font-bold" style={{ color: vehicleAColor }}>VEHICLE A</span>
             </div>
             <div className="text-xs font-mono text-zinc-400">
               <span className="font-bold text-sm" style={{ color: vehicleAColor }}>{vehicleAState.speed.toFixed(0)}</span>
               <span className="text-[10px] ml-0.5">km/h</span>
               {vehicleAState.braking && (
-                <span className="ml-2 text-red-400 animate-pulse text-[10px]">● FRENANDO</span>
+                <span className="ml-2 text-red-400 animate-pulse text-[10px]">● BRAKING</span>
               )}
             </div>
           </div>
@@ -715,13 +715,13 @@ export function AccidentScene2D({
           >
             <div className="flex items-center gap-2 mb-1">
               <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: vehicleBColor }} />
-              <span className="text-[10px] font-mono font-bold" style={{ color: vehicleBColor }}>VEHÍCULO B</span>
+              <span className="text-[10px] font-mono font-bold" style={{ color: vehicleBColor }}>VEHICLE B</span>
             </div>
             <div className="text-xs font-mono text-zinc-400">
               <span className="font-bold text-sm" style={{ color: vehicleBColor }}>{vehicleBState.speed.toFixed(0)}</span>
               <span className="text-[10px] ml-0.5">km/h</span>
               {vehicleBState.braking && (
-                <span className="ml-2 text-red-400 animate-pulse text-[10px]">● FRENANDO</span>
+                <span className="ml-2 text-red-400 animate-pulse text-[10px]">● BRAKING</span>
               )}
             </div>
           </div>
@@ -736,7 +736,7 @@ export function AccidentScene2D({
           animate={{ scale: 1, opacity: 1 }}
         >
           <div className="text-xs font-mono text-red-400 text-center">
-            <div className="font-bold text-sm">⚠ IMPACTO</div>
+            <div className="font-bold text-sm">⚠ IMPACT</div>
             <div className="flex gap-3 mt-1">
               <span>ΔV-A: <span className="text-white">{data.impact.deltaV_A.toFixed(1)}</span> km/h</span>
               <span>ΔV-B: <span className="text-white">{data.impact.deltaV_B.toFixed(1)}</span> km/h</span>
@@ -748,7 +748,7 @@ export function AccidentScene2D({
       {/* Label */}
       <div className="absolute bottom-3 right-3 z-20 pointer-events-none">
         <span className="text-[10px] text-veridict-gray/60 font-mono bg-[#0d110d]/80 px-2 py-1 rounded">
-          RECONSTRUCCIÓN 2D • Arrastra para mover • Scroll para zoom
+          2D RECONSTRUCTION • Drag to move • Scroll to zoom
         </span>
       </div>
     </div>
@@ -969,7 +969,7 @@ function MeasurementsOverlay({ data, currentTime, vehicleA, vehicleB, showSpeedL
         <g transform={`translate(${vehicleA.x - 12}, ${vehicleA.y + (vehicleA.y < 0 ? 3 : -3)})`}>
           <rect x="-8" y="-2" width="16" height="3.5" fill="#0d110d" opacity="0.85" rx="0.4" />
           <text x="0" y="0.8" fontSize="2.2" fill="#EF4444" textAnchor="middle" fontFamily="monospace">
-            FRENADA: {data.vehicleA.brakeDistance.toFixed(1)}m
+            BRAKING: {data.vehicleA.brakeDistance.toFixed(1)}m
           </text>
         </g>
       )}
@@ -977,7 +977,7 @@ function MeasurementsOverlay({ data, currentTime, vehicleA, vehicleB, showSpeedL
         <g transform={`translate(${vehicleB.x + 12}, ${vehicleB.y + (vehicleB.y >= 0 ? 3 : -3)})`}>
           <rect x="-8" y="-2" width="16" height="3.5" fill="#0d110d" opacity="0.85" rx="0.4" />
           <text x="0" y="0.8" fontSize="2.2" fill="#EF4444" textAnchor="middle" fontFamily="monospace">
-            FRENADA: {data.vehicleB.brakeDistance.toFixed(1)}m
+            BRAKING: {data.vehicleB.brakeDistance.toFixed(1)}m
           </text>
         </g>
       )}

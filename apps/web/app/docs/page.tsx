@@ -23,46 +23,46 @@ import { Badge } from "@/components/ui/badge";
 const agents = [
   {
     id: "extractor",
-    name: "Agente Extractor",
+    name: "Extractor Agent",
     icon: FileText,
     color: "blue",
-    description: "Procesa documentos y evidencias del caso",
+    description: "Processes documents and case evidence",
     capabilities: [
-      "OCR de atestados policiales (PDF escaneados)",
-      "Análisis de fotografías con Vision AI",
-      "Extracción de datos de partes amistosos",
-      "Consulta automática a AEMET y DGT",
-      "Geocodificación de ubicaciones",
+      "OCR of police reports (scanned PDFs)",
+      "Photo analysis with Vision AI",
+      "Data extraction from accident report forms",
+      "Automatic queries to AEMET and DGT",
+      "Location geocoding",
     ],
-    tech: ["Claude Vision", "Tesseract OCR", "APIs externas"],
+    tech: ["Claude Vision", "Tesseract OCR", "External APIs"],
   },
   {
     id: "reconstructor",
-    name: "Agente Reconstructor",
+    name: "Reconstructor Agent",
     icon: Car,
     color: "purple",
-    description: "Calcula la física del accidente",
+    description: "Calculates accident physics",
     capabilities: [
-      "Velocidad pre-frenada (Stannard-Baker)",
-      "EBS por deformación (CRASH3/NHTSA)",
-      "Conservación del momento lineal",
-      "Análisis de huellas de frenada",
-      "Reconstrucción de trayectorias",
+      "Pre-braking speed (Stannard-Baker)",
+      "EBS from deformation (CRASH3/NHTSA)",
+      "Linear momentum conservation",
+      "Skid mark analysis",
+      "Trajectory reconstruction",
     ],
-    tech: ["Modelos físicos", "CRASH3", "EDR Data"],
+    tech: ["Physical models", "CRASH3", "EDR Data"],
   },
   {
     id: "legal",
-    name: "Agente Legal",
+    name: "Legal Agent",
     icon: Scale,
     color: "amber",
-    description: "Analiza infracciones y normativa aplicable",
+    description: "Analyzes violations and applicable regulations",
     capabilities: [
-      "RAG sobre corpus legal español",
-      "Detección de infracciones RGC",
-      "Citas verificadas del BOE",
-      "Jurisprudencia relevante",
-      "Atribución de responsabilidad",
+      "RAG over Spanish legal corpus",
+      "RGC violation detection",
+      "Verified BOE citations",
+      "Relevant case law",
+      "Liability attribution",
     ],
     tech: ["RAG", "Embeddings", "Vector DB"],
   },
@@ -71,15 +71,15 @@ const agents = [
     name: "Devil's Advocate",
     icon: Shield,
     color: "red",
-    description: "Verifica coherencia y detecta contradicciones",
+    description: "Verifies coherence and detects contradictions",
     capabilities: [
-      "Verificación de coherencia física",
-      "Comparación de versiones vs evidencia",
-      "Detección de contradicciones",
-      "Análisis de plausibilidad",
-      "Escalado a revisión humana si necesario",
+      "Physical coherence verification",
+      "Version comparison vs evidence",
+      "Contradiction detection",
+      "Plausibility analysis",
+      "Human review escalation if needed",
     ],
-    tech: ["Verificación adversarial", "Logic checks"],
+    tech: ["Adversarial verification", "Logic checks"],
   },
 ];
 
@@ -95,18 +95,18 @@ const techStack = [
 const compliance = [
   {
     name: "UNE-EN 16775",
-    description: "Norma europea para servicios de investigación privada",
-    status: "Cumple",
+    description: "European standard for private investigation services",
+    status: "Compliant",
   },
   {
-    name: "RGPD",
-    description: "Reglamento General de Protección de Datos",
-    status: "Cumple",
+    name: "GDPR",
+    description: "General Data Protection Regulation",
+    status: "Compliant",
   },
   {
     name: "ISO 27001",
-    description: "Sistema de gestión de seguridad de la información",
-    status: "En proceso",
+    description: "Information security management system",
+    status: "In progress",
   },
 ];
 
@@ -123,7 +123,7 @@ function AgentDiagram() {
             transition={{ delay: idx * 0.1 }}
             className="flex items-center"
           >
-            {/* Agente */}
+            {/* Agent */}
             <div className="relative">
               <motion.div
                 className={`w-20 h-20 rounded-2xl flex items-center justify-center
@@ -149,7 +149,7 @@ function AgentDiagram() {
               </div>
             </div>
 
-            {/* Flecha */}
+            {/* Arrow */}
             {idx < agents.length - 1 && (
               <motion.div
                 initial={{ scaleX: 0 }}
@@ -162,14 +162,14 @@ function AgentDiagram() {
         ))}
       </div>
 
-      {/* Input y Output */}
+      {/* Input and Output */}
       <div className="flex justify-between max-w-5xl mx-auto mt-16 text-sm">
         <div className="flex items-center gap-2 text-veridict-gray">
           <FileText className="w-4 h-4" />
-          <span>Atestado + Fotos</span>
+          <span>Police Report + Photos</span>
         </div>
         <div className="flex items-center gap-2 text-veridict-lime">
-          <span>Dictamen UNE-EN 16775</span>
+          <span>UNE-EN 16775 Expert Report</span>
           <CheckCircle2 className="w-4 h-4" />
         </div>
       </div>
@@ -189,32 +189,32 @@ export default function DocsPage() {
         >
           <Badge className="mb-4 bg-veridict-lime/20 text-veridict-lime border-veridict-lime/40">
             <BookOpen className="w-3 h-3 mr-1" />
-            Documentación Técnica
+            Technical Documentation
           </Badge>
           <h1 className="text-4xl font-bold text-veridict-white mb-4">
-            Arquitectura de Veridict AI
+            Veridict AI Architecture
           </h1>
           <p className="text-veridict-gray max-w-2xl mx-auto">
-            Sistema de reconstrucción forense automatizada basado en 4 agentes de IA
-            especializados que trabajan en pipeline secuencial.
+            Automated forensic reconstruction system based on 4 specialized AI agents
+            working in a sequential pipeline.
           </p>
         </motion.div>
 
         {/* Pipeline Diagram */}
         <Card className="p-8 mb-12">
           <h2 className="text-xl font-semibold text-veridict-white mb-2 text-center">
-            Pipeline de Procesamiento
+            Processing Pipeline
           </h2>
           <p className="text-veridict-gray text-center text-sm mb-8">
-            Del atestado policial al dictamen pericial en menos de 10 minutos
+            From police report to expert verdict in less than 10 minutes
           </p>
           <AgentDiagram />
         </Card>
 
-        {/* Agentes en detalle */}
+        {/* Agents in detail */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-veridict-white mb-6 text-center">
-            Los 4 Agentes
+            The 4 Agents
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
             {agents.map((agent, idx) => (
@@ -243,7 +243,7 @@ export default function DocsPage() {
                   </div>
 
                   <div className="mb-4">
-                    <h4 className="text-xs font-medium text-veridict-gray mb-2">CAPACIDADES:</h4>
+                    <h4 className="text-xs font-medium text-veridict-gray mb-2">CAPABILITIES:</h4>
                     <ul className="space-y-1">
                       {agent.capabilities.map((cap, i) => (
                         <li key={i} className="text-sm text-veridict-white flex items-start gap-2">
@@ -267,10 +267,10 @@ export default function DocsPage() {
           </div>
         </div>
 
-        {/* Stack Tecnológico */}
+        {/* Tech Stack */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-veridict-white mb-6 text-center">
-            Stack Tecnológico
+            Tech Stack
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             {techStack.map((tech, idx) => (
@@ -293,7 +293,7 @@ export default function DocsPage() {
         {/* Compliance */}
         <div className="mb-12">
           <h2 className="text-2xl font-bold text-veridict-white mb-6 text-center">
-            Cumplimiento Normativo
+            Regulatory Compliance
           </h2>
           <div className="grid md:grid-cols-3 gap-4">
             {compliance.map((item, idx) => (
@@ -308,7 +308,7 @@ export default function DocsPage() {
                     <h3 className="font-semibold text-veridict-white">{item.name}</h3>
                     <Badge
                       className={
-                        item.status === "Cumple"
+                        item.status === "Compliant"
                           ? "bg-veridict-lime/20 text-veridict-lime border-veridict-lime/40"
                           : "bg-amber-500/20 text-amber-400 border-amber-500/40"
                       }
@@ -323,38 +323,38 @@ export default function DocsPage() {
           </div>
         </div>
 
-        {/* Fórmulas Físicas */}
+        {/* Physics Formulas */}
         <Card className="p-8 mb-12">
           <h2 className="text-2xl font-bold text-veridict-white mb-6 text-center">
-            Cálculos Físicos Utilizados
+            Physics Calculations Used
           </h2>
           <div className="grid md:grid-cols-2 gap-8">
             <div>
               <h3 className="font-semibold text-veridict-white mb-3">
-                Velocidad Pre-Frenada (Stannard-Baker)
+                Pre-Braking Speed (Stannard-Baker)
               </h3>
               <div className="bg-veridict-green-800 rounded-lg p-4 font-mono text-center mb-3">
                 <span className="text-veridict-lime text-xl">V = √(2 × μ × g × d)</span>
               </div>
               <ul className="text-sm text-veridict-gray space-y-1">
-                <li>• V = Velocidad inicial (m/s)</li>
-                <li>• μ = Coeficiente de fricción</li>
-                <li>• g = Gravedad (9.81 m/s²)</li>
-                <li>• d = Distancia de frenada (m)</li>
+                <li>• V = Initial speed (m/s)</li>
+                <li>• μ = Friction coefficient</li>
+                <li>• g = Gravity (9.81 m/s²)</li>
+                <li>• d = Braking distance (m)</li>
               </ul>
             </div>
             <div>
               <h3 className="font-semibold text-veridict-white mb-3">
-                EBS por Deformación (CRASH3)
+                EBS from Deformation (CRASH3)
               </h3>
               <div className="bg-veridict-green-800 rounded-lg p-4 font-mono text-center mb-3">
                 <span className="text-veridict-lime text-xl">EBS = √((A×C + B×C²/2) / m)</span>
               </div>
               <ul className="text-sm text-veridict-gray space-y-1">
                 <li>• EBS = Equivalent Barrier Speed</li>
-                <li>• A, B = Coeficientes de rigidez NHTSA</li>
-                <li>• C = Profundidad de deformación</li>
-                <li>• m = Masa del vehículo</li>
+                <li>• A, B = NHTSA stiffness coefficients</li>
+                <li>• C = Deformation depth</li>
+                <li>• m = Vehicle mass</li>
               </ul>
             </div>
           </div>
@@ -370,16 +370,16 @@ export default function DocsPage() {
           <Card className="p-8 bg-gradient-to-br from-veridict-lime/10 to-transparent border-veridict-lime/30">
             <Eye className="w-12 h-12 text-veridict-lime mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-veridict-white mb-2">
-              ¿Quieres verlo en acción?
+              Want to see it in action?
             </h3>
             <p className="text-veridict-gray mb-6">
-              Prueba el demo interactivo con un caso real procesado por los 4 agentes.
+              Try the interactive demo with a real case processed by the 4 agents.
             </p>
             <a
               href="/demo"
               className="inline-flex items-center gap-2 px-6 py-3 bg-veridict-lime text-veridict-green-900 rounded-lg font-medium hover:bg-veridict-lime/90 transition-colors"
             >
-              Ver Demo
+              View Demo
               <ArrowRight className="w-4 h-4" />
             </a>
           </Card>

@@ -21,9 +21,9 @@ const nexoColor: Record<string, string> = {
 };
 
 const nexoLabel: Record<string, string> = {
-  causa_eficiente: "Causa eficiente",
-  concurrente: "Concurrente",
-  sin_nexo: "Sin nexo",
+  causa_eficiente: "Efficient cause",
+  concurrente: "Concurrent",
+  sin_nexo: "No nexus",
 };
 
 export function RazonamientoLegal({
@@ -34,28 +34,28 @@ export function RazonamientoLegal({
     <div className="p-6 space-y-6 overflow-y-auto h-full">
       <h3 className="font-semibold flex items-center gap-2 text-veridict-white text-xl">
         <Scale className="w-5 h-5 text-veridict-lime" />
-        Razonamiento Legal
+        Legal Reasoning
       </h3>
 
       {/* Veredicto + razonamiento */}
       {veredicto && (
         <div className="p-4 rounded-lg bg-veridict-green-800 border border-veridict-green-600 space-y-3">
-          <div className="text-sm text-veridict-gray">Atribución de culpa</div>
+          <div className="text-sm text-veridict-gray">Fault attribution</div>
           <div className="flex gap-4">
             <div className="flex-1">
-              <div className="text-xs text-blue-400">Vehículo A</div>
+              <div className="text-xs text-blue-400">Vehicle A</div>
               <div className="text-3xl font-bold text-blue-400">
                 {Math.round(veredicto.culpa_a * 100)}%
               </div>
             </div>
             <div className="flex-1">
-              <div className="text-xs text-orange-400">Vehículo B</div>
+              <div className="text-xs text-orange-400">Vehicle B</div>
               <div className="text-3xl font-bold text-orange-400">
                 {Math.round(veredicto.culpa_b * 100)}%
               </div>
             </div>
             <div className="flex-1 text-right">
-              <div className="text-xs text-veridict-gray">Confianza</div>
+              <div className="text-xs text-veridict-gray">Confidence</div>
               <div className="text-2xl font-mono text-veridict-lime">
                 {Math.round(veredicto.confidence * 100)}%
               </div>
@@ -66,15 +66,15 @@ export function RazonamientoLegal({
             <div className="flex items-start gap-2 p-3 rounded bg-yellow-500/10 border border-yellow-500/30">
               <AlertTriangle className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
               <div className="text-xs text-yellow-300">
-                <strong>Regla 100/100 TS:</strong> daños personales — la culpa civil puede no
-                redistribuirse aun habiendo concurrencia. Revisión humana recomendada.
+                <strong>100/100 SC Rule:</strong> personal injury — civil fault may not be
+                redistributed even with concurrence. Human review recommended.
               </div>
             </div>
           )}
 
           {veredicto.razonamiento && (
             <div>
-              <div className="text-xs text-veridict-gray mb-1">Razonamiento técnico-jurídico</div>
+              <div className="text-xs text-veridict-gray mb-1">Technical-legal reasoning</div>
               <p className="text-sm text-veridict-white whitespace-pre-wrap leading-relaxed">
                 {veredicto.razonamiento}
               </p>
@@ -88,7 +88,7 @@ export function RazonamientoLegal({
         <div className="space-y-2">
           <h4 className="text-sm font-medium text-veridict-gray flex items-center gap-2">
             <GitBranch className="w-4 h-4" />
-            Nexo causal por infracción
+            Causal nexus by violation
           </h4>
           <div className="space-y-2">
             {veredicto.nexo_causal.map((n: NexoCausal, idx: number) => (
@@ -104,7 +104,7 @@ export function RazonamientoLegal({
                         : "bg-orange-500/20 text-orange-400"
                     }`}
                   >
-                    Vehículo {n.vehiculo}
+                    Vehicle {n.vehiculo}
                   </span>
                   <span className="text-xs font-mono text-veridict-gray">{n.articulo}</span>
                   <span
@@ -131,9 +131,9 @@ export function RazonamientoLegal({
 
       {/* Infracciones */}
       <div className="space-y-3">
-        <h4 className="text-sm font-medium text-veridict-gray">Infracciones detectadas</h4>
+        <h4 className="text-sm font-medium text-veridict-gray">Detected violations</h4>
         {infracciones.length === 0 ? (
-          <p className="text-sm text-veridict-gray">No se detectaron infracciones.</p>
+          <p className="text-sm text-veridict-gray">No violations detected.</p>
         ) : (
           infracciones.map((infraccion, index) => (
             <div
@@ -148,14 +148,14 @@ export function RazonamientoLegal({
                       : "bg-orange-500/20 text-orange-400"
                   }`}
                 >
-                  Vehículo {infraccion.vehiculo}
+                  Vehicle {infraccion.vehiculo}
                 </span>
                 <span className="text-xs font-mono text-veridict-gray">
                   {infraccion.articulo}
                 </span>
               </div>
               <p className="text-sm text-veridict-white">{infraccion.descripcion}</p>
-              <p className="text-xs text-veridict-gray mt-1">Fuente: {infraccion.fuente}</p>
+              <p className="text-xs text-veridict-gray mt-1">Source: {infraccion.fuente}</p>
             </div>
           ))
         )}

@@ -65,22 +65,22 @@ interface VisualizationControlsProps {
 }
 
 const VEHICLE_TYPES = [
-  { id: "sedan", label: "Turismo", icon: Car },
+  { id: "sedan", label: "Sedan", icon: Car },
   { id: "suv", label: "SUV", icon: Car },
-  { id: "van", label: "Furgoneta", icon: Truck },
-  { id: "truck", label: "Camión", icon: Truck },
-  { id: "motorcycle", label: "Moto", icon: Bike },
+  { id: "van", label: "Van", icon: Truck },
+  { id: "truck", label: "Truck", icon: Truck },
+  { id: "motorcycle", label: "Motorcycle", icon: Bike },
 ] as const;
 
 const VEHICLE_COLORS = [
-  { id: "#3B82F6", label: "Azul" },
-  { id: "#EF4444", label: "Rojo" },
-  { id: "#10B981", label: "Verde" },
-  { id: "#F59E0B", label: "Naranja" },
-  { id: "#8B5CF6", label: "Morado" },
-  { id: "#6B7280", label: "Gris" },
-  { id: "#FFFFFF", label: "Blanco" },
-  { id: "#1F2937", label: "Negro" },
+  { id: "#3B82F6", label: "Blue" },
+  { id: "#EF4444", label: "Red" },
+  { id: "#10B981", label: "Green" },
+  { id: "#F59E0B", label: "Orange" },
+  { id: "#8B5CF6", label: "Purple" },
+  { id: "#6B7280", label: "Gray" },
+  { id: "#FFFFFF", label: "White" },
+  { id: "#1F2937", label: "Black" },
 ];
 
 const PLAYBACK_SPEEDS = [
@@ -139,7 +139,7 @@ export function VisualizationControls({
           >
             <span className="flex items-center gap-1.5">
               <Layers size={14} />
-              2D Superior
+              2D Top
             </span>
           </button>
           <button
@@ -152,7 +152,7 @@ export function VisualizationControls({
           >
             <span className="flex items-center gap-1.5">
               <Box size={14} />
-              Isométrica
+              Isometric
             </span>
           </button>
         </div>
@@ -163,31 +163,31 @@ export function VisualizationControls({
             active={settings.showGrid}
             onClick={() => updateSetting("showGrid", !settings.showGrid)}
             icon={<Grid3X3 size={14} />}
-            tooltip="Cuadrícula"
+            tooltip="Grid"
           />
           <ToggleButton
             active={settings.showTrajectories}
             onClick={() => updateSetting("showTrajectories", !settings.showTrajectories)}
             icon={<Route size={14} />}
-            tooltip="Trayectorias"
+            tooltip="Trajectories"
           />
           <ToggleButton
             active={settings.showMeasurements}
             onClick={() => updateSetting("showMeasurements", !settings.showMeasurements)}
             icon={<Ruler size={14} />}
-            tooltip="Mediciones"
+            tooltip="Measurements"
           />
           <ToggleButton
             active={settings.showSpeedLabels}
             onClick={() => updateSetting("showSpeedLabels", !settings.showSpeedLabels)}
             icon={<Gauge size={14} />}
-            tooltip="Velocidades"
+            tooltip="Speeds"
           />
           <ToggleButton
             active={settings.showImpactZone}
             onClick={() => updateSetting("showImpactZone", !settings.showImpactZone)}
             icon={<Target size={14} />}
-            tooltip="Zona impacto"
+            tooltip="Impact zone"
           />
         </div>
 
@@ -196,28 +196,28 @@ export function VisualizationControls({
           <button
             onClick={() => onCenterOn("overview")}
             className="p-1.5 rounded text-zinc-500 hover:text-zinc-300 hover:bg-white/5 transition-colors"
-            title="Vista general"
+            title="Overview"
           >
             <Maximize2 size={14} />
           </button>
           <button
             onClick={() => onCenterOn("A")}
             className="px-2 py-1 rounded text-xs font-mono text-blue-400 hover:bg-blue-500/10 transition-colors"
-            title="Centrar en A"
+            title="Center on A"
           >
             A
           </button>
           <button
             onClick={() => onCenterOn("B")}
             className="px-2 py-1 rounded text-xs font-mono text-orange-400 hover:bg-orange-500/10 transition-colors"
-            title="Centrar en B"
+            title="Center on B"
           >
             B
           </button>
           <button
             onClick={() => onCenterOn("impact")}
             className="p-1.5 rounded text-red-400 hover:bg-red-500/10 transition-colors"
-            title="Ir al impacto"
+            title="Go to impact"
           >
             <Focus size={14} />
           </button>
@@ -234,7 +234,7 @@ export function VisualizationControls({
           >
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: settings.vehicleA.color }} />
-              <span className="text-xs font-medium text-blue-400">Vehículo A</span>
+              <span className="text-xs font-medium text-blue-400">Vehicle A</span>
             </div>
             <ChevronDown
               size={14}
@@ -257,7 +257,7 @@ export function VisualizationControls({
           >
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: settings.vehicleB.color }} />
-              <span className="text-xs font-medium text-orange-400">Vehículo B</span>
+              <span className="text-xs font-medium text-orange-400">Vehicle B</span>
             </div>
             <ChevronDown
               size={14}
@@ -281,7 +281,7 @@ export function VisualizationControls({
             <button
               onClick={onReset}
               className="p-1.5 rounded text-zinc-500 hover:text-zinc-300 hover:bg-white/5 transition-colors"
-              title="Reiniciar"
+              title="Reset"
             >
               <RotateCcw size={14} />
             </button>
@@ -359,7 +359,7 @@ export function VisualizationControls({
                 ? "bg-[#C2E94B]/20 text-[#C2E94B]"
                 : "text-zinc-500 hover:text-zinc-300 hover:bg-white/5"
             }`}
-            title="Repetir"
+            title="Loop"
           >
             <RotateCcw size={14} />
           </button>
@@ -367,10 +367,10 @@ export function VisualizationControls({
 
         {/* Timeline markers */}
         <div className="mt-2 flex items-center justify-between text-[10px] font-mono text-zinc-600">
-          <span>0s - Inicio</span>
-          <span className="text-yellow-500">Frenada</span>
-          <span className="text-red-400">Impacto</span>
-          <span>Fin</span>
+          <span>0s - Start</span>
+          <span className="text-yellow-500">Braking</span>
+          <span className="text-red-400">Impact</span>
+          <span>End</span>
         </div>
       </div>
     </div>
@@ -415,7 +415,7 @@ function VehicleEditor({
       {/* Vehicle type */}
       <div>
         <label className="text-[10px] font-medium text-zinc-500 uppercase tracking-wide mb-1.5 block">
-          Tipo de vehículo
+          Vehicle type
         </label>
         <div className="flex flex-wrap gap-1">
           {VEHICLE_TYPES.map((type) => {

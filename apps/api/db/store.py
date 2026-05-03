@@ -3,18 +3,24 @@
 No es una BD de verdad: serializa el dict de casos completo a disco cada vez
 que se escribe. Suficiente para la demo del hackathon — todo el estado vive en
 `apps/api/db/casos.json` y se carga al arrancar el servidor.
+
+reload: 1
 """
 
 from __future__ import annotations
 
 import json
 import os
+import sys
 import tempfile
 from pathlib import Path
 from threading import RLock
 from typing import Iterator
 
 from models import Caso
+
+def _log(msg: str) -> None:
+    print(msg, file=sys.stderr, flush=True)
 
 
 class JsonCasoStore:
@@ -27,6 +33,7 @@ class JsonCasoStore:
     """
 
     def __init__(self, path: Path):
+        _log(f"[JsonCasoStore] Loading from {path}")
         self._path = path
         self._lock = RLock()
         self._data: dict[str, Caso] = {}
@@ -34,17 +41,25 @@ class JsonCasoStore:
         self._load()
 
     def _load(self) -> None:
+        _log(f"[JsonCasoStore] Checking path: {self._path}")
         if not self._path.exists():
+            _log(f"[JsonCasoStore] Path does not exist!")
             return
+        _log(f"[JsonCasoStore] Path exists, reading...")
         try:
             raw = json.loads(self._path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, OSError):
+            _log(f"[JsonCasoStore] Loaded {len(raw)} raw entries")
+        except (json.JSONDecodeError, OSError) as e:
+            _log(f"[JsonCasoStore] Error reading JSON: {e}")
             return
         for caso_id, blob in raw.items():
             try:
                 self._data[caso_id] = Caso.model_validate(blob)
-            except Exception:
+                _log(f"[JsonCasoStore] OK: {caso_id}")
+            except Exception as e:
+                _log(f"[JsonCasoStore] FAIL {caso_id}: {e}")
                 continue
+        _log(f"[JsonCasoStore] Total loaded: {len(self._data)}")
 
     def _flush(self) -> None:
         payload = {cid: json.loads(c.model_dump_json()) for cid, c in self._data.items()}

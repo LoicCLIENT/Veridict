@@ -1,0 +1,307 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="650" 
+viewBox="0 0 900 650" font-family="Arial, sans-serif">
+<rect width="900" height="650" fill="#FFFFFF"/>
+
+    <rect x="0" y="0" width="900" height="50" fill="#1F2937"/>
+    <text x="20" y="32" fill="#FFFFFF" font-size="16" font-weight="bold">
+        Diagrama WAD - Impacto Lateral - Zonas de Contacto Cabeza
+    </text>
+    
+
+        <g transform="translate(380, 340)" id="vehiculo-lateral">
+            <!-- Contorno superior del coche (techo y ventanas) -->
+            <path d="M -180,40
+                     L -180,0
+                     L -150,-30
+                     L -100,-60
+                     L -40,-80
+                     L 40,-85
+                     L 100,-80
+                     L 150,-55
+                     L 180,-20
+                     L 190,20
+                     L 190,60"
+                  fill="none" stroke="#333" stroke-width="1.8"/>
+
+            <!-- Linea inferior (carroceria) -->
+            <path d="M -180,60 L -180,90"
+                  fill="none" stroke="#333" stroke-width="1.8"/>
+            <path d="M -180,90 L -140,90"
+                  fill="none" stroke="#333" stroke-width="1.8"/>
+            <path d="M -50,90 L 60,90"
+                  fill="none" stroke="#333" stroke-width="1.8"/>
+            <path d="M 150,90 L 190,90"
+                  fill="none" stroke="#333" stroke-width="1.8"/>
+            <path d="M 190,90 L 190,60"
+                  fill="none" stroke="#333" stroke-width="1.8"/>
+
+            <!-- Ventanas -->
+            <path d="M -145,-25
+                     L -90,-55
+                     L -30,-72
+                     L 50,-75
+                     L 110,-60
+                     L 145,-30
+                     L 130,5
+                     L -120,5 Z"
+                  fill="none" stroke="#333" stroke-width="1.2"/>
+
+            <!-- Pilar A -->
+            <path d="M -145,-25 L -160,5"
+                  fill="none" stroke="#333" stroke-width="1.5"/>
+
+            <!-- Pilar B -->
+            <path d="M 10,-73 L 20,5"
+                  fill="none" stroke="#333" stroke-width="1.5"/>
+
+            <!-- Pilar C -->
+            <path d="M 110,-60 L 130,5"
+                  fill="none" stroke="#333" stroke-width="1.5"/>
+
+            <!-- Paso de rueda trasero -->
+            <path d="M -140,90
+                     C -140,60 -115,40 -95,40
+                     C -75,40 -50,60 -50,90"
+                  fill="none" stroke="#333" stroke-width="1.8"/>
+
+            <!-- Paso de rueda delantero -->
+            <path d="M 60,90
+                     C 60,60 85,40 105,40
+                     C 125,40 150,60 150,90"
+                  fill="none" stroke="#333" stroke-width="1.8"/>
+
+            <!-- Rueda trasera -->
+            <circle cx="-95" cy="75" r="42" fill="none" stroke="#333" stroke-width="1.8"/>
+            <circle cx="-95" cy="75" r="28" fill="none" stroke="#333" stroke-width="1"/>
+            <circle cx="-95" cy="75" r="10" fill="none" stroke="#333" stroke-width="0.8"/>
+
+            <!-- Rueda delantera -->
+            <circle cx="105" cy="75" r="42" fill="none" stroke="#333" stroke-width="1.8"/>
+            <circle cx="105" cy="75" r="28" fill="none" stroke="#333" stroke-width="1"/>
+            <circle cx="105" cy="75" r="10" fill="none" stroke="#333" stroke-width="0.8"/>
+
+            <!-- Detalles: faros, manijas -->
+            <ellipse cx="175" cy="30" rx="12" ry="20" fill="none" stroke="#333" stroke-width="1.2"/>
+            <ellipse cx="-175" cy="30" rx="10" ry="15" fill="none" stroke="#333" stroke-width="1.2"/>
+            <path d="M -80,15 L -40,15" fill="none" stroke="#333" stroke-width="1"/>
+            <path d="M 40,15 L 80,15" fill="none" stroke="#333" stroke-width="1"/>
+        </g>
+        
+
+        <line x1="50" y1="210.0" x2="580" y2="210.0"
+              stroke="#EAB308" stroke-width="2" opacity="0.9"/>
+        <text x="590" y="214.0" fill="#374151" font-size="11" font-weight="bold">
+            WAD 1000
+        </text>
+        <text x="35" y="214.0" fill="#6B7280" font-size="10" text-anchor="end">
+            1.0m
+        </text>
+        
+
+        <line x1="50" y1="170.0" x2="580" y2="170.0"
+              stroke="#EAB308" stroke-width="2" opacity="0.9"/>
+        <text x="590" y="174.0" fill="#374151" font-size="11" font-weight="bold">
+            WAD 1500
+        </text>
+        <text x="35" y="174.0" fill="#6B7280" font-size="10" text-anchor="end">
+            1.5m
+        </text>
+        
+<g id="marcadores-impacto">
+
+        <g class="marcador-peaton-20">
+            <polygon points="400,370 392,385 408,385"
+                     fill="#F97316" stroke="#000000" stroke-width="1"/>
+            <text x="415" y="380"
+                  fill="#F97316" font-size="11" font-weight="bold">
+                20 km/h
+            </text>
+        </g>
+        
+
+            <g class="marcador-ciclista-20">
+                <line x1="364" y1="355" x2="376" y2="355"
+                      stroke="#000000" stroke-width="2.5"/>
+                <line x1="370" y1="349" x2="370" y2="361"
+                      stroke="#000000" stroke-width="2.5"/>
+                <text x="355" y="347" text-anchor="end"
+                      fill="#000000" font-size="10" font-weight="bold">
+                    20 km/h
+                </text>
+            </g>
+            
+
+        <g class="marcador-peaton-30">
+            <polygon points="370,345 362,360 378,360"
+                     fill="#F97316" stroke="#000000" stroke-width="1"/>
+            <text x="385" y="355"
+                  fill="#F97316" font-size="11" font-weight="bold">
+                30 km/h
+            </text>
+        </g>
+        
+
+            <g class="marcador-ciclista-30">
+                <line x1="334" y1="330" x2="346" y2="330"
+                      stroke="#000000" stroke-width="2.5"/>
+                <line x1="340" y1="324" x2="340" y2="336"
+                      stroke="#000000" stroke-width="2.5"/>
+                <text x="325" y="322" text-anchor="end"
+                      fill="#000000" font-size="10" font-weight="bold">
+                    30 km/h
+                </text>
+            </g>
+            
+
+        <g class="marcador-peaton-40">
+            <polygon points="330,315 322,330 338,330"
+                     fill="#F97316" stroke="#000000" stroke-width="1"/>
+            <text x="345" y="325"
+                  fill="#F97316" font-size="11" font-weight="bold">
+                40 km/h
+            </text>
+        </g>
+        
+
+            <g class="marcador-ciclista-40">
+                <line x1="294" y1="300" x2="306" y2="300"
+                      stroke="#000000" stroke-width="2.5"/>
+                <line x1="300" y1="294" x2="300" y2="306"
+                      stroke="#000000" stroke-width="2.5"/>
+                <text x="285" y="292" text-anchor="end"
+                      fill="#000000" font-size="10" font-weight="bold">
+                    40 km/h
+                </text>
+            </g>
+            
+
+        <g class="marcador-peaton-50">
+            <polygon points="290,280 282,295 298,295"
+                     fill="#F97316" stroke="#000000" stroke-width="1"/>
+            <text x="305" y="290"
+                  fill="#F97316" font-size="11" font-weight="bold">
+                50 km/h
+            </text>
+        </g>
+        
+
+            <g class="marcador-ciclista-50">
+                <line x1="254" y1="265" x2="266" y2="265"
+                      stroke="#000000" stroke-width="2.5"/>
+                <line x1="260" y1="259" x2="260" y2="271"
+                      stroke="#000000" stroke-width="2.5"/>
+                <text x="245" y="257" text-anchor="end"
+                      fill="#000000" font-size="10" font-weight="bold">
+                    50 km/h
+                </text>
+            </g>
+            
+</g>
+
+        <g class="velocidad-destacada">
+            <circle cx="290" cy="290" r="25" fill="none"
+                    stroke="#DC2626" stroke-width="3">
+                <animate attributeName="r" values="20;28;20" dur="1.5s" repeatCount="indefinite"/>
+                <animate attributeName="opacity" values="1;0.6;1" dur="1.5s" repeatCount="indefinite"/>
+            </circle>
+        </g>
+        
+
+    <rect x="650" y="70" width="230" height="280"
+          fill="white" stroke="#E5E7EB" stroke-width="1" rx="6"/>
+
+    <text x="665" y="92" fill="#111827" font-size="13" font-weight="bold">
+        Leyenda - Zonas de Impacto
+    </text>
+    <line x1="660" y1="102" x2="870" y2="102"
+          stroke="#E5E7EB"/>
+
+    <!-- Simbolo peaton - triangulo naranja -->
+    <polygon points="675,118 667,132 683,132"
+             fill="#F97316" stroke="#000000" stroke-width="1"/>
+    <text x="695" y="128" fill="#374151" font-size="11">
+        Impacto frontal peaton
+    </text>
+
+    <!-- Simbolo ciclista - cruz negra -->
+    <line x1="669" y1="152" x2="681" y2="152"
+          stroke="#000000" stroke-width="2.5"/>
+    <line x1="675" y1="146" x2="675" y2="158"
+          stroke="#000000" stroke-width="2.5"/>
+    <text x="695" y="156" fill="#374151" font-size="11">
+        Impacto frontal ciclista
+    </text>
+
+    <line x1="660" y1="170" x2="870" y2="170"
+          stroke="#E5E7EB"/>
+
+    <text x="665" y="188" fill="#111827" font-size="11" font-weight="bold">
+        Velocidad y zona de contacto:
+    </text>
+    
+
+        <text x="670" y="205" fill="#F97316" font-size="11" font-weight="bold">
+            20 km/h
+        </text>
+        <text x="725" y="205" fill="#374151" font-size="10">
+            → Puerta
+        </text>
+        
+
+        <text x="670" y="233" fill="#F97316" font-size="11" font-weight="bold">
+            30 km/h
+        </text>
+        <text x="725" y="233" fill="#374151" font-size="10">
+            → Ventana
+        </text>
+        
+
+        <text x="670" y="261" fill="#F97316" font-size="11" font-weight="bold">
+            40 km/h
+        </text>
+        <text x="725" y="261" fill="#374151" font-size="10">
+            → Pilar B
+        </text>
+        
+
+        <text x="670" y="289" fill="#F97316" font-size="11" font-weight="bold">
+            50 km/h
+        </text>
+        <text x="725" y="289" fill="#374151" font-size="10">
+            → Techo
+        </text>
+        
+
+    <line x1="660" y1="325" x2="870" y2="325"
+          stroke="#E5E7EB"/>
+    <text x="665" y="340" fill="#6B7280" font-size="8" font-style="italic">
+        Basado en estudios ITRASA/Euro NCAP
+    </text>
+    
+
+    <rect x="25" y="545" width="600" height="90" fill="#F9FAFB"
+          stroke="#E5E7EB" stroke-width="1" rx="6"/>
+
+    <text x="40" y="568" fill="#111827" font-size="12" font-weight="bold">
+        Interpretacion - Impacto Lateral
+    </text>
+
+    <text x="40" y="588" fill="#374151" font-size="10">
+        • 15-25 km/h: Impacto en capo → Lesiones moderadas (AIS 1-2)
+    </text>
+    <text x="40" y="605" fill="#374151" font-size="10">
+        • 30-40 km/h: Impacto en parabrisas → Lesiones graves, TCE (AIS 3-4)
+    </text>
+    <text x="330" y="588" fill="#374151" font-size="10">
+        • 45-55 km/h: Impacto en techo/pilar → Lesiones criticas (AIS 5+)
+    </text>
+    <text x="330" y="605" fill="#374151" font-size="10">
+        • &gt;55 km/h: Proyeccion completa → Riesgo vital muy alto
+    </text>
+    
+
+    <text x="880" y="642" text-anchor="end" fill="#9CA3AF" font-size="9">
+        Veridict AI - Reconstruccion Forense
+    </text>
+    
+</svg>

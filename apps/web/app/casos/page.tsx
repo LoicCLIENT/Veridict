@@ -22,9 +22,9 @@ export default function CasosPage() {
       setCasos(data);
     } catch (e) {
       console.error("Error loading casos:", e);
-      const msg = "No se pudo conectar con el backend.";
+      const msg = "Could not connect to backend.";
       setError(msg);
-      toast.error("Error de red", msg);
+      toast.error("Network error", msg);
     } finally {
       setLoading(false);
     }
@@ -51,9 +51,9 @@ export default function CasosPage() {
   const tipoLabel = (tipo: Caso["tipo_colision"]) => {
     const labels = {
       frontal: "Frontal",
-      lateral: "Lateral",
-      alcance: "Alcance",
-      atropello: "Atropello",
+      lateral: "Side impact",
+      alcance: "Rear-end",
+      atropello: "Pedestrian hit",
     };
     return labels[tipo];
   };
@@ -61,18 +61,18 @@ export default function CasosPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Casos</h1>
+        <h1 className="text-3xl font-bold">Cases</h1>
         <Link href="/casos/nuevo">
           <Button className="gap-2">
             <Plus className="w-4 h-4" />
-            Nuevo caso
+            New Case
           </Button>
         </Link>
       </div>
 
       {loading ? (
         <div className="text-center py-12 text-muted-foreground">
-          Cargando casos...
+          Loading cases...
         </div>
       ) : error ? (
         <div className="text-center py-12">
@@ -80,17 +80,17 @@ export default function CasosPage() {
           <p className="text-muted-foreground mb-4">{error}</p>
           <Button onClick={loadCasos} variant="outline">
             <RefreshCw className="w-4 h-4 mr-2" />
-            Reintentar
+            Retry
           </Button>
         </div>
       ) : casos.length === 0 ? (
         <div className="text-center py-12">
           <FileText className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
-          <p className="text-muted-foreground mb-4">No hay casos todavía</p>
+          <p className="text-muted-foreground mb-4">No cases yet</p>
           <Link href="/casos/nuevo">
             <Button className="gap-2">
               <Plus className="w-4 h-4" />
-              Crear primer caso
+              Create first case
             </Button>
           </Link>
         </div>
@@ -106,11 +106,11 @@ export default function CasosPage() {
                     </span>
                     {estadoIcon(caso.estado)}
                   </div>
-                  <CardTitle className="text-lg">Caso #{caso.id}</CardTitle>
+                  <CardTitle className="text-lg">Case #{caso.id}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground">
-                    {new Date(caso.fecha_accidente).toLocaleDateString("es-ES", {
+                    {new Date(caso.fecha_accidente).toLocaleDateString("en-US", {
                       dateStyle: "long",
                     })}
                   </p>
