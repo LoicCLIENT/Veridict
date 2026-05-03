@@ -119,9 +119,12 @@ export default function CasoDetailPage() {
       }
     }
     loadCaso();
-  }, [casoId, toast]);
+    // toast intentionally omitted: re-running on toast changes would re-fetch the caso every render
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [casoId]);
 
   useEffect(() => {
+    if (!loading && !caso) return; // skip polling if caso doesn't exist
     let cancelled = false;
     const fetchInforme = async () => {
       try {
@@ -139,7 +142,7 @@ export default function CasoDetailPage() {
       cancelled = true;
       clearInterval(id);
     };
-  }, [casoId]);
+  }, [casoId, loading, caso]);
 
   const handleRegenerarInforme = async () => {
     setInformeRegenerating(true);

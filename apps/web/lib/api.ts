@@ -69,6 +69,11 @@ export const api = {
   getCasos: (): Promise<Caso[]> =>
     fetch(`${API_BASE}/api/casos`).then((r) => handle<Caso[]>(r, "Error fetching casos")),
 
+  getDemoCasos: (): Promise<Caso[]> =>
+    fetch(`${API_BASE}/api/demo/casos`).then((r) =>
+      handle<Caso[]>(r, "Error fetching demo casos")
+    ),
+
   getCaso: (id: string): Promise<Caso> =>
     fetch(`${API_BASE}/api/casos/${id}`).then((r) => handle<Caso>(r, "Error fetching caso")),
 

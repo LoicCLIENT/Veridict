@@ -6,7 +6,6 @@ import { Plus } from "lucide-react";
 
 const navItems = [
   { href: "/casos", label: "Historial" },
-  { href: "/casos/demo-1", label: "Demo" },
   { href: "/docs", label: "Documentación" },
 ];
 

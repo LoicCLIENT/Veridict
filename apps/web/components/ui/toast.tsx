@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useCallback, useMemo, ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, CheckCircle2, AlertTriangle, Info, AlertCircle } from "lucide-react";
 
@@ -137,10 +137,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     [addToast]
   );
 
+  const value = useMemo(
+    () => ({ toasts, addToast, removeToast, success, error, warning, info }),
+    [toasts, addToast, removeToast, success, error, warning, info]
+  );
+
   return (
-    <ToastContext.Provider
-      value={{ toasts, addToast, removeToast, success, error, warning, info }}
-    >
+    <ToastContext.Provider value={value}>
       {children}
       {/* Toast Container */}
       <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-2">

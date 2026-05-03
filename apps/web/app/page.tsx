@@ -34,13 +34,13 @@ export default function Home() {
           </Link>
 
           <div className="flex items-center gap-3">
-            <Link href="/casos/demo-1">
+            <Link href="/casos">
               <button className="flex items-center gap-2 px-5 py-2.5 border border-white/30 text-white font-medium rounded-full hover:bg-white/10 transition-colors">
                 <LayoutDashboard className="w-4 h-4" />
                 Dashboard
               </button>
             </Link>
-            <Link href="/casos/demo-1">
+            <Link href="/casos">
               <button className="px-5 py-2.5 bg-[#C2E94B] text-[#1a1a1a] font-medium rounded-full hover:bg-[#d4f06d] transition-colors">
                 View Demo
               </button>
@@ -61,9 +61,9 @@ export default function Home() {
             </p>
 
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-white leading-[1.1] mb-8">
-              Expert reports
+              AI-powered
               <br />
-              <span className="text-[#C2E94B]">in minutes</span>
+              <span className="text-[#C2E94B]">forensic crash analysis</span>
             </h1>
 
             <p className="text-lg md:text-xl text-white/70 max-w-lg mx-auto mb-10">
@@ -71,7 +71,7 @@ export default function Home() {
             </p>
 
             <div className="flex items-center justify-center gap-4">
-              <Link href="/casos/demo-1">
+              <Link href="/casos">
                 <button className="flex items-center gap-2 px-8 py-4 bg-[#C2E94B] text-[#1a1a1a] font-semibold rounded-full hover:bg-[#d4f06d] transition-colors">
                   <Play className="w-5 h-5 fill-current" />
                   View Demo
@@ -290,7 +290,7 @@ export default function Home() {
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/casos/demo-1">
+              <Link href="/casos">
                 <motion.button
                   whileHover={{ scale: 1.02, boxShadow: "0 0 40px rgba(194, 233, 75, 0.3)" }}
                   whileTap={{ scale: 0.98 }}
@@ -300,7 +300,7 @@ export default function Home() {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </motion.button>
               </Link>
-              <Link href="/casos/demo-1">
+              <Link href="/casos">
                 <motion.button
                   whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
                   whileTap={{ scale: 0.98 }}

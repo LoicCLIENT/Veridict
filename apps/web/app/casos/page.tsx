@@ -6,7 +6,7 @@ import { api, type Caso } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
-import { FileText, Clock, CheckCircle, AlertTriangle, RefreshCw } from "lucide-react";
+import { FileText, Clock, CheckCircle, AlertTriangle, RefreshCw, Plus } from "lucide-react";
 
 export default function CasosPage() {
   const [casos, setCasos] = useState<Caso[]>([]);
@@ -18,7 +18,7 @@ export default function CasosPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.getDemoCasos();
+      const data = await api.getCasos();
       setCasos(data);
     } catch (e) {
       console.error("Error loading casos:", e);
@@ -60,8 +60,14 @@ export default function CasosPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
+      <div className="mb-8 flex items-center justify-between">
         <h1 className="text-3xl font-bold">Casos</h1>
+        <Link href="/casos/nuevo">
+          <Button className="gap-2">
+            <Plus className="w-4 h-4" />
+            Nuevo caso
+          </Button>
+        </Link>
       </div>
 
       {loading ? (
@@ -78,8 +84,15 @@ export default function CasosPage() {
           </Button>
         </div>
       ) : casos.length === 0 ? (
-        <div className="text-center py-12 text-muted-foreground">
-          No hay casos disponibles
+        <div className="text-center py-12">
+          <FileText className="w-10 h-10 text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground mb-4">No hay casos todavía</p>
+          <Link href="/casos/nuevo">
+            <Button className="gap-2">
+              <Plus className="w-4 h-4" />
+              Crear primer caso
+            </Button>
+          </Link>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
