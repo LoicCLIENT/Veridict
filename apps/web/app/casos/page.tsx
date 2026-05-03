@@ -6,7 +6,7 @@ import { api, type Caso } from "@/lib/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/toast";
-import { Plus, FileText, Clock, CheckCircle, AlertTriangle, RefreshCw } from "lucide-react";
+import { FileText, Clock, CheckCircle, AlertTriangle, RefreshCw } from "lucide-react";
 
 export default function CasosPage() {
   const [casos, setCasos] = useState<Caso[]>([]);
@@ -18,7 +18,7 @@ export default function CasosPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.getCasos();
+      const data = await api.getDemoCasos();
       setCasos(data);
     } catch (e) {
       console.error("Error loading casos:", e);
@@ -60,14 +60,8 @@ export default function CasosPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-8">
+      <div className="mb-8">
         <h1 className="text-3xl font-bold">Casos</h1>
-        <Link href="/casos/nuevo">
-          <Button>
-            <Plus className="w-4 h-4 mr-2" />
-            Nuevo caso
-          </Button>
-        </Link>
       </div>
 
       {loading ? (

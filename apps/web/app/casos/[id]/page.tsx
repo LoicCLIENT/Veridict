@@ -18,9 +18,6 @@ import { EscenaPanel } from "@/components/caso/EscenaPanel";
 import { DocumentosPanel } from "@/components/caso/DocumentosPanel";
 import { InformeDocumento } from "@/components/InformeDocumento";
 import { ChatInfoFaltante } from "@/components/ChatInfoFaltante";
-import { RazonamientoOrquestadorView } from "@/components/RazonamientoOrquestador";
-import { SpecialistTrace } from "@/components/SpecialistTrace";
-import { UploadProgressBanner } from "@/components/UploadProgressBanner";
 import type { InformePericial } from "@veridict/types";
 import { mapEventosToTimeline } from "@/lib/mapTimeline";
 import { useToast } from "@/components/ui/toast";
@@ -30,10 +27,9 @@ import {
 } from "@/components/processing";
 import { mapEstadoToAgents, isTerminal } from "@/lib/mapEstado";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import {
-  Map,
+  FileText,
+  Play,
   Clock,
   Calculator,
   Scale,
@@ -41,21 +37,49 @@ import {
   ArrowLeft,
   CheckCircle2,
   AlertTriangle,
-  Shield,
   Cloud,
   Car,
   Eye,
-  FileText,
-  FileSignature,
+  FileImage,
   Sparkles,
   RefreshCw,
   Loader2,
-  Brain,
-  ClipboardList,
-  X,
-  Copy,
+  ChevronRight,
+  Crosshair,
+  ShieldCheck,
+  Activity,
+  BarChart3,
+  Zap,
 } from "lucide-react";
 import Link from "next/link";
+
+type TabId = "informe" | "simulacion" | "cronologia" | "calculos" | "confrontacion" | "legal" | "contexto" | "vehiculos" | "escena" | "docs";
+
+interface NavItem {
+  id: TabId;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  group: "analisis" | "datos" | "evidencia";
+}
+
+const navItems: NavItem[] = [
+  { id: "informe", label: "Informe", icon: FileText, group: "analisis" },
+  { id: "simulacion", label: "Simulación 3D", icon: Play, group: "analisis" },
+  { id: "cronologia", label: "Cronología", icon: Clock, group: "analisis" },
+  { id: "calculos", label: "Cálculos", icon: Calculator, group: "analisis" },
+  { id: "confrontacion", label: "Confrontación", icon: Crosshair, group: "analisis" },
+  { id: "legal", label: "Marco Legal", icon: Scale, group: "analisis" },
+  { id: "contexto", label: "Contexto", icon: Cloud, group: "datos" },
+  { id: "vehiculos", label: "Vehículos", icon: Car, group: "datos" },
+  { id: "escena", label: "Escena", icon: Eye, group: "evidencia" },
+  { id: "docs", label: "Documentos", icon: FileImage, group: "evidencia" },
+];
+
+const groupLabels = {
+  analisis: "Análisis",
+  datos: "Datos",
+  evidencia: "Evidencia",
+};
 
 export default function CasoDetailPage() {
   const params = useParams();
@@ -76,35 +100,7 @@ export default function CasoDetailPage() {
   const [informe, setInforme] = useState<InformePericial | null>(null);
   const [informeLoading, setInformeLoading] = useState(true);
   const [informeRegenerating, setInformeRegenerating] = useState(false);
-  const [showFormulario, setShowFormulario] = useState(false);
-  const [recentlyEdited, setRecentlyEdited] = useState<string[]>([]);
-  const [simulacionLoading, setSimulacionLoading] = useState(false);
-  const [simulacionError, setSimulacionError] = useState<string | null>(null);
-
-  const regenerarSimulacion = async () => {
-    if (simulacionLoading) return;
-    setSimulacionLoading(true);
-    setSimulacionError(null);
-    try {
-      const updated = await api.regenerarSimulacion(casoId);
-      setInforme(updated);
-      const escena = updated.simulacion_escena;
-      if (!escena || !Array.isArray(escena.actores) || escena.actores.length === 0) {
-        const falta = (escena?.falta_info && escena.falta_info[0]) || "El SimulationAgent no devolvió actores válidos.";
-        setSimulacionError(`Sin escena reconstruida: ${falta}`);
-      }
-    } catch (e: any) {
-      setSimulacionError(e?.message || "No se pudo regenerar la simulación");
-    } finally {
-      setSimulacionLoading(false);
-    }
-  };
-
-  const marcarRecentlyEdited = (ids: string[]) => {
-    if (ids.length === 0) return;
-    setRecentlyEdited(ids);
-    setTimeout(() => setRecentlyEdited([]), 6000);
-  };
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   useEffect(() => {
     async function loadCaso() {
@@ -125,7 +121,6 @@ export default function CasoDetailPage() {
     loadCaso();
   }, [casoId, toast]);
 
-  // Cargar informe v2 + polling
   useEffect(() => {
     let cancelled = false;
     const fetchInforme = async () => {
@@ -160,6 +155,62 @@ export default function CasoDetailPage() {
     }
   };
 
+  const handleAnalizar = async () => {
+    if (!caso) return;
+    try {
+      await api.iniciarAnalisis(caso.id);
+    } catch (error) {
+      console.error("Error iniciando análisis:", error);
+      toast.error("Error", "No se pudo iniciar el análisis.");
+      return;
+    }
+    setIsProcessing(true);
+    setOverallProgress(0);
+    setCaso({ ...caso, estado: "procesando" });
+
+    const intervalId = setInterval(async () => {
+      try {
+        const estado = await api.getEstado(caso.id);
+        setAgentStates(mapEstadoToAgents(estado));
+        setOverallProgress(estado.progreso ?? 0);
+
+        const terminal = isTerminal(estado);
+        if (terminal === "completado") {
+          clearInterval(intervalId);
+          try {
+            const resultado = await api.getDictamen(caso.id);
+            setCaso((prev) =>
+              prev ? { ...prev, estado: "completado", resultado } : prev
+            );
+            toast.success(
+              "Análisis completado",
+              "Los 4 agentes han procesado el caso exitosamente."
+            );
+          } catch (e) {
+            console.error("Error fetching dictamen:", e);
+            toast.error("Error", "No se pudo obtener el dictamen final.");
+          }
+          setIsProcessing(false);
+        } else if (terminal === "error") {
+          clearInterval(intervalId);
+          setIsProcessing(false);
+          setCaso((prev) =>
+            prev ? { ...prev, estado: "escalado_humano" } : prev
+          );
+          toast.error(
+            "Análisis fallido",
+            estado.etapa_actual || "El análisis no pudo completarse."
+          );
+        }
+      } catch (e) {
+        console.error("Error polling estado:", e);
+        clearInterval(intervalId);
+        setIsProcessing(false);
+        toast.error("Error de red", "Se perdió la conexión con el backend.");
+      }
+    }, 1500);
+  };
+
   const handleDownloadPdf = async () => {
     if (!caso) return;
     try {
@@ -183,665 +234,413 @@ export default function CasoDetailPage() {
     }
   };
 
+  // Loading state
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-8 h-8 border-2 border-veridict-lime border-t-transparent rounded-full animate-spin" />
-          <span className="text-veridict-gray">Cargando caso...</span>
+          <div className="relative">
+            <div className="w-12 h-12 border-2 border-[#C2E94B]/20 rounded-full" />
+            <div className="absolute inset-0 w-12 h-12 border-2 border-[#C2E94B] border-t-transparent rounded-full animate-spin" />
+          </div>
+          <span className="text-zinc-500 text-sm">Cargando caso...</span>
         </div>
       </div>
     );
   }
 
+  // Not found state
   if (!caso) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Card className="p-8 text-center">
-          <AlertTriangle className="w-12 h-12 text-veridict-error mx-auto mb-4" />
-          <h2 className="text-xl font-medium mb-2">Caso no encontrado</h2>
-          <p className="text-veridict-gray mb-4">
-            El caso #{casoId} no existe o ha sido eliminado.
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
+          <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mx-auto mb-6">
+            <AlertTriangle className="w-8 h-8 text-red-400" />
+          </div>
+          <h2 className="text-2xl font-semibold text-white mb-2">Caso no encontrado</h2>
+          <p className="text-zinc-500 mb-8">
+            El caso #{casoId} no existe o ha sido eliminado del sistema.
           </p>
           <Link href="/casos">
-            <Button variant="outline">
+            <Button className="bg-zinc-800 hover:bg-zinc-700 text-white">
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Volver a casos
+              Volver al historial
             </Button>
           </Link>
-        </Card>
+        </div>
       </div>
     );
   }
 
-  const tabs = [
-    { id: "informe", label: "Informe", icon: FileSignature },
-    { id: "razonamiento", label: "Razonamiento", icon: Brain },
-    { id: "mapa", label: "Simulación", icon: Map },
-    { id: "cronologia", label: "Cronología", icon: Clock },
-    { id: "calculos", label: "Cálculos", icon: Calculator },
-    { id: "confrontacion", label: "Confrontación", icon: Shield },
-    { id: "legal", label: "Marco legal", icon: Scale },
-    { id: "contexto", label: "Contexto", icon: Cloud },
-    { id: "vehiculos", label: "Vehículos", icon: Car },
-    { id: "escena", label: "Escena", icon: Eye },
-    { id: "docs", label: "Docs/Fotos", icon: FileText },
-  ] as const;
+  const estadoConfig = {
+    creado: { label: "Pendiente", color: "bg-zinc-600", textColor: "text-zinc-300" },
+    procesando: { label: "Procesando", color: "bg-[#C2E94B]", textColor: "text-[#0a0a0a]" },
+    completado: { label: "Completado", color: "bg-[#C2E94B]", textColor: "text-[#0a0a0a]" },
+    escalado_humano: { label: "Revisión", color: "bg-amber-500", textColor: "text-amber-950" },
+  };
 
-  const estadoBadge = {
-    creado: { label: "Pendiente", variant: "outline" as const },
-    procesando: { label: "Procesando", variant: "default" as const },
-    completado: { label: "Completado", variant: "default" as const },
-    escalado_humano: { label: "Revisión", variant: "destructive" as const },
+  const currentTab = (panelActivo as TabId) || "informe";
+
+  // Group nav items
+  const groupedNav = {
+    analisis: navItems.filter(i => i.group === "analisis"),
+    datos: navItems.filter(i => i.group === "datos"),
+    evidencia: navItems.filter(i => i.group === "evidencia"),
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header */}
-      <motion.div
-        className="flex justify-between items-start mb-8"
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+    <div className="min-h-screen bg-[#0a0a0a] flex">
+      {/* Sidebar */}
+      <motion.aside
+        initial={false}
+        animate={{ width: sidebarCollapsed ? 72 : 260 }}
+        transition={{ duration: 0.2, ease: "easeInOut" }}
+        className="fixed left-0 top-0 h-screen bg-[#111] border-r border-zinc-800/50 z-40 flex flex-col"
       >
-        <div className="flex items-start gap-4">
-          <Link href="/casos">
-            <Button variant="ghost" size="icon" className="mt-1">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-bold text-veridict-white">
-                Caso #{caso.id}
-              </h1>
-              <Badge
-                variant={estadoBadge[caso.estado].variant}
-                className={
-                  caso.estado === "completado"
-                    ? "bg-veridict-lime/20 text-veridict-lime border-veridict-lime/40"
-                    : caso.estado === "procesando"
-                    ? "bg-veridict-lime/10 text-veridict-lime animate-pulse"
-                    : ""
-                }
-              >
-                {estadoBadge[caso.estado].label}
-              </Badge>
-            </div>
-            <p className="text-veridict-gray">
-              {new Date(caso.fecha_accidente).toLocaleDateString("es-ES", {
-                weekday: "long",
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          {caso.formulario_origen && (
-            <Button variant="outline" onClick={() => setShowFormulario(true)}>
-              <ClipboardList className="w-4 h-4 mr-2" />
-              Ver formulario
-            </Button>
-          )}
-          {caso.estado === "completado" && (
-            <Button onClick={handleDownloadPdf}>
-              <Download className="w-4 h-4 mr-2" />
-              Descargar PDF
-            </Button>
-          )}
-        </div>
-      </motion.div>
-
-      {/* Vista de procesamiento */}
-      <AnimatePresence mode="wait">
-        {isProcessing ? (
-          <motion.div
-            key="processing"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.3 }}
-            className="max-w-lg mx-auto py-12"
-          >
-            <ProcessingPipeline
-              agents={agentStates}
-              overallProgress={overallProgress}
-              variant="vertical"
+        {/* Logo */}
+        <div className="h-16 flex items-center justify-between px-4 border-b border-zinc-800/50">
+          <Link href="/" className="flex items-center gap-3">
+            <img
+              src="/logo.png"
+              alt="Veridict"
+              className={sidebarCollapsed ? "h-6 w-auto" : "h-8 w-auto"}
             />
-          </motion.div>
-        ) : (
-          <motion.div
-            key="content"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+          </Link>
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="p-1.5 rounded-lg hover:bg-zinc-800 transition-colors"
           >
-            {/* Barra de progreso de uploads en background */}
-            <UploadProgressBanner casoId={casoId} />
+            <ChevronRight className={`w-4 h-4 text-zinc-500 transition-transform ${sidebarCollapsed ? "" : "rotate-180"}`} />
+          </button>
+        </div>
 
-            {/* Tabs */}
-            <div className="flex gap-2 mb-6">
-              {tabs.map((tab) => (
-                <Button
-                  key={tab.id}
-                  variant={panelActivo === tab.id ? "default" : "outline"}
-                  onClick={() => setPanelActivo(tab.id)}
-                  className="flex items-center gap-2"
-                >
-                  <tab.icon className="w-4 h-4" />
-                  {tab.label}
-                </Button>
-              ))}
+        {/* Navigation */}
+        <nav className="flex-1 overflow-y-auto py-4 px-3">
+          {(["analisis", "datos", "evidencia"] as const).map((group) => (
+            <div key={group} className="mb-6">
+              {!sidebarCollapsed && (
+                <p className="text-[10px] font-medium text-zinc-600 uppercase tracking-wider px-3 mb-2">
+                  {groupLabels[group]}
+                </p>
+              )}
+              <div className="space-y-1">
+                {groupedNav[group].map((item) => {
+                  const isActive = currentTab === item.id;
+                  const Icon = item.icon;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setPanelActivo(item.id)}
+                      className={`
+                        w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200
+                        ${isActive
+                          ? "bg-[#C2E94B]/10 text-[#C2E94B]"
+                          : "text-zinc-400 hover:text-white hover:bg-zinc-800/50"
+                        }
+                        ${sidebarCollapsed ? "justify-center" : ""}
+                      `}
+                      title={sidebarCollapsed ? item.label : undefined}
+                    >
+                      <Icon className={`w-[18px] h-[18px] flex-shrink-0 ${isActive ? "text-[#C2E94B]" : ""}`} />
+                      {!sidebarCollapsed && (
+                        <span className="text-sm font-medium truncate">{item.label}</span>
+                      )}
+                      {isActive && !sidebarCollapsed && (
+                        <div className="ml-auto w-1.5 h-1.5 rounded-full bg-[#C2E94B]" />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </nav>
+
+        {/* Bottom actions */}
+        <div className="p-3 border-t border-zinc-800/50">
+          {caso.estado === "completado" && (
+            <button
+              onClick={handleDownloadPdf}
+              className={`
+                w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
+                bg-[#C2E94B] text-[#0a0a0a] font-medium text-sm
+                hover:bg-[#d4f06d] transition-colors
+                ${sidebarCollapsed ? "justify-center" : ""}
+              `}
+              title={sidebarCollapsed ? "Descargar PDF" : undefined}
+            >
+              <Download className="w-[18px] h-[18px]" />
+              {!sidebarCollapsed && <span>Descargar PDF</span>}
+            </button>
+          )}
+        </div>
+      </motion.aside>
+
+      {/* Main content */}
+      <main
+        className="flex-1 transition-all duration-200"
+        style={{ marginLeft: sidebarCollapsed ? 72 : 260 }}
+      >
+        {/* Top bar */}
+        <header className="sticky top-0 z-30 bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-zinc-800/50">
+          <div className="flex items-center justify-between h-16 px-6">
+            {/* Left: Back + Case ID */}
+            <div className="flex items-center gap-4">
+              <Link
+                href="/casos"
+                className="p-2 rounded-lg hover:bg-zinc-800 transition-colors"
+              >
+                <ArrowLeft className="w-5 h-5 text-zinc-400" />
+              </Link>
+              <div>
+                <div className="flex items-center gap-3">
+                  <h1 className="text-lg font-semibold text-white">
+                    Caso #{caso.id}
+                  </h1>
+                  <span className={`
+                    px-2.5 py-0.5 rounded-full text-xs font-medium
+                    ${estadoConfig[caso.estado].color} ${estadoConfig[caso.estado].textColor}
+                  `}>
+                    {estadoConfig[caso.estado].label}
+                  </span>
+                </div>
+                <p className="text-xs text-zinc-500">
+                  {new Date(caso.fecha_accidente).toLocaleDateString("es-ES", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
+                </p>
+              </div>
             </div>
 
-            {/* Content - Full Width */}
-            <Card className="min-h-[600px] overflow-hidden">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={panelActivo}
-                  initial={{ opacity: 0, x: 20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -20 }}
-                  transition={{ duration: 0.2 }}
-                  className="h-full"
+            {/* Right: Quick stats + Actions */}
+            <div className="flex items-center gap-6">
+              {/* Quick stats */}
+              {caso.estado === "completado" && caso.resultado?.veredicto && (
+                <div className="hidden lg:flex items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                      <Car className="w-4 h-4 text-blue-400" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-zinc-500 uppercase">Vehículo A</p>
+                      <p className="text-sm font-semibold text-blue-400">
+                        {Math.round(caso.resultado.veredicto.culpa_a * 100)}%
+                      </p>
+                    </div>
+                  </div>
+                  <div className="w-px h-8 bg-zinc-800" />
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                      <Car className="w-4 h-4 text-orange-400" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-zinc-500 uppercase">Vehículo B</p>
+                      <p className="text-sm font-semibold text-orange-400">
+                        {Math.round(caso.resultado.veredicto.culpa_b * 100)}%
+                      </p>
+                    </div>
+                  </div>
+                  <div className="w-px h-8 bg-zinc-800" />
+                  <div className="flex items-center gap-2">
+                    <div className="w-8 h-8 rounded-lg bg-[#C2E94B]/10 flex items-center justify-center">
+                      <Activity className="w-4 h-4 text-[#C2E94B]" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-zinc-500 uppercase">Confianza</p>
+                      <p className="text-sm font-semibold text-[#C2E94B]">
+                        {Math.round(caso.resultado.veredicto.confidence * 100)}%
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Action buttons */}
+              {caso.estado === "creado" && (
+                <Button
+                  onClick={handleAnalizar}
+                  className="bg-[#C2E94B] text-[#0a0a0a] hover:bg-[#d4f06d] font-medium"
                 >
-                  {panelActivo === "informe" && (
-                    <div className="p-4 md:p-6">
-                      {informeLoading ? (
-                        <div className="flex items-center gap-3 text-zinc-400 p-6">
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          Cargando informe…
-                        </div>
-                      ) : !informe ? (
-                        <div className="flex flex-col items-center justify-center py-16 text-center gap-4">
-                          <FileSignature className="w-12 h-12 text-zinc-600" />
-                          <div>
-                            <p className="text-white font-medium">El informe aún no se ha generado.</p>
-                            <p className="text-xs text-zinc-500 mt-1">
-                              Pulsa para que Veridict redacte el borrador con los datos del caso.
-                            </p>
-                          </div>
-                          <Button
-                            onClick={handleRegenerarInforme}
-                            disabled={informeRegenerating}
-                            className="bg-blue-600 hover:bg-blue-500"
-                          >
-                            {informeRegenerating ? (
-                              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                            ) : (
-                              <Sparkles className="w-4 h-4 mr-2" />
-                            )}
-                            Generar informe
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                          {/* Documento del informe */}
-                          <div className="lg:col-span-2 space-y-6">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setPanelActivo("razonamiento")}
-                                  className="border-blue-500/40 text-blue-300 hover:bg-blue-500/10"
-                                >
-                                  <Brain className="w-3.5 h-3.5 mr-2" />
-                                  Ver razonamiento del orquestador
-                                </Button>
+                  <Zap className="w-4 h-4 mr-2" />
+                  Analizar con IA
+                </Button>
+              )}
+            </div>
+          </div>
+        </header>
+
+        {/* Content area */}
+        <div className="p-6">
+          <AnimatePresence mode="wait">
+            {isProcessing ? (
+              <motion.div
+                key="processing"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="max-w-lg mx-auto py-16"
+              >
+                <ProcessingPipeline
+                  agents={agentStates}
+                  overallProgress={overallProgress}
+                  variant="vertical"
+                />
+              </motion.div>
+            ) : (
+              <motion.div
+                key="content"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                {/* Panel content */}
+                <div className="bg-[#111] rounded-2xl border border-zinc-800/50 min-h-[calc(100vh-180px)] overflow-hidden">
+                  <AnimatePresence mode="wait">
+                    <motion.div
+                      key={currentTab}
+                      initial={{ opacity: 0, x: 10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10 }}
+                      transition={{ duration: 0.15 }}
+                      className="h-full"
+                    >
+                      {currentTab === "informe" && (
+                        <div className="p-6">
+                          {informeLoading ? (
+                            <div className="flex items-center justify-center py-20">
+                              <div className="flex items-center gap-3 text-zinc-500">
+                                <Loader2 className="w-5 h-5 animate-spin" />
+                                <span>Cargando informe...</span>
                               </div>
+                            </div>
+                          ) : !informe ? (
+                            <div className="flex flex-col items-center justify-center py-20">
+                              <div className="w-20 h-20 rounded-2xl bg-zinc-800/50 flex items-center justify-center mb-6">
+                                <FileText className="w-10 h-10 text-zinc-600" />
+                              </div>
+                              <h3 className="text-xl font-medium text-white mb-2">
+                                Informe no generado
+                              </h3>
+                              <p className="text-zinc-500 text-center max-w-md mb-8">
+                                Genera el borrador del informe pericial con los datos del caso.
+                                Veridict lo redactará automáticamente.
+                              </p>
                               <Button
-                                variant="outline"
-                                size="sm"
                                 onClick={handleRegenerarInforme}
                                 disabled={informeRegenerating}
-                                className="border-zinc-700 text-zinc-300"
+                                className="bg-[#C2E94B] text-[#0a0a0a] hover:bg-[#d4f06d] font-medium"
                               >
                                 {informeRegenerating ? (
-                                  <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                                 ) : (
-                                  <RefreshCw className="w-3.5 h-3.5 mr-2" />
+                                  <Sparkles className="w-4 h-4 mr-2" />
                                 )}
-                                Regenerar
+                                Generar informe
                               </Button>
                             </div>
-
-                            <InformeDocumento
-                              informe={informe}
-                              caso={caso}
-                              onInformeUpdate={setInforme}
-                              recentlyEditedIds={recentlyEdited}
-                            />
-                          </div>
-                          {/* Chat lateral */}
-                          <div className="lg:col-span-1">
-                            <div className="sticky top-4">
-                              <ChatInfoFaltante
-                                casoId={casoId}
-                                informe={informe}
-                                onUpdate={setInforme}
-                                onAffectedRespuestas={marcarRecentlyEdited}
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {panelActivo === "razonamiento" && (
-                    <div className="p-4 md:p-6">
-                      <RazonamientoOrquestadorView
-                        casoId={casoId}
-                        onNavigateToPanel={(panel) => setPanelActivo(panel)}
-                      />
-                    </div>
-                  )}
-                  {panelActivo === "mapa" && (
-                    <div className="p-4 md:p-6 space-y-4">
-                      <div className="flex items-center justify-between gap-3 flex-wrap">
-                        <div className="flex flex-col gap-0.5">
-                          <h3 className="text-sm font-semibold text-zinc-200">
-                            Reconstrucción de la escena
-                          </h3>
-                          <p className="text-xs text-zinc-500">
-                            {informe?.simulacion_escena?.actores?.length
-                              ? `${informe.simulacion_escena.actores.length} actor(es) · SimulationAgent (Opus 4.7)`
-                              : "Aún no hay reconstrucción dinámica generada para este caso."}
-                          </p>
-                        </div>
-                        <Button
-                          onClick={regenerarSimulacion}
-                          disabled={simulacionLoading || !informe}
-                          variant="outline"
-                          className="border-[#C2E94B]/30 text-[#C2E94B] hover:bg-[#C2E94B]/10"
-                          title={!informe ? "Genera primero el informe" : "Reusa los datos del informe (rápido)"}
-                        >
-                          {simulacionLoading ? (
-                            <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
                           ) : (
-                            <Sparkles className="w-3.5 h-3.5 mr-2" />
+                            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                              <div className="xl:col-span-2">
+                                <div className="flex items-center justify-between mb-4">
+                                  <h2 className="text-lg font-medium text-white">
+                                    Informe Pericial
+                                  </h2>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleRegenerarInforme}
+                                    disabled={informeRegenerating}
+                                    className="border-zinc-700 text-zinc-400 hover:text-white hover:border-zinc-600"
+                                  >
+                                    {informeRegenerating ? (
+                                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                    ) : (
+                                      <RefreshCw className="w-4 h-4 mr-2" />
+                                    )}
+                                    Regenerar
+                                  </Button>
+                                </div>
+                                <InformeDocumento informe={informe} caso={caso} />
+                              </div>
+                              <div className="xl:col-span-1">
+                                <div className="sticky top-24">
+                                  <ChatInfoFaltante
+                                    casoId={casoId}
+                                    informe={informe}
+                                    onUpdate={setInforme}
+                                  />
+                                </div>
+                              </div>
+                            </div>
                           )}
-                          {informe?.simulacion_escena?.actores?.length
-                            ? "Regenerar simulación"
-                            : "Generar simulación"}
-                        </Button>
-                      </div>
-                      {simulacionError && (
-                        <div className="text-xs text-red-400 bg-red-500/10 border border-red-500/30 rounded px-3 py-2 font-mono">
-                          ⚠ {simulacionError}
                         </div>
                       )}
-                      <SpecialistTrace
-                        casoId={casoId}
-                        tools={["generar_frame_simulacion", "obtener_frame_simulacion"]}
-                        title="Trabajo del SimulacionAgent"
-                        description="Recreación visual del siniestro: croquis SVG generados a partir de las velocidades, masas y posiciones que ya validó el PhysicsAgent."
-                      />
-                      <MapaReconstruccion
-                        ubicacion={caso.ubicacion}
-                        escenaSimulacion={informe?.simulacion_escena ?? undefined}
-                        onGenerarSimulacion={regenerarSimulacion}
-                        generandoSimulacion={simulacionLoading}
-                      />
-                    </div>
-                  )}
-                  {panelActivo === "cronologia" && (
-                    <div className="p-4 h-full">
-                      <Timeline
-                        events={mapEventosToTimeline(caso.resultado?.cronologia ?? [])}
-                        currentTime={currentTime}
-                        onTimeChange={setCurrentTime}
-                      />
-                    </div>
-                  )}
-                  {panelActivo === "calculos" && (
-                    <div className="p-4 md:p-6 space-y-4">
-                      <SpecialistTrace
-                        casoId={casoId}
-                        tools={["calcular_fisica", "simular_fisica", "analizar_biomecanica"]}
-                        title="Trabajo del PhysicsAgent y BiomecanicaAgent"
-                        description="Cálculos físicos deterministas (Stannard-Baker, balance momento, distancia detención, energía cinética) y patrón biomecánico (WAD, AIS) que el orquestador ha citado para inferir velocidades y compatibilidad lesional."
-                      />
-                      <CalculosFisicos calculos={caso.resultado?.calculos || []} />
-                    </div>
-                  )}
-                  {panelActivo === "legal" && (
-                    <div className="p-4 md:p-6 space-y-4">
-                      <SpecialistTrace
-                        casoId={casoId}
-                        tools={["consultar_legal"]}
-                        title="Trabajo del LegalAgent"
-                        description="Artículos del RGC/LSV/RGV consultados en el BOE y jurisprudencia citada por el specialist legal."
-                      />
-                      <RazonamientoLegal
-                        infracciones={caso.resultado?.infracciones || []}
-                        veredicto={caso.resultado?.veredicto}
-                      />
-                    </div>
-                  )}
-                  {panelActivo === "confrontacion" && (
-                    <div className="p-4 md:p-6 space-y-4">
-                      <SpecialistTrace
-                        casoId={casoId}
-                        tools={["verificar_atestado", "analizar_conformidad_atestado"]}
-                        title="Trabajo del AtestadoAgent y ConformidadAgent"
-                        description="Verificación de incongruencias entre las versiones del atestado y la evidencia física, y análisis de conformidad procesal."
-                      />
-                      <ConfrontacionTab
-                        vehiculos={caso.vehiculos ?? []}
-                        contrastes={caso.resultado?.contraste_versiones}
-                        compatibilidad={caso.resultado?.compatibilidad_versiones}
-                        calculos={caso.resultado?.calculos}
-                        adversarial={caso.resultado?.verificacion_adversarial}
-                      />
-                    </div>
-                  )}
-                  {panelActivo === "contexto" && (
-                    <div className="p-4 md:p-6 space-y-4">
-                      <SpecialistTrace
-                        casoId={casoId}
-                        tools={["consultar_meteo"]}
-                        title="Trabajo del MeteoAgent"
-                        description="Datos meteorológicos históricos (Open-Meteo) y posición solar (deslumbramiento) en el momento del siniestro."
-                      />
-                      <ContextoPanel contexto={caso.resultado?.contexto ?? caso.contexto} />
-                    </div>
-                  )}
-                  {panelActivo === "vehiculos" && (
-                    <div className="p-4 md:p-6 space-y-4">
-                      <SpecialistTrace
-                        casoId={casoId}
-                        tools={["consultar_ficha_tecnica"]}
-                        title="Trabajo del FichaAgent"
-                        description="Ficha técnica completa de cada vehículo (masa, dimensiones, rigidez, sistemas de seguridad) consultada por el specialist."
-                      />
-                      <VehiculosPanel vehiculos={caso.vehiculos ?? []} />
-                    </div>
-                  )}
-                  {panelActivo === "escena" && (
-                    <div className="p-4 md:p-6 space-y-4">
-                      <SpecialistTrace
-                        casoId={casoId}
-                        tools={["consultar_escena"]}
-                        title="Trabajo del EscenaAgent"
-                        description="Geometría de la vía (OSM Overpass), señalización, pendiente (DEM), e imágenes ground-level (Mapillary) recopiladas por el specialist."
-                      />
-                      <EscenaPanel escena={caso.escena} />
-                    </div>
-                  )}
-                  {panelActivo === "docs" && (
-                    <div className="p-4 md:p-6 space-y-4">
-                      <SpecialistTrace
-                        casoId={casoId}
-                        tools={[
-                          "listar_biblioteca_fotos",
-                          "buscar_foto_perito",
-                          "analizar_imagen_dano",
-                        ]}
-                        title="Trabajo de BibliotecaFotos y Vision"
-                        description="Indexado por visión Claude de la biblioteca fotográfica del caso y análisis de daños sobre fotografías concretas pedidas por el orquestador."
-                      />
-                      <DocumentosPanel
-                        documentos={caso.documentos ?? []}
-                        fotos={caso.fotos ?? []}
-                      />
-                    </div>
-                  )}
-                  {panelActivo === "dictamen" && (
-                    <div className="p-6">
-                      <h3 className="font-semibold text-veridict-white mb-6 flex items-center gap-2 text-xl">
-                        <Scale className="w-6 h-6 text-veridict-lime" />
-                        Resumen del Dictamen
-                      </h3>
 
-                      {caso.resultado ? (
-                        <div className="grid md:grid-cols-2 gap-6">
-                          {/* Veredicto */}
-                          <div className="md:col-span-2">
-                            <h4 className="text-sm font-medium text-veridict-gray mb-3">
-                              Atribución de culpa
-                            </h4>
-                            <div className="flex gap-6">
-                              <motion.div
-                                className="flex-1 p-6 rounded-lg bg-blue-500/10 border border-blue-500/20"
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.1 }}
-                              >
-                                <div className="text-sm text-blue-400 mb-2">
-                                  Vehículo A
-                                </div>
-                                <div className="text-5xl font-bold text-blue-400">
-                                  {Math.round((caso.resultado.veredicto?.culpa_a ?? 0) * 100)}%
-                                </div>
-                              </motion.div>
-                              <motion.div
-                                className="flex-1 p-6 rounded-lg bg-orange-500/10 border border-orange-500/20"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.2 }}
-                              >
-                                <div className="text-sm text-orange-400 mb-2">
-                                  Vehículo B
-                                </div>
-                                <div className="text-5xl font-bold text-orange-400">
-                                  {Math.round((caso.resultado.veredicto?.culpa_b ?? 0) * 100)}%
-                                </div>
-                              </motion.div>
-                            </div>
-                            <div className="mt-3 text-center">
-                              <span className="text-sm text-veridict-gray">
-                                Confianza del modelo:{" "}
-                                <span className="text-veridict-lime font-mono text-lg">
-                                  {Math.round((caso.resultado.veredicto?.confidence ?? 0) * 100)}%
-                                </span>
-                              </span>
-                            </div>
-                          </div>
+                      {currentTab === "simulacion" && (
+                        <MapaReconstruccion ubicacion={caso.ubicacion} />
+                      )}
 
-                          {/* Compatibilidad versiones */}
-                          <div>
-                            <h4 className="text-sm font-medium text-veridict-gray mb-3">
-                              Compatibilidad de versiones
-                            </h4>
-                            <div className="p-4 rounded-lg bg-veridict-green-800 border border-veridict-green-600 h-full">
-                              <div className="flex flex-col gap-3 mb-3">
-                                <div
-                                  className={`flex items-center gap-2 text-sm ${
-                                    (caso.resultado.compatibilidad_versiones?.a ?? false)
-                                      ? "text-veridict-lime"
-                                      : "text-veridict-error"
-                                  }`}
-                                >
-                                  {(caso.resultado.compatibilidad_versiones?.a ?? false) ? (
-                                    <CheckCircle2 className="w-5 h-5" />
-                                  ) : (
-                                    <AlertTriangle className="w-5 h-5" />
-                                  )}
-                                  <span className="font-medium">Versión A:{" "}</span>
-                                  {(caso.resultado.compatibilidad_versiones?.a ?? false)
-                                    ? "Compatible con evidencia física"
-                                    : "Incompatible con evidencia física"}
-                                </div>
-                                <div
-                                  className={`flex items-center gap-2 text-sm ${
-                                    (caso.resultado.compatibilidad_versiones?.b ?? false)
-                                      ? "text-veridict-lime"
-                                      : "text-veridict-error"
-                                  }`}
-                                >
-                                  {(caso.resultado.compatibilidad_versiones?.b ?? false) ? (
-                                    <CheckCircle2 className="w-5 h-5" />
-                                  ) : (
-                                    <AlertTriangle className="w-5 h-5" />
-                                  )}
-                                  <span className="font-medium">Versión B:{" "}</span>
-                                  {(caso.resultado.compatibilidad_versiones?.b ?? false)
-                                    ? "Compatible con evidencia física"
-                                    : "Incompatible con evidencia física"}
-                                </div>
-                              </div>
-                              <p className="text-sm text-veridict-gray mt-4 pt-3 border-t border-veridict-green-600">
-                                {(caso.resultado.compatibilidad_versiones?.justificacion ?? "")}
-                              </p>
-                            </div>
-                          </div>
-
-                          {/* Devil's Advocate + Audit */}
-                          <div className="space-y-4">
-                            <div>
-                              <h4 className="text-sm font-medium text-veridict-gray mb-3">
-                                Verificación adversarial
-                              </h4>
-                              <div
-                                className={`p-4 rounded-lg flex items-center gap-3 ${
-                                  (caso.resultado.verificacion_adversarial?.passed ?? false)
-                                    ? "bg-veridict-lime/10 border border-veridict-lime/30"
-                                    : "bg-veridict-error/10 border border-veridict-error/30"
-                                }`}
-                              >
-                                {(caso.resultado.verificacion_adversarial?.passed ?? false) ? (
-                                  <CheckCircle2 className="w-6 h-6 text-veridict-lime" />
-                                ) : (
-                                  <AlertTriangle className="w-6 h-6 text-veridict-error" />
-                                )}
-                                <span
-                                  className={`font-medium ${
-                                    (caso.resultado.verificacion_adversarial?.passed ?? false)
-                                      ? "text-veridict-lime"
-                                      : "text-veridict-error"
-                                  }`}
-                                >
-                                  {(caso.resultado.verificacion_adversarial?.passed ?? false)
-                                    ? "Todas las verificaciones pasadas"
-                                    : "Requiere revisión humana"}
-                                </span>
-                              </div>
-                              {!(caso.resultado.verificacion_adversarial?.passed ?? true) &&
-                                (caso.resultado.verificacion_adversarial?.failures ?? []).length > 0 && (
-                                  <ul className="mt-2 text-xs text-veridict-error/90 list-disc list-inside space-y-1 pl-2">
-                                    {caso.resultado.verificacion_adversarial!.failures.map((f, i) => (
-                                      <li key={i}>{f}</li>
-                                    ))}
-                                  </ul>
-                                )}
-                            </div>
-
-                            {caso.resultado.veredicto?.razonamiento && (
-                              <div>
-                                <h4 className="text-sm font-medium text-veridict-gray mb-2">
-                                  Razonamiento técnico-jurídico
-                                </h4>
-                                <p className="text-sm text-veridict-white whitespace-pre-wrap leading-relaxed bg-veridict-green-800 border border-veridict-green-600 rounded p-3">
-                                  {caso.resultado.veredicto.razonamiento}
-                                </p>
-                              </div>
-                            )}
-
-                            {caso.resultado.veredicto?.advertencia_personal && (
-                              <div className="flex items-start gap-2 p-3 rounded bg-yellow-500/10 border border-yellow-500/30">
-                                <AlertTriangle className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
-                                <div className="text-xs text-yellow-300">
-                                  <strong>Regla 100/100 TS:</strong> daños personales — la culpa
-                                  civil puede no redistribuirse. Revisión humana recomendada.
-                                </div>
-                              </div>
-                            )}
-
-                            <div>
-                              <h4 className="text-sm font-medium text-veridict-gray mb-2">
-                                Audit trail (Sigstore)
-                              </h4>
-                              <code className="text-xs text-veridict-gray bg-veridict-green-800 px-3 py-3 rounded block break-all font-mono border border-veridict-green-600">
-                                {caso.resultado.sigstore_hash ?? "—"}
-                              </code>
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center h-64 text-center">
-                          <Play className="w-16 h-16 text-veridict-gray/40 mb-4" />
-                          <p className="text-veridict-gray text-lg">
-                            Ejecuta el análisis con IA para ver el dictamen
-                          </p>
+                      {currentTab === "cronologia" && (
+                        <div className="p-6">
+                          <Timeline
+                            events={mapEventosToTimeline(caso.resultado?.cronologia ?? [])}
+                            currentTime={currentTime}
+                            onTimeChange={setCurrentTime}
+                          />
                         </div>
                       )}
-                    </div>
-                  )}
-                </motion.div>
-              </AnimatePresence>
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
-      {/* ── Modal: Ver formulario original ─────────────────────────────── */}
-      {showFormulario && caso.formulario_origen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
-          onClick={() => setShowFormulario(false)}
-        >
-          <div
-            className="bg-zinc-950 border border-zinc-700 rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
-              <div className="flex items-center gap-2">
-                <ClipboardList className="w-5 h-5 text-blue-400" />
-                <h3 className="text-white font-medium">Formulario original del caso</h3>
-              </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    const blob = new Blob(
-                      [JSON.stringify(caso.formulario_origen, null, 2)],
-                      { type: "application/json" },
-                    );
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement("a");
-                    a.href = url;
-                    a.download = `caso_${caso.id.slice(0, 8)}_formulario.json`;
-                    a.click();
-                    URL.revokeObjectURL(url);
-                  }}
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Descargar JSON
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => {
-                    navigator.clipboard.writeText(
-                      JSON.stringify(caso.formulario_origen, null, 2),
-                    );
-                    toast.success("Copiado", "JSON del formulario en el portapapeles.");
-                  }}
-                >
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copiar
-                </Button>
-                <button
-                  onClick={() => setShowFormulario(false)}
-                  className="p-1 text-zinc-400 hover:text-white"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-            <pre className="flex-1 overflow-auto p-5 text-xs text-zinc-200 font-mono whitespace-pre-wrap break-words">
-              {JSON.stringify(caso.formulario_origen, null, 2)}
-            </pre>
-          </div>
+                      {currentTab === "calculos" && (
+                        <CalculosFisicos calculos={caso.resultado?.calculos || []} />
+                      )}
+
+                      {currentTab === "legal" && (
+                        <RazonamientoLegal
+                          infracciones={caso.resultado?.infracciones || []}
+                          veredicto={caso.resultado?.veredicto}
+                        />
+                      )}
+
+                      {currentTab === "confrontacion" && (
+                        <ConfrontacionTab
+                          vehiculos={caso.vehiculos ?? []}
+                          contrastes={caso.resultado?.contraste_versiones}
+                          compatibilidad={caso.resultado?.compatibilidad_versiones}
+                          calculos={caso.resultado?.calculos}
+                          adversarial={caso.resultado?.verificacion_adversarial}
+                        />
+                      )}
+
+                      {currentTab === "contexto" && (
+                        <ContextoPanel contexto={caso.resultado?.contexto ?? caso.contexto} />
+                      )}
+
+                      {currentTab === "vehiculos" && (
+                        <VehiculosPanel vehiculos={caso.vehiculos ?? []} />
+                      )}
+
+                      {currentTab === "escena" && (
+                        <EscenaPanel escena={caso.escena} />
+                      )}
+
+                      {currentTab === "docs" && (
+                        <DocumentosPanel
+                          documentos={caso.documentos ?? []}
+                          fotos={caso.fotos ?? []}
+                        />
+                      )}
+                    </motion.div>
+                  </AnimatePresence>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      )}
+      </main>
     </div>
   );
 }

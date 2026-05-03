@@ -1,566 +1,407 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { motion, useInView } from "framer-motion";
-import { api, type Caso } from "@/lib/api";
-import {
-  ArrowRight,
-  FileSearch,
-  Scale,
-  Shield,
-  Zap,
-  Brain,
-  Eye,
-  CheckCircle2,
-  Sparkles,
-  Car,
-  FileText,
-  Gavel,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-
-// React Bits Components
-import {
-  GradientText,
-  BlurText,
-  CountUp,
-  Particles,
-  SpotlightCard,
-  Magnet,
-} from "@/components/reactbits";
-
-// Variantes de animacion
-const fadeInUp = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { opacity: 1, y: 0 },
-};
-
-const staggerContainer = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.1,
-      delayChildren: 0.2,
-    },
-  },
-};
-
-const scaleIn = {
-  hidden: { opacity: 0, scale: 0.9 },
-  visible: { opacity: 1, scale: 1 },
-};
+import { motion } from "framer-motion";
+import { Play, FileSearch, Bot, Shield, Lock, LayoutDashboard, Clock, Target, Zap, ArrowRight } from "lucide-react";
 
 export default function Home() {
-  const featuresRef = useRef(null);
-  const casesRef = useRef(null);
-  const pipelineRef = useRef(null);
-
-  const featuresInView = useInView(featuresRef, { once: true, margin: "-100px" });
-  const casesInView = useInView(casesRef, { once: true, margin: "-100px" });
-  const pipelineInView = useInView(pipelineRef, { once: true, margin: "-100px" });
-
-  const [casos, setCasos] = useState<Caso[]>([]);
-  const [casosLoading, setCasosLoading] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-    api
-      .getCasos()
-      .then((data) => {
-        if (!cancelled) setCasos(data);
-      })
-      .catch(() => {
-        if (!cancelled) setCasos([]);
-      })
-      .finally(() => {
-        if (!cancelled) setCasosLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const tipoLabel = (tipo: Caso["tipo_colision"]) => {
-    const labels: Record<string, string> = {
-      frontal: "Frontal",
-      lateral: "Lateral",
-      alcance: "Alcance",
-      atropello: "Atropello",
-    };
-    return labels[tipo] ?? tipo;
-  };
-
-  const casoTitulo = (c: Caso) =>
-    c.encargo?.procedimiento || `Caso ${c.id.slice(0, 8)}`;
-  const casoDescripcion = (c: Caso) =>
-    c.encargo?.observaciones?.slice(0, 140) ||
-    c.hechos_atestado?.observaciones?.slice(0, 140) ||
-    "Sin descripción disponible";
-
   return (
-    <main className="min-h-screen bg-veridict-green-900 overflow-hidden">
-      {/* Hero Section */}
-      <section className="relative min-h-screen flex items-center justify-center">
-        {/* Particles Background */}
-        <Particles
-          quantity={80}
-          staticity={30}
-          ease={80}
-          color="#C2E94B"
-          particleSize={3}
-        />
+    <main className="bg-white min-h-screen">
+      {/* HERO - Full Viewport Video */}
+      <section className="relative h-screen w-full overflow-hidden">
+        {/* Video Background */}
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+        >
+          <source src="/hero-video.mp4" type="video/mp4" />
+        </video>
 
-        {/* Gradient overlays */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(194,233,75,0.12)_0%,_transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_rgba(42,68,53,0.8)_0%,_transparent_50%)]" />
+        {/* Overlay gradient */}
+        <div className="absolute inset-0 bg-black/50" />
 
-        {/* Grid pattern */}
-        <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage: `linear-gradient(rgba(194,233,75,0.5) 1px, transparent 1px),
-                             linear-gradient(90deg, rgba(194,233,75,0.5) 1px, transparent 1px)`,
-            backgroundSize: "80px 80px",
-          }}
-        />
+        {/* Nav */}
+        <nav className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between p-6 md:px-12 md:py-8">
+          <Link href="/">
+            <img
+              src="/logo.png"
+              alt="Veridict"
+              className="h-10 md:h-12 w-auto"
+            />
+          </Link>
 
-        <div className="container relative z-10 mx-auto px-6 py-20">
+          <div className="flex items-center gap-3">
+            <Link href="/casos/demo-1">
+              <button className="flex items-center gap-2 px-5 py-2.5 border border-white/30 text-white font-medium rounded-full hover:bg-white/10 transition-colors">
+                <LayoutDashboard className="w-4 h-4" />
+                Dashboard
+              </button>
+            </Link>
+            <Link href="/casos/demo-1">
+              <button className="px-5 py-2.5 bg-[#C2E94B] text-[#1a1a1a] font-medium rounded-full hover:bg-[#d4f06d] transition-colors">
+                View Demo
+              </button>
+            </Link>
+          </div>
+        </nav>
+
+        {/* Hero Content */}
+        <div className="relative z-10 h-full flex items-center justify-center px-6">
           <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={staggerContainer}
-            className="max-w-5xl mx-auto text-center"
-          >
-            {/* Badge */}
-            <motion.div variants={fadeInUp} className="mb-8">
-              <span className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-veridict-lime/10 border border-veridict-lime/30 text-veridict-lime text-sm font-medium backdrop-blur-sm">
-                <Sparkles className="w-4 h-4" />
-                Powered by Multi-Agent AI
-              </span>
-            </motion.div>
-
-            {/* Title with Gradient Text */}
-            <motion.h1
-              variants={fadeInUp}
-              className="text-6xl md:text-8xl font-bold tracking-tight mb-6"
-            >
-              <GradientText
-                colors={["#C2E94B", "#60efff", "#C2E94B", "#60efff"]}
-                animationSpeed={6}
-                className="inline-block"
-              >
-                Veridict
-              </GradientText>{" "}
-              <span className="text-veridict-white">AI</span>
-            </motion.h1>
-
-            {/* Subtitle with BlurText */}
-            <motion.div variants={fadeInUp} className="mb-12">
-              <BlurText
-                text="Reconstruccion forense automatizada de accidentes de trafico. Dictamenes periciales en formato UNE-EN 16775 con calculos fisicos justificados."
-                delay={0.03}
-                className="text-xl md:text-2xl text-veridict-gray max-w-3xl mx-auto leading-relaxed"
-                animateBy="words"
-                direction="top"
-              />
-            </motion.div>
-
-            {/* CTA Buttons with Magnet Effect */}
-            <motion.div
-              variants={fadeInUp}
-              className="flex flex-col sm:flex-row gap-4 justify-center mb-20"
-            >
-              <Magnet magnetStrength={3} padding={50}>
-                <Link href="/demo">
-                  <Button size="lg" className="group text-lg px-8 py-6">
-                    Ver Demo en Vivo
-                    <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-1" />
-                  </Button>
-                </Link>
-              </Magnet>
-              <Magnet magnetStrength={3} padding={50}>
-                <Link href="/casos/nuevo">
-                  <Button variant="outline" size="lg" className="text-lg px-8 py-6">
-                    Nuevo Caso
-                  </Button>
-                </Link>
-              </Magnet>
-            </motion.div>
-
-            {/* Stats with CountUp */}
-            <motion.div
-              variants={fadeInUp}
-              className="grid grid-cols-3 gap-8 max-w-2xl mx-auto pt-12 border-t border-white/10"
-            >
-              <div className="text-center">
-                <div className="text-4xl md:text-5xl font-bold text-veridict-lime">
-                  <CountUp to={5} duration={2} className="tabular-nums" />
-                </div>
-                <div className="text-sm text-veridict-gray mt-2">Agentes IA</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl md:text-5xl font-bold text-veridict-lime">
-                  <CountUp to={100} duration={2.5} className="tabular-nums" />%
-                </div>
-                <div className="text-sm text-veridict-gray mt-2">Trazable</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl md:text-5xl font-bold text-veridict-lime">
-                  UNE
-                </div>
-                <div className="text-sm text-veridict-gray mt-2">Certificado</div>
-              </div>
-            </motion.div>
-          </motion.div>
-
-          {/* Scroll indicator */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 2, duration: 0.5 }}
-            className="absolute bottom-8 left-1/2 -translate-x-1/2"
+            transition={{ duration: 0.6 }}
+            className="text-center max-w-4xl"
           >
-            <motion.div
-              animate={{ y: [0, 8, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-              className="w-6 h-10 rounded-full border-2 border-veridict-lime/30 flex items-start justify-center p-2"
-            >
-              <motion.div className="w-1.5 h-1.5 rounded-full bg-veridict-lime" />
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
+            <p className="text-[#C2E94B] text-sm font-medium tracking-wide uppercase mb-6">
+              AI-Powered Forensic Reconstruction
+            </p>
 
-      {/* Pipeline Section */}
-      <section ref={pipelineRef} className="py-32 relative">
-        <div className="absolute inset-0 bg-gradient-to-b from-veridict-green-800/50 to-transparent" />
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold text-white leading-[1.1] mb-8">
+              Expert reports
+              <br />
+              <span className="text-[#C2E94B]">in minutes</span>
+            </h1>
 
-        <div className="container relative z-10 mx-auto px-6">
-          <motion.div
-            initial="hidden"
-            animate={pipelineInView ? "visible" : "hidden"}
-            variants={staggerContainer}
-            className="text-center mb-20"
-          >
-            <motion.div variants={fadeInUp}>
-              <GradientText
-                colors={["#C2E94B", "#ffffff", "#C2E94B"]}
-                animationSpeed={8}
-                className="text-4xl md:text-5xl font-bold"
-              >
-                Sistema Multi-Agente
-              </GradientText>
-            </motion.div>
-            <motion.p
-              variants={fadeInUp}
-              className="text-veridict-gray max-w-2xl mx-auto mt-6 text-lg"
-            >
-              Cinco agentes de IA especializados trabajan en colaboracion para analizar,
-              reconstruir y verificar cada caso con precision forense.
-            </motion.p>
-          </motion.div>
+            <p className="text-lg md:text-xl text-white/70 max-w-lg mx-auto mb-10">
+              AI that analyzes accidents and generates court-ready forensic reports.
+            </p>
 
-          <motion.div
-            initial="hidden"
-            animate={pipelineInView ? "visible" : "hidden"}
-            variants={staggerContainer}
-            className="grid md:grid-cols-5 gap-4"
-          >
-            {[
-              { icon: Eye, name: "Intake", desc: "OCR y vision AI", color: "#60efff" },
-              { icon: Car, name: "Reconstructor", desc: "Fisica del impacto", color: "#C2E94B" },
-              { icon: FileText, name: "Analyst", desc: "Sintesis de datos", color: "#feca57" },
-              { icon: Gavel, name: "Legal", desc: "Marco normativo", color: "#ff6b6b" },
-              { icon: Shield, name: "Verifier", desc: "Devil's Advocate", color: "#a55eea" },
-            ].map((agent, i) => (
-              <motion.div key={agent.name} variants={scaleIn}>
-                <SpotlightCard
-                  spotlightColor={`${agent.color}20`}
-                  className="rounded-xl"
-                >
-                  <Card className="relative p-6 text-center border-veridict-green-600 hover:border-veridict-lime/40 transition-all duration-500 h-full">
-                    {i < 4 && (
-                      <div className="hidden md:block absolute -right-3 top-1/2 -translate-y-1/2 z-10">
-                        <motion.div
-                          animate={{ x: [0, 4, 0] }}
-                          transition={{ duration: 1.5, repeat: Infinity }}
-                        >
-                          <ArrowRight className="w-5 h-5 text-veridict-lime/50" />
-                        </motion.div>
-                      </div>
-                    )}
-                    <div
-                      className="w-14 h-14 mx-auto mb-4 rounded-xl flex items-center justify-center transition-all duration-300"
-                      style={{ backgroundColor: `${agent.color}15` }}
-                    >
-                      <agent.icon className="w-7 h-7" style={{ color: agent.color }} />
-                    </div>
-                    <h3 className="font-bold text-veridict-white text-lg mb-1">{agent.name}</h3>
-                    <p className="text-sm text-veridict-gray">{agent.desc}</p>
-                  </Card>
-                </SpotlightCard>
-              </motion.div>
-            ))}
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Features */}
-      <section ref={featuresRef} className="py-32">
-        <div className="container mx-auto px-6">
-          <motion.div
-            initial="hidden"
-            animate={featuresInView ? "visible" : "hidden"}
-            variants={staggerContainer}
-          >
-            <motion.div variants={fadeInUp} className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold text-veridict-white mb-4">
-                Capacidades Avanzadas
-              </h2>
-              <p className="text-veridict-gray max-w-xl mx-auto">
-                Tecnologia de vanguardia para reconstruccion forense de accidentes
-              </p>
-            </motion.div>
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <FeatureCard
-                icon={<FileSearch className="w-7 h-7" />}
-                title="Analisis Multi-Fuente"
-                description="OCR de atestados, analisis de fotos con vision AI, datos AEMET y DGT integrados"
-                color="#60efff"
-              />
-              <FeatureCard
-                icon={<Zap className="w-7 h-7" />}
-                title="Calculos CRASH3"
-                description="Velocidad por deformacion, Stannard Baker, conservacion de momento lineal"
-                color="#C2E94B"
-              />
-              <FeatureCard
-                icon={<Scale className="w-7 h-7" />}
-                title="Razonamiento Legal"
-                description="RAG sobre corpus legal espanol con citas verificadas del BOE y jurisprudencia"
-                color="#feca57"
-              />
-              <FeatureCard
-                icon={<Shield className="w-7 h-7" />}
-                title="Verificacion Adversarial"
-                description="Devil's Advocate valida coherencia fisica y compatibilidad de versiones"
-                color="#a55eea"
-              />
+            <div className="flex items-center justify-center gap-4">
+              <Link href="/casos/demo-1">
+                <button className="flex items-center gap-2 px-8 py-4 bg-[#C2E94B] text-[#1a1a1a] font-semibold rounded-full hover:bg-[#d4f06d] transition-colors">
+                  <Play className="w-5 h-5 fill-current" />
+                  View Demo
+                </button>
+              </Link>
+              <Link href="/docs">
+                <button className="px-8 py-4 text-white font-medium hover:text-[#C2E94B] transition-colors">
+                  Documentation
+                </button>
+              </Link>
             </div>
           </motion.div>
         </div>
+
+        {/* Scroll hint */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10"
+        >
+          <motion.div
+            animate={{ y: [0, 6, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+            className="w-6 h-10 rounded-full border-2 border-white/30 flex justify-center pt-2"
+          >
+            <div className="w-1.5 h-1.5 rounded-full bg-white/50" />
+          </motion.div>
+        </motion.div>
       </section>
 
-      {/* Demo Cases */}
-      <section ref={casesRef} className="py-32 relative">
-        <div className="absolute inset-0 bg-gradient-to-t from-veridict-green-800/30 to-transparent" />
-
-        <div className="container relative z-10 mx-auto px-6">
+      {/* FEATURES - White section with image */}
+      <section className="py-24 md:py-32 bg-white">
+        <div className="max-w-7xl mx-auto px-6">
+          {/* Header */}
           <motion.div
-            initial="hidden"
-            animate={casesInView ? "visible" : "hidden"}
-            variants={staggerContainer}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mb-16 text-center"
           >
-            <motion.div variants={fadeInUp} className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold text-veridict-white mb-4">
-                Casos de Demostracion
-              </h2>
-              <p className="text-veridict-gray max-w-xl mx-auto">
-                Explora reconstrucciones completas de accidentes reales procesados por nuestro sistema
-              </p>
-            </motion.div>
-
-            {casosLoading ? (
-              <motion.div
-                variants={fadeInUp}
-                className="text-center text-veridict-gray py-12"
-              >
-                Cargando casos…
-              </motion.div>
-            ) : casos.length === 0 ? (
-              <motion.div
-                variants={fadeInUp}
-                className="text-center text-veridict-gray py-12"
-              >
-                Aún no hay casos en la base de datos.{" "}
-                <Link
-                  href="/casos/nuevo"
-                  className="text-veridict-lime underline"
-                >
-                  Crea el primero
-                </Link>
-                .
-              </motion.div>
-            ) : (
-              <motion.div
-                variants={staggerContainer}
-                className="grid md:grid-cols-3 gap-6"
-              >
-                {casos.slice(0, 3).map((c) => (
-                  <CasePreview
-                    key={c.id}
-                    id={c.id}
-                    title={casoTitulo(c)}
-                    type={tipoLabel(c.tipo_colision)}
-                    description={casoDescripcion(c)}
-                    status={
-                      c.estado === "completado"
-                        ? "completed"
-                        : c.estado === "procesando"
-                        ? "processing"
-                        : "pending"
-                    }
-                  />
-                ))}
-              </motion.div>
-            )}
-
-            <motion.div variants={fadeInUp} className="text-center mt-12">
-              <Magnet magnetStrength={2} padding={40}>
-                <Link href="/casos">
-                  <Button variant="outline" size="lg" className="text-lg px-8">
-                    Ver todos los casos
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                </Link>
-              </Magnet>
-            </motion.div>
+            <p className="text-[#1a1a1a]/40 text-sm font-medium tracking-wide uppercase mb-4">
+              How it works
+            </p>
+            <h2 className="text-4xl md:text-6xl font-bold text-[#1a1a1a] leading-tight mb-6">
+              From 3 days of work
+              <br />
+              <span className="text-[#C2E94B]">to 2 minutes.</span>
+            </h2>
+            <p className="text-lg text-[#666] max-w-2xl mx-auto">
+              Our AI pipeline automates the entire forensic reconstruction process
+            </p>
           </motion.div>
+
+          {/* Two column layout: Image left, Features right */}
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left: Image */}
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6 }}
+              className="flex justify-center"
+            >
+              <img
+                src="/laptop-docs.jpg"
+                alt="AI generating forensic reports"
+                className="w-full max-w-md lg:max-w-lg object-contain"
+              />
+            </motion.div>
+
+            {/* Right: Feature cards in vertical stack */}
+            <div className="flex flex-col gap-5">
+              {[
+                {
+                  num: "01",
+                  icon: FileSearch,
+                  title: "Automated analysis",
+                  desc: "Processes police reports, photos, and EDR data automatically with AI vision.",
+                },
+                {
+                  num: "02",
+                  icon: Bot,
+                  title: "5 AI agents",
+                  desc: "Multi-agent pipeline that cross-validates every finding for accuracy.",
+                },
+                {
+                  num: "03",
+                  icon: Shield,
+                  title: "UNE-EN 16775",
+                  desc: "Court-ready reports following European forensic standards.",
+                },
+                {
+                  num: "04",
+                  icon: Lock,
+                  title: "Sigstore signature",
+                  desc: "Cryptographic proof of authenticity and chain of custody.",
+                },
+              ].map((item, i) => (
+                <motion.div
+                  key={item.num}
+                  initial={{ opacity: 0, x: 30 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.1 }}
+                  className="group p-6 rounded-2xl bg-[#f5f5f5] hover:bg-[#1a1a1a] transition-all duration-300"
+                >
+                  <div className="flex items-center gap-5">
+                    <div className="flex-shrink-0 w-14 h-14 rounded-xl bg-[#1a1a1a] group-hover:bg-[#C2E94B] flex items-center justify-center transition-colors">
+                      <item.icon className="w-7 h-7 text-[#C2E94B] group-hover:text-[#1a1a1a] transition-colors" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-1">
+                        <span className="text-xs font-mono text-[#1a1a1a]/40 group-hover:text-white/40 transition-colors">
+                          {item.num}
+                        </span>
+                        <h3 className="text-lg font-semibold text-[#1a1a1a] group-hover:text-white transition-colors">
+                          {item.title}
+                        </h3>
+                      </div>
+                      <p className="text-[#666] group-hover:text-white/60 text-sm leading-relaxed transition-colors">
+                        {item.desc}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* CTA Final */}
-      <section className="py-32 relative">
-        <Particles
-          quantity={40}
-          staticity={50}
-          ease={100}
-          color="#C2E94B"
-          particleSize={2}
-        />
+      {/* CTA - Revolut/Vercel Style */}
+      <section className="relative py-32 md:py-40 bg-[#0a0a0a] overflow-hidden">
+        {/* Background Effects */}
+        <div className="absolute inset-0">
+          {/* Gradient orbs */}
+          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#C2E94B]/10 rounded-full blur-[120px]" />
+          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#C2E94B]/5 rounded-full blur-[100px]" />
+          {/* Grid pattern */}
+          <div
+            className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
+              backgroundSize: '60px 60px'
+            }}
+          />
+        </div>
 
-        <div className="container relative z-10 mx-auto px-6">
+        <div className="relative max-w-6xl mx-auto px-6">
+          {/* Stats Row */}
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="max-w-3xl mx-auto text-center"
+            className="grid grid-cols-3 gap-8 mb-20"
           >
+            {[
+              { value: "2", unit: "min", label: "Average report time", icon: Clock },
+              { value: "95", unit: "%", label: "Accuracy rate", icon: Target },
+              { value: "10", unit: "x", label: "Faster than manual", icon: Zap },
+            ].map((stat, i) => (
+              <motion.div
+                key={stat.label}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 + 0.2 }}
+                className="text-center group"
+              >
+                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/5 mb-4 group-hover:bg-[#C2E94B]/10 transition-colors">
+                  <stat.icon className="w-6 h-6 text-[#C2E94B]" />
+                </div>
+                <div className="flex items-baseline justify-center gap-1 mb-2">
+                  <span className="text-5xl md:text-6xl font-bold text-white">{stat.value}</span>
+                  <span className="text-2xl md:text-3xl font-semibold text-[#C2E94B]">{stat.unit}</span>
+                </div>
+                <p className="text-sm text-white/40">{stat.label}</p>
+              </motion.div>
+            ))}
+          </motion.div>
+
+          {/* Main CTA */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="text-center"
+          >
+            {/* Badge */}
             <motion.div
-              animate={{
-                scale: [1, 1.05, 1],
-                rotate: [0, 5, -5, 0]
-              }}
-              transition={{ duration: 4, repeat: Infinity }}
-              className="inline-block mb-8"
+              initial={{ opacity: 0, scale: 0.9 }}
+              whileInView={{ opacity: 1, scale: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4 }}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8"
             >
-              <Brain className="w-20 h-20 text-veridict-lime" />
+              <span className="w-2 h-2 rounded-full bg-[#C2E94B] animate-pulse" />
+              <span className="text-sm text-white/60">Ready to transform your workflow</span>
             </motion.div>
 
-            <h2 className="text-4xl md:text-5xl font-bold text-veridict-white mb-6">
-              <GradientText
-                colors={["#C2E94B", "#60efff", "#C2E94B"]}
-                animationSpeed={5}
-              >
-                Dictamenes periciales
-              </GradientText>
+            <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
+              Start analyzing
               <br />
-              con precision de IA
+              <span className="bg-gradient-to-r from-[#C2E94B] via-[#d4f06d] to-[#C2E94B] bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
+                in seconds
+              </span>
             </h2>
 
-            <p className="text-xl text-veridict-gray mb-10">
-              Reduce el tiempo de elaboracion de informes periciales de dias a minutos,
-              manteniendo el rigor tecnico y la trazabilidad completa.
+            <p className="text-lg md:text-xl text-white/40 max-w-xl mx-auto mb-12">
+              Upload your case files and let our AI agents handle the rest.
+              Court-ready reports, delivered instantly.
             </p>
 
-            <Magnet magnetStrength={2} padding={60}>
-              <Link href="/casos/nuevo">
-                <Button size="lg" className="group text-lg px-10 py-6">
-                  Comenzar ahora
-                  <ArrowRight className="w-5 h-5 ml-2 transition-transform group-hover:translate-x-2" />
-                </Button>
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link href="/casos/demo-1">
+                <motion.button
+                  whileHover={{ scale: 1.02, boxShadow: "0 0 40px rgba(194, 233, 75, 0.3)" }}
+                  whileTap={{ scale: 0.98 }}
+                  className="group flex items-center gap-3 px-8 py-4 bg-[#C2E94B] text-[#0a0a0a] font-semibold rounded-full transition-all duration-300"
+                >
+                  <span>Open Demo</span>
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </motion.button>
               </Link>
-            </Magnet>
+              <Link href="/casos/demo-1">
+                <motion.button
+                  whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
+                  whileTap={{ scale: 0.98 }}
+                  className="flex items-center gap-2 px-8 py-4 text-white font-medium rounded-full border border-white/20 transition-all duration-300"
+                >
+                  <LayoutDashboard className="w-5 h-5" />
+                  <span>View Dashboard</span>
+                </motion.button>
+              </Link>
+            </div>
+          </motion.div>
+
+          {/* Bottom decoration */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.6 }}
+            className="flex items-center justify-center gap-8 mt-20 text-white/20 text-sm"
+          >
+            <span className="flex items-center gap-2">
+              <Shield className="w-4 h-4" />
+              UNE-EN 16775
+            </span>
+            <span className="w-1 h-1 rounded-full bg-white/20" />
+            <span className="flex items-center gap-2">
+              <Lock className="w-4 h-4" />
+              Sigstore Signed
+            </span>
+            <span className="w-1 h-1 rounded-full bg-white/20" />
+            <span className="flex items-center gap-2">
+              <Bot className="w-4 h-4" />
+              5 AI Agents
+            </span>
           </motion.div>
         </div>
       </section>
-    </main>
-  );
-}
 
-function FeatureCard({
-  icon,
-  title,
-  description,
-  color,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  color: string;
-}) {
-  return (
-    <motion.div variants={fadeInUp}>
-      <SpotlightCard spotlightColor={`${color}15`} className="rounded-xl h-full">
-        <Card className="p-6 h-full border-veridict-green-600 hover:border-veridict-lime/30 transition-all duration-300">
-          <div
-            className="w-14 h-14 rounded-xl flex items-center justify-center mb-5"
-            style={{ backgroundColor: `${color}15` }}
-          >
-            <div style={{ color }}>{icon}</div>
-          </div>
-          <h3 className="font-bold text-veridict-white text-lg mb-2">{title}</h3>
-          <p className="text-sm text-veridict-gray leading-relaxed">{description}</p>
-        </Card>
-      </SpotlightCard>
-    </motion.div>
-  );
-}
-
-function CasePreview({
-  id,
-  title,
-  type,
-  description,
-  status,
-}: {
-  id: string;
-  title: string;
-  type: string;
-  description: string;
-  status: "completed" | "processing" | "pending";
-}) {
-  return (
-    <motion.div variants={scaleIn}>
-      <Link href={`/casos/${id}`}>
-        <SpotlightCard spotlightColor="rgba(194, 233, 75, 0.1)" className="rounded-xl">
-          <Card className="p-6 h-full border-veridict-green-600 hover:border-veridict-lime/40 transition-all duration-300 cursor-pointer group">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-semibold text-veridict-lime bg-veridict-lime/10 px-3 py-1.5 rounded-full">
-                {type}
-              </span>
-              {status === "completed" && (
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <CheckCircle2 className="w-5 h-5 text-veridict-lime" />
-                </motion.div>
-              )}
+      {/* FOOTER */}
+      <footer className="bg-[#1a1a1a] pt-16 pb-8">
+        <div className="max-w-6xl mx-auto px-6">
+          {/* Top section */}
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-10 pb-12 border-b border-white/10">
+            {/* Brand */}
+            <div className="flex flex-col gap-4">
+              <Link href="/">
+                <img
+                  src="/logo.png"
+                  alt="Veridict"
+                  className="h-10 w-auto"
+                />
+              </Link>
+              <p className="text-white/40 text-sm max-w-xs">
+                AI-powered forensic reconstruction for traffic accidents.
+              </p>
             </div>
-            <h3 className="font-bold text-veridict-white text-lg mb-2 group-hover:text-veridict-lime transition-colors">
-              {title}
-            </h3>
-            <p className="text-sm text-veridict-gray">{description}</p>
-          </Card>
-        </SpotlightCard>
-      </Link>
-    </motion.div>
+
+            {/* Links */}
+            <div className="flex gap-16">
+              <div>
+                <h4 className="text-white font-medium mb-4">Product</h4>
+                <ul className="space-y-3">
+                  <li>
+                    <Link href="/casos/1" className="text-white/50 hover:text-[#C2E94B] transition-colors text-sm">
+                      Demo
+                    </Link>
+                  </li>
+                  <li>
+                    <Link href="/docs" className="text-white/50 hover:text-[#C2E94B] transition-colors text-sm">
+                      Documentation
+                    </Link>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-white font-medium mb-4">Legal</h4>
+                <ul className="space-y-3">
+                  <li>
+                    <span className="text-white/50 text-sm">Privacy</span>
+                  </li>
+                  <li>
+                    <span className="text-white/50 text-sm">Terms</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom section */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pt-8">
+            <p className="text-white/30 text-sm">
+              © 2025 Veridict. All rights reserved.
+            </p>
+            <div className="flex items-center gap-2">
+              <span className="text-white/30 text-sm">Made with</span>
+              <span className="text-[#C2E94B]">♥</span>
+              <span className="text-white/30 text-sm">for forensic experts</span>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </main>
   );
 }

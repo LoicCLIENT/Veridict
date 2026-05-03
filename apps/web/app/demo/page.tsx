@@ -346,7 +346,7 @@ function ResultsPanel({ visible }: { visible: boolean }) {
           <Download className="w-5 h-5" />
           Descargar Dictamen PDF
         </Button>
-        <Link href="/casos/1">
+        <Link href="/casos/demo-1">
           <Button variant="outline" size="lg" className="gap-2">
             <Eye className="w-5 h-5" />
             Ver Análisis Completo

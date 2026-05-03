@@ -30,6 +30,7 @@ export default function Timeline({
   const [isExpanded, setIsExpanded] = useState(false);
   const [speed, setSpeed] = useState(initialSpeed);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const isExternalUpdate = useRef(false);
 
   // Ordenar eventos por timestamp
   const sortedEvents = [...events].sort((a, b) => a.timestamp - b.timestamp);
@@ -81,15 +82,20 @@ export default function Timeline({
 
   // Sincronizar con tiempo externo
   useEffect(() => {
-    if (currentTime !== undefined) {
+    if (currentTime !== undefined && currentTime !== internalTime) {
+      isExternalUpdate.current = true;
       setInternalTime(currentTime);
     }
   }, [currentTime]);
 
-  // Notificar cambios de tiempo
+  // Notificar cambios de tiempo (solo si el cambio fue interno)
   useEffect(() => {
+    if (isExternalUpdate.current) {
+      isExternalUpdate.current = false;
+      return;
+    }
     onTimeChange?.(internalTime);
-  }, [internalTime, onTimeChange]);
+  }, [internalTime]);
 
   const handleEventClick = (event: TimelineEventData) => {
     setInternalTime(event.timestamp);

@@ -182,8 +182,9 @@
   *,
   *::before,
   *::after {
-    @apply border-border;
     box-sizing: border-box;
+    margin: 0;
+    padding: 0;
   }
 
   html {
@@ -191,16 +192,17 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     scroll-behavior: smooth;
+    margin: 0;
+    padding: 0;
   }
 
   body {
-    @apply bg-background text-foreground;
-    background-color: var(--veridict-green-900);
-    color: var(--veridict-white);
     font-family: var(--font-sans);
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     min-height: 100vh;
     line-height: 1.6;
+    margin: 0;
+    padding: 0;
   }
 
   /* Seleccion de texto con colores Veridict */
@@ -729,6 +731,23 @@
 
   .animate-spin-slow {
     animation: spin-slow 3s linear infinite;
+  }
+
+  /* Gradient text animation */
+  @keyframes gradient-flow {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  .animate-gradient {
+    animation: gradient-flow 3s ease infinite;
   }
 }
 

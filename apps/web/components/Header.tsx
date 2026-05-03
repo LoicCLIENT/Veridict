@@ -6,7 +6,7 @@ import { Plus } from "lucide-react";
 
 const navItems = [
   { href: "/casos", label: "Historial" },
-  { href: "/demo", label: "Demo" },
+  { href: "/casos/demo-1", label: "Demo" },
   { href: "/docs", label: "Documentación" },
 ];
 
@@ -18,9 +18,11 @@ export function Header() {
       <div className="mx-auto flex h-14 max-w-[1200px] items-center justify-between px-6">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2">
-          <span className="text-xl font-semibold text-white tracking-tight">
-            Veridict
-          </span>
+          <img
+            src="/logo.png"
+            alt="Veridict"
+            className="h-8 w-auto"
+          />
         </Link>
 
         {/* Navigation */}

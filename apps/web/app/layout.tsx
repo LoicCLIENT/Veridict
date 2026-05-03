@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/Header";
 import { Providers } from "@/components/Providers";
 
 const inter = Inter({
@@ -11,9 +10,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Veridict - Reconstruccion Forense de Accidentes",
+  title: "Veridict - Forensic Accident Reconstruction",
   description:
-    "Sistema de reconstruccion forense automatizada de accidentes de trafico",
+    "AI-powered forensic reconstruction system for traffic accidents",
 };
 
 export default function RootLayout({
@@ -22,15 +21,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="es" className="dark">
-      <body
-        className={`${inter.variable} font-sans bg-[#1F3329] text-[#F5F5F0] min-h-screen`}
-      >
+    <html lang="en">
+      <body className={`${inter.variable} font-sans m-0 p-0`}>
         <Providers>
-          <Header />
-          <main className="mx-auto max-w-[1280px] px-6">
-            {children}
-          </main>
+          {children}
         </Providers>
       </body>
     </html>
