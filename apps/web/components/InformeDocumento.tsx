@@ -19,9 +19,9 @@ interface Props {
 }
 
 /**
- * Renderiza el informe pericial como un documento legible (estilo UNE-EN 16775),
- * con secciones numeradas y tipografía pericial. NO usa cards/tabs internas:
- * se lee de arriba abajo como si fuera el PDF firmable.
+ * Renders the expert report as a readable document (UNE-EN 16775 style),
+ * with numbered sections and expert typography. Does NOT use internal cards/tabs:
+ * it reads top to bottom as if it were the signable PDF.
  */
 export function InformeDocumento({
   informe,
@@ -32,7 +32,7 @@ export function InformeDocumento({
   const recentlyEditedSet = new Set(recentlyEditedIds ?? []);
   const encargo = caso.encargo;
   const fechaStr = caso.fecha_accidente
-    ? new Date(caso.fecha_accidente).toLocaleDateString("es-ES", {
+    ? new Date(caso.fecha_accidente).toLocaleDateString("en-US", {
         day: "2-digit",
         month: "long",
         year: "numeric",
@@ -41,47 +41,47 @@ export function InformeDocumento({
 
   return (
     <article className="bg-zinc-950/40 border border-zinc-800 rounded-xl p-8 md:p-12 leading-relaxed text-zinc-200 font-serif">
-      {/* Encabezado pericial */}
+      {/* Expert header */}
       <header className="border-b border-zinc-700 pb-6 mb-8">
         <p className="text-xs uppercase tracking-widest text-zinc-500 mb-2">
-          Informe pericial UNE-EN 16775 — borrador asistido
+          Expert report UNE-EN 16775 — assisted draft
         </p>
         <h1 className="text-2xl md:text-3xl font-bold text-white">
-          Informe pericial sobre {tipoLabel(encargo?.tipo)}
+          Expert report on {tipoLabel(encargo?.tipo)}
         </h1>
         <div className="mt-3 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1 text-sm text-zinc-400">
           {encargo?.solicitante && (
             <div>
-              <span className="text-zinc-500">Solicitante: </span>
+              <span className="text-zinc-500">Client: </span>
               <span className="text-zinc-200">{encargo.solicitante}</span>
             </div>
           )}
           {encargo?.procedimiento && (
             <div>
-              <span className="text-zinc-500">Procedimiento: </span>
+              <span className="text-zinc-500">Procedure: </span>
               <span className="text-zinc-200">{encargo.procedimiento}</span>
             </div>
           )}
           {encargo?.parte && (
             <div>
-              <span className="text-zinc-500">Parte: </span>
+              <span className="text-zinc-500">Party: </span>
               <span className="text-zinc-200 capitalize">{encargo.parte}</span>
             </div>
           )}
           <div>
-            <span className="text-zinc-500">Fecha del siniestro: </span>
+            <span className="text-zinc-500">Accident date: </span>
             <span className="text-zinc-200">{fechaStr}</span>
           </div>
         </div>
       </header>
 
-      {/* Sección 1 — Objeto del informe */}
-      <Section number="1" title="Objeto del informe">
+      {/* Section 1 — Purpose of the report */}
+      <Section number="1" title="Purpose of the report">
         <p>{informe.resumen_caso}</p>
         {encargo && encargo.preguntas.length > 0 && (
           <div className="mt-4">
             <p className="text-sm text-zinc-400 mb-2">
-              Las cuestiones planteadas por el solicitante son:
+              The questions raised by the client are:
             </p>
             <ol className="list-decimal pl-6 space-y-1 text-zinc-200 marker:text-zinc-500">
               {encargo.preguntas.map((p, i) => (
@@ -92,18 +92,18 @@ export function InformeDocumento({
         )}
       </Section>
 
-      {/* Sección 2 — Antecedentes y hechos del atestado */}
-      <Section number="2" title="Antecedentes y hechos del atestado">
+      {/* Section 2 — Background and police report facts */}
+      <Section number="2" title="Background and police report facts">
         <DataGrid>
           <DataItem
-            label="Tipo de colisión"
+            label="Collision type"
             value={caso.tipo_colision ? capitalize(caso.tipo_colision) : "—"}
           />
           <DataItem
-            label="Atestado"
+            label="Police report"
             value={
               caso.hechos_atestado?.numero_atestado
-                ? `Nº ${caso.hechos_atestado.numero_atestado}` +
+                ? `No. ${caso.hechos_atestado.numero_atestado}` +
                   (caso.hechos_atestado.cuerpo_actuante
                     ? ` — ${capitalize(caso.hechos_atestado.cuerpo_actuante.replace("_", " "))}`
                     : "")
@@ -111,17 +111,17 @@ export function InformeDocumento({
             }
           />
           <DataItem
-            label="Huellas de frenada"
+            label="Brake marks"
             value={
               caso.hechos_atestado?.hay_huellas_frenada == null
-                ? "No consta"
+                ? "Not recorded"
                 : caso.hechos_atestado.hay_huellas_frenada
-                ? "Sí, observadas en calzada"
-                : "No se observan"
+                ? "Yes, observed on roadway"
+                : "Not observed"
             }
           />
           <DataItem
-            label="Condiciones"
+            label="Conditions"
             value={
               [
                 caso.hechos_atestado?.condiciones_meteorologicas,
@@ -136,11 +136,11 @@ export function InformeDocumento({
 
         {(caso.hechos_atestado?.velocidades_declaradas?.length ?? 0) > 0 && (
           <div className="mt-4">
-            <p className="text-sm text-zinc-400 mb-2">Velocidades registradas:</p>
+            <p className="text-sm text-zinc-400 mb-2">Recorded speeds:</p>
             <ul className="space-y-1 text-sm">
               {caso.hechos_atestado!.velocidades_declaradas!.map((v, i) => (
                 <li key={i} className="text-zinc-200">
-                  Vehículo <span className="font-bold">{v.vehiculo_id}</span>:{" "}
+                  Vehicle <span className="font-bold">{v.vehiculo_id}</span>:{" "}
                   <span className="font-mono">{v.valor_kmh} km/h</span>{" "}
                   <span className="text-zinc-500">
                     ({fuenteVelocidadLabel(v.fuente)})
@@ -153,7 +153,7 @@ export function InformeDocumento({
 
         {caso.hechos_atestado?.declaraciones && (
           <div className="mt-4">
-            <p className="text-sm text-zinc-400 mb-2">Declaraciones recogidas:</p>
+            <p className="text-sm text-zinc-400 mb-2">Collected statements:</p>
             <blockquote className="border-l-2 border-zinc-700 pl-4 italic text-zinc-300">
               {caso.hechos_atestado.declaraciones}
             </blockquote>
@@ -162,13 +162,13 @@ export function InformeDocumento({
 
         {(caso.lesiones?.length ?? 0) > 0 && (
           <div className="mt-4">
-            <p className="text-sm text-zinc-400 mb-2">Lesiones:</p>
+            <p className="text-sm text-zinc-400 mb-2">Injuries:</p>
             <ul className="text-sm space-y-1 list-disc pl-5 text-zinc-200">
               {caso.lesiones!.map((l, i) => (
                 <li key={i}>
-                  <strong>{l.ocupante}</strong> (vehículo {l.vehiculo_id ?? "—"}):{" "}
+                  <strong>{l.ocupante}</strong> (vehicle {l.vehiculo_id ?? "—"}):{" "}
                   {l.zona_corporal} — {capitalize(l.gravedad.replace("_", " "))}
-                  {l.dias_baja ? `, ${l.dias_baja} días de baja` : ""}
+                  {l.dias_baja ? `, ${l.dias_baja} days off work` : ""}
                 </li>
               ))}
             </ul>
@@ -176,10 +176,10 @@ export function InformeDocumento({
         )}
       </Section>
 
-      {/* Sección 3 — Vehículos implicados */}
-      <Section number="3" title="Vehículos implicados">
+      {/* Section 3 — Vehicles involved */}
+      <Section number="3" title="Vehicles involved">
         {informe.fichas_tecnicas.length === 0 ? (
-          <p className="text-zinc-500">No se han identificado vehículos.</p>
+          <p className="text-zinc-500">No vehicles have been identified.</p>
         ) : (
           <div className="space-y-5">
             {informe.fichas_tecnicas.map((f) => (
@@ -189,12 +189,12 @@ export function InformeDocumento({
         )}
       </Section>
 
-      {/* Sección 4 — Análisis técnico */}
+      {/* Section 4 — Technical analysis */}
       {informe.calculos.length > 0 && (
-        <Section number="4" title="Análisis técnico y cálculos">
+        <Section number="4" title="Technical analysis and calculations">
           <p className="mb-4">
-            A partir de los datos del atestado y de las fichas técnicas se han
-            realizado los siguientes cálculos físicos deterministas:
+            Based on the police report data and technical specifications, the
+            following deterministic physics calculations have been performed:
           </p>
           <div className="space-y-3">
             {informe.calculos.map((c, i) => (
@@ -204,9 +204,9 @@ export function InformeDocumento({
         </Section>
       )}
 
-      {/* Sección 5 — Marco normativo */}
+      {/* Section 5 — Regulatory framework */}
       {informe.normativa_aplicable.length > 0 && (
-        <Section number="5" title="Marco normativo aplicable">
+        <Section number="5" title="Applicable regulatory framework">
           <div className="space-y-3">
             {informe.normativa_aplicable.map((n, i) => (
               <NormativaBloque key={i} fuente={n} />
@@ -215,12 +215,12 @@ export function InformeDocumento({
         </Section>
       )}
 
-      {/* Sección 6 — Conclusiones (respuestas a las preguntas) */}
+      {/* Section 6 — Conclusions (answers to questions) */}
       {informe.respuestas.length > 0 && (
-        <Section number="6" title="Conclusiones periciales">
+        <Section number="6" title="Expert conclusions">
           <p className="mb-4 text-zinc-400 text-sm">
-            Respuesta razonada a cada cuestión planteada en el encargo. Las
-            citas remiten a los cálculos, normativa y datos del expediente.
+            Reasoned response to each question raised in the assignment. Citations
+            refer to calculations, regulations, and case file data.
           </p>
           <div className="space-y-6">
             {informe.respuestas.map((r) => (
@@ -236,12 +236,12 @@ export function InformeDocumento({
         </Section>
       )}
 
-      {/* Investigación de los agentes (tool calls) */}
+      {/* Agent investigation (tool calls) */}
       {informe.tool_calls && informe.tool_calls.length > 0 && (
-        <Section number="6.1" title="Investigación realizada por los agentes especialistas">
+        <Section number="6.1" title="Investigation performed by specialist agents">
           <p className="mb-3 text-sm text-zinc-400">
-            El perito coordinador ha consultado a los siguientes agentes para llegar a las
-            conclusiones anteriores. Cada agente tiene acceso a fuentes externas reales
+            The coordinating expert has consulted the following agents to reach the
+            above conclusions. Each agent has access to real external sources
             (OpenStreetMap, BOE, Mapillary, Open-Meteo, etc.).
           </p>
           <div className="space-y-2">
@@ -259,7 +259,7 @@ export function InformeDocumento({
                 )}
                 {tc.fuentes_consultadas.length > 0 && (
                   <p className="text-xs text-zinc-500 mt-1 font-sans">
-                    Fuentes: {tc.fuentes_consultadas.join(" · ")}
+                    Sources: {tc.fuentes_consultadas.join(" · ")}
                   </p>
                 )}
                 {tc.falta_info && (
@@ -273,9 +273,9 @@ export function InformeDocumento({
         </Section>
       )}
 
-      {/* Galería de imágenes recopiladas */}
+      {/* Collected image gallery */}
       {informe.imagenes && informe.imagenes.length > 0 && (
-        <Section number="6.2" title="Material gráfico recopilado">
+        <Section number="6.2" title="Collected graphic material">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {informe.imagenes.map((img, i) => (
               <a
@@ -293,7 +293,7 @@ export function InformeDocumento({
                   />
                 ) : (
                   <div className="w-full h-32 bg-zinc-900 flex items-center justify-center text-zinc-600 text-xs">
-                    sin miniatura
+                    no thumbnail
                   </div>
                 )}
                 <div className="p-2 text-xs">
@@ -312,9 +312,9 @@ export function InformeDocumento({
         </Section>
       )}
 
-      {/* Sección 7 — Bibliografía */}
+      {/* Section 7 — Bibliography */}
       {informe.bibliografia.length > 0 && (
-        <Section number="7" title="Bibliografía técnica consultada">
+        <Section number="7" title="Technical bibliography consulted">
           <ol className="list-decimal pl-6 space-y-1 text-sm text-zinc-300 marker:text-zinc-500">
             {informe.bibliografia.map((b, i) => (
               <li key={i}>{b}</li>
@@ -323,18 +323,18 @@ export function InformeDocumento({
         </Section>
       )}
 
-      {/* Pie */}
+      {/* Footer */}
       <footer className="mt-12 pt-6 border-t border-zinc-700 text-xs text-zinc-500">
         <div className="flex justify-between flex-wrap gap-2">
           <span>
-            Confianza global del borrador:{" "}
+            Overall draft confidence:{" "}
             <span className="text-zinc-200 font-mono">
               {Math.round(informe.confianza_global * 100)}%
             </span>
           </span>
           <span className="italic">
-            Borrador asistido por Veridict AI. La calificación última corresponde
-            al perito firmante.
+            Draft assisted by Veridict AI. Final qualification corresponds
+            to the signing expert.
           </span>
         </div>
       </footer>
@@ -385,45 +385,45 @@ function FichaBloque({ ficha }: { ficha: FichaTecnicaVehiculo }) {
   return (
     <div>
       <h3 className="font-semibold text-white">
-        Vehículo {ficha.vehiculo_id} — {ficha.marca} {ficha.modelo}
+        Vehicle {ficha.vehiculo_id} — {ficha.marca} {ficha.modelo}
         {ficha.anio ? ` (${ficha.anio})` : ""}
       </h3>
       <div className="mt-1 grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-1 text-sm text-zinc-300">
         {ficha.masa_kg != null && (
           <span>
-            <span className="text-zinc-500">Masa: </span>
+            <span className="text-zinc-500">Mass: </span>
             {ficha.masa_kg} kg
           </span>
         )}
         {ficha.longitud_m != null && (
           <span>
-            <span className="text-zinc-500">Longitud: </span>
+            <span className="text-zinc-500">Length: </span>
             {ficha.longitud_m} m
           </span>
         )}
         {ficha.altura_parachoques_m && (
           <span>
-            <span className="text-zinc-500">Altura parachoques: </span>
+            <span className="text-zinc-500">Bumper height: </span>
             {ficha.altura_parachoques_m[0]}–{ficha.altura_parachoques_m[1]} m
           </span>
         )}
         {ficha.altura_largueros_m != null && (
           <span>
-            <span className="text-zinc-500">Largueros: </span>
+            <span className="text-zinc-500">Rails: </span>
             {ficha.altura_largueros_m} m
           </span>
         )}
       </div>
       {ficha.sistemas_seguridad.length > 0 && (
         <div className="mt-2 text-sm">
-          <span className="text-zinc-500">Sistemas de seguridad: </span>
+          <span className="text-zinc-500">Safety systems: </span>
           <span className="text-zinc-300">
             {ficha.sistemas_seguridad.join("; ")}.
           </span>
         </div>
       )}
       {ficha.fuente && (
-        <p className="mt-1 text-xs text-zinc-500 italic">Fuente: {ficha.fuente}</p>
+        <p className="mt-1 text-xs text-zinc-500 italic">Source: {ficha.fuente}</p>
       )}
     </div>
   );
@@ -509,7 +509,7 @@ function RespuestaBloque({
       setEditing(false);
     } catch (e) {
       console.error(e);
-      alert("No se pudo guardar la edición.");
+      alert("Could not save the edit.");
     } finally {
       setSaving(false);
     }
@@ -527,7 +527,7 @@ function RespuestaBloque({
       {recentlyEdited && (
         <div className="mb-2 flex items-center gap-2 text-[11px] uppercase tracking-wide text-amber-300 font-sans">
           <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-          Reescrita ahora con la información que has aportado
+          Rewritten now with the information you provided
         </div>
       )}
       <div className="flex items-baseline justify-between gap-3">
@@ -540,9 +540,9 @@ function RespuestaBloque({
             type="button"
             onClick={startEdit}
             className="text-xs text-zinc-500 hover:text-blue-300 opacity-0 group-hover:opacity-100 transition-opacity font-sans"
-            title="Editar manualmente esta conclusión"
+            title="Manually edit this conclusion"
           >
-            ✎ Editar
+            ✎ Edit
           </button>
         )}
       </div>
@@ -566,7 +566,7 @@ function RespuestaBloque({
               disabled={saving}
               className="text-xs px-3 py-1.5 rounded border border-zinc-700 text-zinc-300 hover:bg-zinc-800"
             >
-              Cancelar
+              Cancel
             </button>
             <button
               type="button"
@@ -574,11 +574,11 @@ function RespuestaBloque({
               disabled={saving}
               className="text-xs px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-60"
             >
-              {saving ? "Guardando…" : "Guardar edición"}
+              {saving ? "Saving…" : "Save edit"}
             </button>
           </div>
           <p className="text-[11px] text-zinc-500 font-sans">
-            Edición manual del perito firmante. No se invoca al modelo.
+            Manual edit by the signing expert. Model not invoked.
           </p>
         </div>
       )}
@@ -598,7 +598,7 @@ function RespuestaBloque({
         </div>
       )}
       <p className="mt-2 text-xs text-zinc-500 font-sans">
-        Confianza: {Math.round(respuesta.confianza * 100)}%
+        Confidence: {Math.round(respuesta.confianza * 100)}%
       </p>
     </div>
   );
@@ -613,32 +613,32 @@ function capitalize(s: string) {
 function tipoLabel(tipo?: string): string {
   switch (tipo) {
     case "responsabilidad_trafico":
-      return "responsabilidad en accidente de tráfico";
+      return "traffic accident liability";
     case "velocidad_impacto":
-      return "determinación de velocidad de impacto";
+      return "impact velocity determination";
     case "seguridad_pasiva":
-      return "sistemas de seguridad pasiva";
+      return "passive safety systems";
     case "mecanica_fallo":
-      return "fallo mecánico";
+      return "mechanical failure";
     case "atropello":
-      return "atropello";
+      return "pedestrian collision";
     case "cuantia_danos":
-      return "cuantía y proporcionalidad de daños";
+      return "damage amount and proportionality";
     default:
-      return "siniestro de tráfico";
+      return "traffic accident";
   }
 }
 
 function fuenteVelocidadLabel(f: string): string {
   switch (f) {
     case "declaracion_conductor":
-      return "declaración del conductor";
+      return "driver statement";
     case "tacografo":
-      return "tacógrafo";
+      return "tachograph";
     case "edr":
-      return "EDR/centralita";
+      return "EDR/control unit";
     case "testigo":
-      return "testigo";
+      return "witness";
     default:
       return f;
   }

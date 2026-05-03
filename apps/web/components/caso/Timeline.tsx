@@ -154,7 +154,7 @@ export default function Timeline({
         <div className="flex items-center justify-between mb-3">
           <h3 className="text-sm font-medium text-veridict-white flex items-center gap-2">
             <Clock size={16} className="text-veridict-lime" />
-            Cronología del Accidente
+            Accident Timeline
           </h3>
           <div className="flex items-center gap-3">
             <span className="text-lg font-mono text-veridict-lime">
@@ -175,7 +175,7 @@ export default function Timeline({
             <button
               onClick={resetPlayback}
               className="p-2 rounded-md hover:bg-veridict-green-700 text-veridict-gray hover:text-veridict-white transition-colors"
-              title="Reiniciar"
+              title="Reset"
             >
               <SkipBack size={16} />
             </button>
@@ -195,7 +195,7 @@ export default function Timeline({
               onClick={() => skipToEvent("next")}
               className="p-2 rounded-md hover:bg-veridict-green-700 text-veridict-gray hover:text-veridict-white transition-colors"
               disabled={activeEventIndex >= sortedEvents.length - 1}
-              title="Siguiente evento"
+              title="Next event"
             >
               <SkipForward size={16} />
             </button>
@@ -272,7 +272,7 @@ export default function Timeline({
 
         {/* Speed controls */}
         <div className="flex items-center gap-2 mt-2">
-          <span className="text-xs text-veridict-gray">Velocidad:</span>
+          <span className="text-xs text-veridict-gray">Speed:</span>
           {[0.5, 1, 2, 4].map((s) => (
             <button
               key={s}
@@ -313,12 +313,12 @@ export const mockTimelineEvents: TimelineEventData[] = [
     id: "1",
     timestamp: 0,
     type: "inicio",
-    title: "Situación inicial",
-    description: "Vehículo A circula por carril derecho a 67 km/h. Vehículo B circula por carril izquierdo a 55 km/h.",
+    title: "Initial situation",
+    description: "Vehicle A traveling in right lane at 67 km/h. Vehicle B traveling in left lane at 55 km/h.",
     details: [
-      { label: "Velocidad A", value: "67", unit: "km/h" },
-      { label: "Velocidad B", value: "55", unit: "km/h" },
-      { label: "Condiciones", value: "Lluvia ligera" },
+      { label: "Speed A", value: "67", unit: "km/h" },
+      { label: "Speed B", value: "55", unit: "km/h" },
+      { label: "Conditions", value: "Light rain" },
     ],
     vehiculo: "ambos",
   },
@@ -326,11 +326,11 @@ export const mockTimelineEvents: TimelineEventData[] = [
     id: "2",
     timestamp: 1.5,
     type: "frenada",
-    title: "Vehículo B inicia cambio de carril",
-    description: "Vehículo B comienza maniobra de cambio de carril hacia la derecha SIN señalizar.",
+    title: "Vehicle B starts lane change",
+    description: "Vehicle B begins lane change maneuver to the right WITHOUT signaling.",
     details: [
-      { label: "Infracción", value: "Art. 72.1 RGC" },
-      { label: "Señalización", value: "No" },
+      { label: "Violation", value: "Art. 72.1 RGC" },
+      { label: "Signaling", value: "No" },
     ],
     vehiculo: "B",
   },
@@ -338,12 +338,12 @@ export const mockTimelineEvents: TimelineEventData[] = [
     id: "3",
     timestamp: 2.5,
     type: "frenada",
-    title: "Vehículo A detecta peligro",
-    description: "Conductor A detecta invasión de carril e inicia frenada de emergencia.",
+    title: "Vehicle A detects danger",
+    description: "Driver A detects lane invasion and initiates emergency braking.",
     details: [
-      { label: "Tiempo reacción", value: "0.8", unit: "s" },
-      { label: "Deceleración", value: "-7.8", unit: "m/s²" },
-      { label: "Coef. fricción", value: "0.65", unit: "(mojado)" },
+      { label: "Reaction time", value: "0.8", unit: "s" },
+      { label: "Deceleration", value: "-7.8", unit: "m/s²" },
+      { label: "Friction coef.", value: "0.65", unit: "(wet)" },
     ],
     vehiculo: "A",
   },
@@ -351,14 +351,14 @@ export const mockTimelineEvents: TimelineEventData[] = [
     id: "4",
     timestamp: 3.5,
     type: "impacto",
-    title: "PUNTO DE COLISIÓN",
-    description: "Impacto lateral entre ambos vehículos. Zona de contacto: frontal derecha A con lateral izquierda B.",
+    title: "COLLISION POINT",
+    description: "Side impact between both vehicles. Contact zone: front right A with left side B.",
     details: [
-      { label: "Velocidad A", value: "45.2", unit: "km/h" },
-      { label: "Velocidad B", value: "50.3", unit: "km/h" },
-      { label: "Ángulo impacto", value: "15", unit: "°" },
-      { label: "ΔV Vehículo A", value: "22.1", unit: "km/h" },
-      { label: "ΔV Vehículo B", value: "18.7", unit: "km/h" },
+      { label: "Speed A", value: "45.2", unit: "km/h" },
+      { label: "Speed B", value: "50.3", unit: "km/h" },
+      { label: "Impact angle", value: "15", unit: "°" },
+      { label: "ΔV Vehicle A", value: "22.1", unit: "km/h" },
+      { label: "ΔV Vehicle B", value: "18.7", unit: "km/h" },
     ],
     vehiculo: "ambos",
     isHighlight: true,
@@ -367,12 +367,12 @@ export const mockTimelineEvents: TimelineEventData[] = [
     id: "5",
     timestamp: 4.2,
     type: "posicion_final",
-    title: "Posiciones finales",
-    description: "Vehículos inmobilizados tras desplazamiento post-impacto.",
+    title: "Final positions",
+    description: "Vehicles immobilized after post-impact displacement.",
     details: [
-      { label: "Desplazamiento A", value: "6.2", unit: "m" },
-      { label: "Desplazamiento B", value: "4.8", unit: "m" },
-      { label: "Rotación A", value: "12", unit: "°" },
+      { label: "Displacement A", value: "6.2", unit: "m" },
+      { label: "Displacement B", value: "4.8", unit: "m" },
+      { label: "Rotation A", value: "12", unit: "°" },
     ],
     vehiculo: "ambos",
   },

@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 550" width="800" height="550">
+
+  <!-- Background -->
+  <rect width="800" height="550" fill="#FFFFFF"/>
+
+  <!-- Title bar -->
+  <rect x="0" y="0" width="800" height="45" fill="#1F3329"/>
+  <text x="25" y="28" fill="#FFFFFF" font-family="Arial, sans-serif" font-size="16" font-weight="bold">
+    Diagrama WAD - Zonas de Impacto Frontal
+  </text>
+  <text x="775" y="28" fill="#C2E94B" font-family="Arial, sans-serif" font-size="12" text-anchor="end">
+    Veridict AI
+  </text>
+
+  <!-- WAD Reference Lines -->
+
+  <line x1="20" y1="370" x2="620" y2="370"
+        stroke="#D4A800" stroke-width="2"/>
+  <text x="625" y="374" fill="#333333" font-family="Arial, sans-serif"
+        font-size="12" font-weight="bold">WAD 1000</text>
+        
+
+  <line x1="20" y1="270" x2="620" y2="270"
+        stroke="#D4A800" stroke-width="2"/>
+  <text x="625" y="274" fill="#333333" font-family="Arial, sans-serif"
+        font-size="12" font-weight="bold">WAD 1500</text>
+        
+
+  <!-- Car diagram (embedded with offset) -->
+  <g transform="translate(50, 55)">
+
+
+  <!--
+    Car Quarter Front View - ITRASA Style Technical Drawing
+    For WAD (Wrap Around Distance) diagrams
+    Clean line art, no fills, suitable for overlay annotations
+  -->
+
+  <defs>
+    <!-- Define stroke style for consistency -->
+    <style>
+      .body-line { stroke: #2D2D2D; stroke-width: 1.8; fill: none; stroke-linejoin: round; stroke-linecap: round; }
+      .detail-line { stroke: #4A4A4A; stroke-width: 1.2; fill: none; stroke-linejoin: round; }
+      .glass-line { stroke: #2D2D2D; stroke-width: 1.0; fill: none; }
+      .wheel-line { stroke: #2D2D2D; stroke-width: 2.0; fill: none; }
+      .subtle-line { stroke: #6B6B6B; stroke-width: 0.8; fill: none; }
+    </style>
+  </defs>
+
+  <!-- Ground line reference -->
+  <line x1="30" y1="420" x2="580" y2="420" stroke="#AAAAAA" stroke-width="0.5" stroke-dasharray="8,4"/>
+
+  <!-- ============================================================= -->
+  <!-- VEHICLE BODY - Main silhouette from 3/4 front view -->
+  <!-- ============================================================= -->
+
+  <!-- Main body outline - continuous path for clean look -->
+  <path class="body-line" d="
+    M 550 420
+    L 550 380
+    Q 555 350, 540 325
+    L 530 305
+    L 525 280
+    Q 530 255, 545 245
+    L 560 235
+    Q 575 228, 580 240
+    L 585 270
+    L 580 310
+    Q 575 350, 565 380
+    L 560 420
+    Z
+  "/>
+
+  <!-- Front bumper to left side -->
+  <path class="body-line" d="
+    M 550 420
+    L 120 420
+    L 100 410
+    Q 70 395, 55 360
+    L 45 320
+    L 40 280
+    Q 38 250, 45 225
+    L 55 200
+  "/>
+
+  <!-- Hood surface -->
+  <path class="body-line" d="
+    M 55 200
+    L 75 175
+    Q 95 155, 140 145
+    L 380 120
+    Q 450 112, 510 125
+    L 545 138
+    Q 565 148, 572 168
+    L 568 200
+    L 525 240
+    L 525 280
+  "/>
+
+  <!-- Windshield outline -->
+  <path class="body-line" d="
+    M 140 145
+    L 170 78
+    Q 180 55, 210 45
+    L 380 28
+    Q 440 22, 490 35
+    L 530 55
+    Q 555 70, 560 95
+    L 555 130
+    L 510 125
+  "/>
+
+  <!-- Windshield glass inner -->
+  <path class="glass-line" d="
+    M 158 138
+    L 185 82
+    Q 195 62, 220 54
+    L 370 38
+    Q 425 32, 475 44
+    L 515 62
+    Q 538 75, 543 98
+    L 540 125
+    L 495 120
+    L 165 140
+    Z
+  "/>
+
+  <!-- Roof and A-pillar left -->
+  <path class="body-line" d="
+    M 210 45
+    L 160 50
+    Q 115 58, 85 90
+    L 55 140
+    Q 40 175, 35 215
+    L 32 260
+    L 40 280
+  "/>
+
+  <!-- Roof top line -->
+  <path class="subtle-line" d="
+    M 160 50
+    L 490 35
+  "/>
+
+  <!-- ============================================================= -->
+  <!-- FRONT FASCIA DETAILS -->
+  <!-- ============================================================= -->
+
+  <!-- Right headlight (larger, more visible) -->
+  <path class="detail-line" d="
+    M 530 215
+    Q 555 205, 575 215
+    L 582 235
+    Q 585 250, 578 260
+    L 545 255
+    Q 525 248, 520 235
+    L 530 215
+    Z
+  "/>
+
+  <!-- Left headlight -->
+  <path class="detail-line" d="
+    M 55 230
+    Q 75 218, 105 220
+    L 130 228
+    Q 145 238, 140 258
+    L 120 272
+    Q 85 280, 60 270
+    L 50 250
+    L 55 230
+    Z
+  "/>
+
+  <!-- Grille (simplified) -->
+  <path class="detail-line" d="
+    M 175 275
+    L 175 310
+    Q 180 340, 210 348
+    L 380 355
+    Q 440 358, 480 345
+    L 510 325
+    Q 525 308, 518 285
+    L 510 265
+    Q 500 258, 480 260
+    L 190 270
+    Q 175 272, 175 275
+    Z
+  "/>
+
+  <!-- Grille bars -->
+  <line class="subtle-line" x1="182" y1="292" x2="512" y2="280"/>
+  <line class="subtle-line" x1="185" y1="312" x2="508" y2="305"/>
+  <line class="subtle-line" x1="195" y1="332" x2="495" y2="328"/>
+
+  <!-- Front air intake -->
+  <path class="detail-line" d="
+    M 200 365
+    Q 210 375, 250 378
+    L 400 382
+    Q 460 383, 490 375
+    L 510 365
+  "/>
+
+  <!-- ============================================================= -->
+  <!-- WHEELS -->
+  <!-- ============================================================= -->
+
+  <!-- Right front wheel (full view) -->
+  <ellipse class="wheel-line" cx="520" cy="390" rx="55" ry="30"/>
+  <ellipse class="detail-line" cx="520" cy="390" rx="38" ry="20"/>
+  <ellipse class="subtle-line" cx="520" cy="390" rx="15" ry="8"/>
+
+  <!-- Wheel arch right -->
+  <path class="body-line" d="
+    M 465 420
+    Q 460 385, 475 355
+    L 495 335
+    Q 530 320, 560 340
+    L 575 365
+    Q 580 395, 570 420
+  "/>
+
+  <!-- Left front wheel (partial, perspective) -->
+  <path class="wheel-line" d="
+    M 50 395
+    Q 65 365, 100 355
+    L 145 358
+    Q 180 368, 185 400
+    L 180 420
+  "/>
+  <path class="detail-line" d="
+    M 65 390
+    Q 80 370, 110 365
+    L 140 370
+    Q 165 380, 165 405
+  "/>
+
+  <!-- Wheel arch left -->
+  <path class="body-line" d="
+    M 50 420
+    Q 40 390, 45 360
+    L 55 340
+    Q 75 315, 115 315
+    L 165 325
+    Q 195 345, 195 390
+    L 190 420
+  "/>
+
+  <!-- ============================================================= -->
+  <!-- SIDE DETAILS -->
+  <!-- ============================================================= -->
+
+  <!-- Left side window -->
+  <path class="glass-line" d="
+    M 55 140
+    Q 65 110, 85 95
+    L 155 90
+    L 158 138
+    L 80 155
+    Q 50 165, 42 195
+    L 35 215
+    L 55 140
+    Z
+  "/>
+
+  <!-- Side mirror left -->
+  <path class="detail-line" d="
+    M 130 168
+    Q 145 162, 155 170
+    L 158 185
+    Q 155 195, 140 198
+    L 125 192
+    Q 118 182, 130 168
+    Z
+  "/>
+
+  <!-- Door seam hint -->
+  <path class="subtle-line" d="
+    M 80 155
+    L 95 300
+  " stroke-dasharray="4,3"/>
+
+  <!-- Rear quarter panel -->
+  <path class="body-line" d="
+    M 32 260
+    L 28 310
+    Q 25 360, 35 400
+    L 50 420
+  "/>
+
+  <!-- Character line on body -->
+  <path class="subtle-line" d="
+    M 50 250
+    L 530 200
+  "/>
+
+  <!-- ============================================================= -->
+  <!-- WAD REFERENCE ZONES (invisible guides for overlay system) -->
+  <!-- These IDs can be used to position impact markers -->
+  <!-- ============================================================= -->
+
+  <!-- Reference points for WAD zones (y-coordinates from ground at y=420) -->
+  <!-- WAD 800mm = y=340 (bumper zone) -->
+  <!-- WAD 1000mm = y=320 (lower hood) -->
+  <!-- WAD 1200mm = y=300 (mid hood) -->
+  <!-- WAD 1500mm = y=270 (upper hood / windshield base) -->
+  <!-- WAD 1800mm = y=240 (windshield) -->
+  <!-- WAD 2000mm = y=220 (upper windshield / roof edge) -->
+
+
+  </g>
+
+
+  <!-- Impact Markers -->
+  <g id="impact-markers">
+
+
+    <!-- Pedestrian 20 km/h -->
+    <polygon points="390,353 380,371 400,371"
+             fill="#E67E22" stroke="#000000" stroke-width="1"/>
+    <text x="408" y="367" fill="#E67E22"
+          font-family="Arial, sans-serif" font-size="11" font-weight="bold">20 km/h</text>
+
+
+    <!-- Pedestrian 30 km/h -->
+    <polygon points="370,303 360,321 380,321"
+             fill="#E67E22" stroke="#000000" stroke-width="1"/>
+    <text x="388" y="317" fill="#E67E22"
+          font-family="Arial, sans-serif" font-size="11" font-weight="bold">30 km/h</text>
+
+
+    <!-- Pedestrian 40 km/h -->
+    <polygon points="350,243 340,261 360,261"
+             fill="#E67E22" stroke="#000000" stroke-width="1"/>
+    <text x="368" y="257" fill="#E67E22"
+          font-family="Arial, sans-serif" font-size="11" font-weight="bold">40 km/h</text>
+
+
+    <!-- Pedestrian 50 km/h -->
+    <polygon points="330,183 320,201 340,201"
+             fill="#E67E22" stroke="#000000" stroke-width="1"/>
+    <text x="348" y="197" fill="#E67E22"
+          font-family="Arial, sans-serif" font-size="11" font-weight="bold">50 km/h</text>
+
+  </g>
+
+
+  <!-- Legend -->
+  <rect x="640" y="60" width="150" height="200" fill="#F9FAFB" stroke="#E5E7EB" rx="6"/>
+
+  <text x="655" y="85" fill="#333333" font-family="Arial, sans-serif" font-size="12" font-weight="bold">
+    Leyenda
+  </text>
+  <line x1="650" y1="95" x2="780" y2="95" stroke="#E5E7EB"/>
+
+  <!-- Pedestrian symbol -->
+  <polygon points="670,115 660,130 680,130" fill="#E67E22" stroke="#000000" stroke-width="1"/>
+  <text x="690" y="126" fill="#333333" font-family="Arial, sans-serif" font-size="10">
+    Impacto frontal
+  </text>
+  <text x="690" y="138" fill="#333333" font-family="Arial, sans-serif" font-size="10">
+    de un joven peaton
+  </text>
+
+  <!-- Cyclist symbol -->
+  <line x1="662" y1="165" x2="678" y2="165" stroke="#000000" stroke-width="3"/>
+  <line x1="670" y1="157" x2="670" y2="173" stroke="#000000" stroke-width="3"/>
+  <text x="690" y="162" fill="#333333" font-family="Arial, sans-serif" font-size="10">
+    Impacto frontal
+  </text>
+  <text x="690" y="174" fill="#333333" font-family="Arial, sans-serif" font-size="10">
+    de un joven ciclista
+  </text>
+
+  <line x1="650" y1="190" x2="780" y2="190" stroke="#E5E7EB"/>
+
+  <text x="655" y="210" fill="#666666" font-family="Arial, sans-serif" font-size="9">
+    Velocidades: 20-50 km/h
+  </text>
+  <text x="655" y="225" fill="#666666" font-family="Arial, sans-serif" font-size="9">
+    Zonas WAD: 1000-2000mm
+  </text>
+  <text x="655" y="248" fill="#888888" font-family="Arial, sans-serif" font-size="8" font-style="italic">
+    Metodologia ITRASA
+  </text>
+
+
+  <!-- Footer -->
+  <text x="790" y="540" fill="#888888" font-family="Arial, sans-serif" font-size="9" text-anchor="end">
+    Veridict AI - Reconstruccion Forense
+  </text>
+
+</svg>

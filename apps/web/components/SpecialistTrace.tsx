@@ -178,13 +178,13 @@ const SPECIALIST_META: Record<string, SpecialistMeta> = {
   buscar_foto_perito: {
     icon: "📷",
     color: "text-cyan-300",
-    label: "BibliotecaFotos · búsqueda",
+    label: "PhotoLibrary · search",
     highlights: ["query", "n_resultados", "fotos"],
   },
   analizar_imagen_dano: {
     icon: "👁️",
     color: "text-violet-300",
-    label: "Vision · daños",
+    label: "Vision · damage",
     highlights: ["zona_danada", "intensidad", "compatible_con_relato"],
   },
 };
@@ -225,7 +225,7 @@ export function SpecialistTrace({ casoId, tools, title, description }: Props) {
           setError(null);
         }
       } catch {
-        if (!cancelled) setError("aún no disponible");
+        if (!cancelled) setError("not yet available");
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -251,16 +251,16 @@ export function SpecialistTrace({ casoId, tools, title, description }: Props) {
     return out;
   }, [data, tools]);
 
-  const headerTitle = title ?? "Trabajo de los agentes especialistas";
+  const headerTitle = title ?? "Specialist agents' work";
   const headerDesc =
     description ??
-    "Output completo y estructurado que el specialist devolvió al orquestador. Esta es la fuente de la que el Perito ha extraído la información para esta pestaña.";
+    "Complete and structured output that the specialist returned to the orchestrator. This is the source from which the Expert extracted the information for this tab.";
 
   if (loading) {
     return (
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 flex items-center gap-3 text-sm text-zinc-400">
         <Loader2 className="w-4 h-4 animate-spin" />
-        Cargando trabajo de los specialists…
+        Loading specialist work…
       </div>
     );
   }
@@ -268,7 +268,7 @@ export function SpecialistTrace({ casoId, tools, title, description }: Props) {
   if (error || !data) {
     return (
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 text-sm text-zinc-500">
-        El trabajo de los specialists aparecerá aquí una vez se genere el informe.
+        Specialist work will appear here once the report is generated.
       </div>
     );
   }
@@ -276,8 +276,8 @@ export function SpecialistTrace({ casoId, tools, title, description }: Props) {
   if (calls.length === 0) {
     return (
       <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-4 text-sm text-zinc-500">
-        El orquestador no invocó ningún specialist relacionado con esta sección
-        ({tools.join(", ")}) durante la generación del informe.
+        The orchestrator did not invoke any specialist related to this section
+        ({tools.join(", ")}) during report generation.
       </div>
     );
   }
@@ -292,7 +292,7 @@ export function SpecialistTrace({ casoId, tools, title, description }: Props) {
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-semibold text-white">{headerTitle}</h3>
             <span className="text-[11px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-200 border border-blue-500/30">
-              {calls.length} {calls.length === 1 ? "llamada" : "llamadas"}
+              {calls.length} {calls.length === 1 ? "call" : "calls"}
             </span>
           </div>
           <p className="text-xs text-zinc-400 mt-0.5">{headerDesc}</p>
@@ -341,7 +341,7 @@ function SpecialistCallCard({ call }: { call: CallWithTurn }) {
             <span className={`text-sm font-bold ${meta.color}`}>{meta.label}</span>
             <span className="text-xs text-zinc-500 font-mono">.{call.tool}</span>
             <span className="text-[10px] uppercase tracking-wide text-zinc-500">
-              · turno {call.turno}
+              · turn {call.turno}
             </span>
             {duracion != null && (
               <span className="text-[10px] text-zinc-500 font-mono">{duracion} ms</span>
@@ -363,13 +363,13 @@ function SpecialistCallCard({ call }: { call: CallWithTurn }) {
 
       {expanded && (
         <div className="border-t border-zinc-800 p-3 space-y-3">
-          {/* Razonamiento del Perito que motivó esta llamada */}
+          {/* Expert's reasoning that motivated this call */}
           {call.razonamientoTurno && (
             <div className="p-2.5 rounded bg-blue-500/5 border border-blue-500/15">
               <div className="flex items-center gap-1.5 mb-1">
                 <Brain className="w-3 h-3 text-blue-400" />
                 <span className="text-[10px] uppercase tracking-wide text-blue-300">
-                  ¿Por qué el Perito invocó este specialist?
+                  Why did the Expert invoke this specialist?
                 </span>
               </div>
               <p className="text-xs text-zinc-300 italic leading-relaxed">
@@ -382,7 +382,7 @@ function SpecialistCallCard({ call }: { call: CallWithTurn }) {
           {Object.keys(call.inputs).length > 0 && (
             <div>
               <p className="text-[10px] uppercase tracking-wide text-zinc-500 mb-1">
-                Inputs del Perito
+                Expert inputs
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
                 {Object.entries(call.inputs).map(([k, v]) => (
@@ -392,11 +392,11 @@ function SpecialistCallCard({ call }: { call: CallWithTurn }) {
             </div>
           )}
 
-          {/* Highlights del specialist */}
+          {/* Specialist highlights */}
           {highlightFields.length > 0 && (
             <div>
               <p className="text-[10px] uppercase tracking-wide text-zinc-500 mb-1">
-                Datos devueltos por el specialist
+                Data returned by specialist
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-1.5">
                 {highlightFields.map((k) => (
@@ -406,11 +406,11 @@ function SpecialistCallCard({ call }: { call: CallWithTurn }) {
             </div>
           )}
 
-          {/* Imágenes */}
+          {/* Images */}
           {imagenes.length > 0 && (
             <div>
               <p className="text-[10px] uppercase tracking-wide text-zinc-500 mb-1">
-                Imágenes recopiladas ({imagenes.length})
+                Collected images ({imagenes.length})
               </p>
               <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
                 {imagenes.map((img, i) => {
@@ -433,7 +433,7 @@ function SpecialistCallCard({ call }: { call: CallWithTurn }) {
                         />
                       ) : (
                         <div className="w-full h-20 bg-zinc-900 flex items-center justify-center text-[10px] text-zinc-600">
-                          sin miniatura
+                          no thumbnail
                         </div>
                       )}
                       {desc && (
@@ -446,10 +446,10 @@ function SpecialistCallCard({ call }: { call: CallWithTurn }) {
             </div>
           )}
 
-          {/* Fuentes consultadas */}
+          {/* Sources consulted */}
           {fuentes.length > 0 && (
             <div className="text-xs">
-              <span className="text-zinc-500">Fuentes consultadas: </span>
+              <span className="text-zinc-500">Sources consulted: </span>
               <span className="text-zinc-300">{fuentes.join(" · ")}</span>
             </div>
           )}
@@ -461,7 +461,7 @@ function SpecialistCallCard({ call }: { call: CallWithTurn }) {
             </div>
           )}
 
-          {/* JSON crudo colapsable */}
+          {/* Collapsible raw JSON */}
           <div>
             <button
               type="button"
@@ -469,7 +469,7 @@ function SpecialistCallCard({ call }: { call: CallWithTurn }) {
               className="text-[11px] text-zinc-500 hover:text-zinc-300 inline-flex items-center gap-1"
             >
               <ExternalLink className="w-3 h-3" />
-              {showJson ? "ocultar" : "ver"} JSON completo del specialist
+              {showJson ? "hide" : "view"} specialist full JSON
             </button>
             {showJson && (
               <pre className="mt-1.5 text-[11px] text-zinc-400 bg-zinc-950 border border-zinc-800 rounded p-2 overflow-x-auto whitespace-pre-wrap break-all max-h-72 overflow-y-auto">
@@ -494,7 +494,7 @@ function KeyValueRow({ label, value }: { label: string; value: unknown }) {
 
 function formatValue(v: unknown): string {
   if (v === null || v === undefined) return "—";
-  if (typeof v === "boolean") return v ? "sí" : "no";
+  if (typeof v === "boolean") return v ? "yes" : "no";
   if (typeof v === "number") return String(v);
   if (typeof v === "string") return v;
   if (Array.isArray(v)) {
@@ -502,7 +502,7 @@ function formatValue(v: unknown): string {
     if (v.every((x) => typeof x === "string" || typeof x === "number")) {
       return v.join(", ");
     }
-    return `[${v.length} elementos]`;
+    return `[${v.length} items]`;
   }
   if (typeof v === "object") {
     try {

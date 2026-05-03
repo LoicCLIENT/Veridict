@@ -101,12 +101,93 @@ class Evento(BaseModel):
     actor_principal_id: Optional[str] = None  # actor protagonista del evento
 
 
+class TipoFuenteDato(str, Enum):
+    ATESTADO = "atestado"
+    EDR = "edr"
+    TACOGRAFO = "tacografo"
+    DECLARACION_CONDUCTOR = "declaracion_conductor"
+    DECLARACION_TESTIGO = "declaracion_testigo"
+    MEDICION_ESCENA = "medicion_escena"
+    FOTO_ANALISIS = "foto_analisis"
+    FICHA_TECNICA_DGT = "ficha_tecnica_dgt"
+    FICHA_TECNICA_FABRICANTE = "ficha_tecnica_fabricante"
+    BASE_DATOS_CRASH3 = "base_datos_crash3"
+    CATALOGO_EUROPEO = "catalogo_europeo"
+    CALCULO_DERIVADO = "calculo_derivado"
+    ESTIMACION_PERICIAL = "estimacion_pericial"
+    OTRO = "otro"
+
+
+class CategoriaCalculo(str, Enum):
+    VELOCIDAD = "velocidad"
+    ENERGIA = "energia"
+    FUERZA = "fuerza"
+    TIEMPO = "tiempo"
+    DISTANCIA = "distancia"
+    MASA = "masa"
+    OTRO = "otro"
+
+
+class TipoReferencia(str, Enum):
+    NORMATIVA = "normativa"
+    PAPER = "paper"
+    LIBRO = "libro"
+    MANUAL = "manual"
+    BASE_DATOS = "base_datos"
+
+
+class DatoEntrada(BaseModel):
+    """Input data point used in a calculation with source traceability."""
+    nombre: str                     # "Masa vehículo A", "Longitud huella frenada"
+    valor: float | str              # 1350 or "Sin ABS"
+    unidad: Optional[str] = None    # "kg", "m"
+    fuente: TipoFuenteDato = TipoFuenteDato.OTRO
+    fuente_detalle: Optional[str] = None  # "Atestado nº 2024/1234, pág. 3"
+    confianza: Optional[float] = None     # 0-1
+    foto_id: Optional[str] = None         # Associated photo ID if applicable
+
+
+class PasoMetodologico(BaseModel):
+    """Step in the calculation methodology."""
+    orden: int
+    descripcion: str
+    formula_parcial: Optional[str] = None
+    resultado_parcial: Optional[str] = None
+    notas: Optional[str] = None
+
+
+class ReferenciaCalculo(BaseModel):
+    """Scientific/normative reference for a calculation."""
+    tipo: TipoReferencia = TipoReferencia.LIBRO
+    titulo: str
+    autores: Optional[str] = None
+    anio: Optional[int] = None
+    url: Optional[str] = None
+    boe: Optional[str] = None       # For Spanish regulations
+    extracto: Optional[str] = None  # Relevant excerpt
+    pagina: Optional[str] = None
+
+
 class CalculoFisico(BaseModel):
+    """Physical calculation with full methodology traceability."""
     nombre: str
     formula: str
     valor: float
     unidad: str
     justificacion: str
+    # ── Extended fields (optional for backwards compatibility) ──
+    categoria: Optional[CategoriaCalculo] = None
+    confianza: Optional[float] = None           # 0-1, confidence level
+    metodo: Optional[str] = None                # "CRASH3", "Momentum conservation"
+    datos_entrada: list[DatoEntrada] = Field(default_factory=list)
+    pasos: list[PasoMetodologico] = Field(default_factory=list)
+    referencias: list[ReferenciaCalculo] = Field(default_factory=list)
+    validaciones: list[str] = Field(default_factory=list)   # Checks performed
+    limitaciones: list[str] = Field(default_factory=list)   # Possible error sources
+    sensibilidad: Optional[str] = None          # E.g., "±5% due to friction uncertainty"
+    alternativas_consideradas: Optional[str] = None
+    foto_ids: list[str] = Field(default_factory=list)  # Photos used in analysis
+    timestamp: Optional[str] = None             # When the calculation was performed
 
 
 class Infraccion(BaseModel):

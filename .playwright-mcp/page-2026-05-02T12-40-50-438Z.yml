@@ -1,0 +1,103 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - link "Veridict" [ref=e4] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e5]: Veridict
+      - navigation [ref=e6]:
+        - link "Historial" [ref=e7] [cursor=pointer]:
+          - /url: /casos
+        - link "Demo" [ref=e8] [cursor=pointer]:
+          - /url: /demo
+        - link "Documentación" [ref=e9] [cursor=pointer]:
+          - /url: /docs
+      - link "Nuevo caso" [ref=e10] [cursor=pointer]:
+        - /url: /casos/nuevo
+        - img [ref=e11]
+        - generic [ref=e12]: Nuevo caso
+  - main [ref=e13]:
+    - main [ref=e14]:
+      - generic [ref=e18]:
+        - navigation [ref=e19]:
+          - generic [ref=e20]:
+            - generic [ref=e22]: V
+            - generic [ref=e23]: Veridict
+          - generic [ref=e24]:
+            - link "Docs" [ref=e25] [cursor=pointer]:
+              - /url: /docs
+            - link "Demo" [ref=e26] [cursor=pointer]:
+              - /url: /demo
+              - button "Demo" [ref=e27]
+        - generic [ref=e29]:
+          - generic [ref=e30]: Reconstruccion forense con IA
+          - heading "Dictamenes periciales en minutos" [level=1] [ref=e31]:
+            - text: Dictamenes periciales
+            - text: en minutos
+          - paragraph [ref=e32]: IA que analiza accidentes y genera informes forenses listos para juicio.
+          - generic [ref=e33]:
+            - link "Ver Demo" [ref=e34] [cursor=pointer]:
+              - /url: /demo
+              - button "Ver Demo" [ref=e35]:
+                - img [ref=e36]
+                - text: Ver Demo
+            - link "Documentacion" [ref=e38] [cursor=pointer]:
+              - /url: /docs
+              - button "Documentacion" [ref=e39]
+        - generic [ref=e41] [cursor=pointer]:
+          - generic [ref=e42]: Scroll
+          - img [ref=e43]
+      - generic [ref=e46]:
+        - generic [ref=e47]:
+          - heading "Reconstruccion forense sin el trabajo manual." [level=2] [ref=e48]:
+            - text: Reconstruccion forense
+            - text: sin el trabajo manual.
+          - paragraph [ref=e49]: De 3 dias de trabajo a 2 minutos. Mismo rigor tecnico.
+        - generic [ref=e50]:
+          - generic [ref=e52]:
+            - img [ref=e54]
+            - generic [ref=e57]:
+              - heading "Analisis automatizado" [level=3] [ref=e58]
+              - paragraph [ref=e59]: Procesa atestados, fotos y datos EDR en segundos.
+          - generic [ref=e61]:
+            - img [ref=e63]
+            - generic [ref=e73]:
+              - heading "5 agentes IA" [level=3] [ref=e74]
+              - paragraph [ref=e75]: Pipeline multi-agente con verificacion adversarial.
+          - generic [ref=e77]:
+            - img [ref=e79]
+            - generic [ref=e83]:
+              - heading "Formato UNE-EN 16775" [level=3] [ref=e84]
+              - paragraph [ref=e85]: Dictamenes que cumplen el estandar europeo.
+          - generic [ref=e87]:
+            - img [ref=e89]
+            - generic [ref=e91]:
+              - heading "Firma Sigstore" [level=3] [ref=e92]
+              - paragraph [ref=e93]: Trazabilidad criptografica verificable.
+        - generic [ref=e94]:
+          - generic [ref=e95]:
+            - generic [ref=e96]: "2"
+            - generic [ref=e97]: minutos
+          - generic [ref=e98]:
+            - generic [ref=e99]: "5"
+            - generic [ref=e100]: agentes IA
+          - generic [ref=e101]:
+            - generic [ref=e102]: UNE
+            - generic [ref=e103]: certificado
+      - generic [ref=e106]:
+        - heading "Pruebalo ahora" [level=2] [ref=e107]
+        - paragraph [ref=e108]: Sin registro. Caso de ejemplo incluido.
+        - link "Abrir Demo" [ref=e109] [cursor=pointer]:
+          - /url: /demo
+          - button "Abrir Demo" [ref=e110]:
+            - text: Abrir Demo
+            - img [ref=e111]
+      - generic [ref=e115]:
+        - generic [ref=e116]:
+          - generic [ref=e118]: V
+          - generic [ref=e119]: Veridict
+        - generic [ref=e120]:
+          - link "Docs" [ref=e121] [cursor=pointer]:
+            - /url: /docs
+          - link "Demo" [ref=e122] [cursor=pointer]:
+            - /url: /demo
+          - generic [ref=e123]: Hackathon 2025

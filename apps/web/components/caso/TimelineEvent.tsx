@@ -154,8 +154,8 @@ export default function TimelineEvent({
               `}
             >
               {event.vehiculo === "ambos"
-                ? "Vehículos A + B"
-                : `Vehículo ${event.vehiculo}`}
+                ? "Vehicles A + B"
+                : `Vehicle ${event.vehiculo}`}
             </span>
           )}
         </div>

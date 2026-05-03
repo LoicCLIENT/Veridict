@@ -265,7 +265,7 @@ export function MapaReconstruccion({
             <div className="absolute inset-0 flex items-center justify-center bg-[#0d110d]">
               <div className="flex flex-col items-center gap-3">
                 <div className="w-8 h-8 border-2 border-[#C2E94B] border-t-transparent rounded-full animate-spin" />
-                <span className="text-sm text-zinc-500">Cargando mapa...</span>
+                <span className="text-sm text-zinc-500">Loading map...</span>
               </div>
             </div>
           )}
@@ -274,7 +274,7 @@ export function MapaReconstruccion({
               onClick={() => setViewMode("reconstruction")}
               className="px-3 py-1.5 rounded text-xs font-medium bg-[#0a0a0a]/80 text-zinc-400 hover:text-white border border-white/[0.06] transition-colors"
             >
-              Vista Técnica
+              Technical View
             </button>
           </div>
         </div>
@@ -309,7 +309,7 @@ export function MapaReconstruccion({
               onClick={() => setViewMode("satellite")}
               className="px-3 py-1.5 rounded text-xs font-medium bg-[#0a0a0a]/80 text-zinc-400 hover:text-white border border-white/[0.06] transition-colors"
             >
-              Vista Satélite
+              Satellite View
             </button>
           </div>
         )}
@@ -325,11 +325,10 @@ function EmptyScenePlaceholder({
   return (
     <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0d110d] text-zinc-500 text-sm font-mono p-6 text-center gap-3">
       <span className="text-3xl">🛣️</span>
-      <span>Reconstrucción no disponible.</span>
+      <span>Reconstruction not available.</span>
       <span className="text-xs text-zinc-600 max-w-md">
-        El SimulationAgent (Claude Opus 4.7) puede recrear la escena a partir
-        del informe pericial, los datos del caso y los specialists ya
-        ejecutados.
+        The SimulationAgent (Claude Opus 4.7) can recreate the scene from
+        the expert report, case data, and already executed specialists.
       </span>
       {onGenerar && (
         <button
@@ -337,7 +336,7 @@ function EmptyScenePlaceholder({
           disabled={generando}
           className="mt-2 px-4 py-2 rounded-md bg-[#C2E94B]/20 hover:bg-[#C2E94B]/30 disabled:opacity-50 text-[#C2E94B] border border-[#C2E94B]/40 text-xs font-mono uppercase tracking-wide transition"
         >
-          {generando ? "Reconstruyendo escena…" : "✨ Generar simulación"}
+          {generando ? "Reconstructing scene…" : "✨ Generate simulation"}
         </button>
       )}
     </div>

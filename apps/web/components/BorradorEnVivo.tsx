@@ -14,7 +14,7 @@ interface SeccionDef {
   emoji: string;
   titulo: string;
   descripcion: string;
-  /** Tools que rellenan esta sección. */
+  /** Tools that fill this section. */
   tools: string[];
 }
 
@@ -22,83 +22,83 @@ const SECCIONES: SeccionDef[] = [
   {
     key: "lugar",
     emoji: "🛣️",
-    titulo: "Lugar y carretera",
-    descripcion: "Geometría, señales y trazado del punto del siniestro",
+    titulo: "Location and road",
+    descripcion: "Geometry, signs and layout of the accident point",
     tools: ["consultar_escena"],
   },
   {
     key: "meteo",
     emoji: "🌤️",
-    titulo: "Condiciones meteorológicas",
-    descripcion: "Tiempo, visibilidad y estado de la calzada el día del siniestro",
+    titulo: "Weather conditions",
+    descripcion: "Weather, visibility and road condition on the day of the accident",
     tools: ["consultar_meteo"],
   },
   {
     key: "vehiculos",
     emoji: "🚗",
-    titulo: "Vehículos implicados",
-    descripcion: "Fichas técnicas, masa, sistemas de seguridad",
+    titulo: "Vehicles involved",
+    descripcion: "Technical data sheets, mass, safety systems",
     tools: ["consultar_ficha_tecnica"],
   },
   {
     key: "fotos",
     emoji: "📷",
-    titulo: "Material gráfico",
-    descripcion: "Fotos del expediente analizadas por visión",
+    titulo: "Graphic material",
+    descripcion: "Photos from the file analyzed by vision",
     tools: ["buscar_foto_perito", "listar_biblioteca_fotos", "analizar_imagen_dano"],
   },
   {
     key: "fisica",
     emoji: "📐",
-    titulo: "Cálculos físicos",
-    descripcion: "Velocidades, distancias de detención, energía cinética (PhysicsAgent)",
+    titulo: "Physical calculations",
+    descripcion: "Speeds, stopping distances, kinetic energy (PhysicsAgent)",
     tools: ["calcular_fisica", "simular_fisica"],
   },
   {
     key: "simulacion",
     emoji: "🎬",
-    titulo: "Recreación visual",
-    descripcion: "Croquis SVG del impacto a partir de los cálculos del PhysicsAgent",
+    titulo: "Visual reconstruction",
+    descripcion: "SVG sketch of the impact based on PhysicsAgent calculations",
     tools: ["generar_frame_simulacion", "obtener_frame_simulacion"],
   },
   {
     key: "bio",
     emoji: "🩺",
-    titulo: "Análisis biomecánico",
-    descripcion: "Compatibilidad de las lesiones con la dinámica calculada",
+    titulo: "Biomechanical analysis",
+    descripcion: "Compatibility of injuries with calculated dynamics",
     tools: ["analizar_biomecanica"],
   },
   {
     key: "legal",
     emoji: "📜",
-    titulo: "Marco normativo",
-    descripcion: "Artículos del BOE, jurisprudencia y bibliografía aplicables",
+    titulo: "Legal framework",
+    descripcion: "BOE articles, jurisprudence and applicable bibliography",
     tools: ["consultar_legal"],
   },
   {
     key: "atestado",
     emoji: "🔍",
-    titulo: "Auditoría del atestado",
-    descripcion: "Confronta declaraciones del atestado con la evidencia física",
+    titulo: "Police report audit",
+    descripcion: "Compares police report statements with physical evidence",
     tools: ["analizar_conformidad_atestado", "verificar_atestado"],
   },
 ];
 
 const TOOL_FRIENDLY: Record<string, string> = {
-  consultar_escena: "Equipo de Escena",
-  consultar_meteo: "Equipo Meteorología",
-  consultar_ficha_tecnica: "Equipo Vehículos",
-  buscar_foto_perito: "Archivo Fotográfico",
-  listar_biblioteca_fotos: "Archivo Fotográfico",
-  analizar_imagen_dano: "Equipo de Visión Computacional",
-  calcular_fisica: "Equipo de Cálculos Físicos (PhysicsAgent)",
-  simular_fisica: "Equipo de Cálculos Físicos (PhysicsAgent)",
-  generar_frame_simulacion: "Equipo de Recreación Visual (SimulacionAgent)",
-  obtener_frame_simulacion: "Equipo de Recreación Visual (SimulacionAgent)",
-  analizar_biomecanica: "Equipo Médico-Biomecánico",
-  consultar_legal: "Equipo Jurídico",
-  analizar_conformidad_atestado: "Auditoría del Atestado",
-  verificar_atestado: "Auditoría del Atestado",
+  consultar_escena: "Scene Team",
+  consultar_meteo: "Meteorology Team",
+  consultar_ficha_tecnica: "Vehicles Team",
+  buscar_foto_perito: "Photo Archive",
+  listar_biblioteca_fotos: "Photo Archive",
+  analizar_imagen_dano: "Computer Vision Team",
+  calcular_fisica: "Physics Calculations Team (PhysicsAgent)",
+  simular_fisica: "Physics Calculations Team (PhysicsAgent)",
+  generar_frame_simulacion: "Visual Reconstruction Team (SimulationAgent)",
+  obtener_frame_simulacion: "Visual Reconstruction Team (SimulationAgent)",
+  analizar_biomecanica: "Medical-Biomechanical Team",
+  consultar_legal: "Legal Team",
+  analizar_conformidad_atestado: "Police Report Audit",
+  verificar_atestado: "Police Report Audit",
 };
 
 type Estado = "pendiente" | "trabajando" | "listo";
@@ -113,7 +113,7 @@ function detectarEstadoSeccion(
   seccion: SeccionDef,
   data: RazonamientoOrquestador
 ): SeccionEstado {
-  // ¿Algún tool de esta sección ha respondido ya?
+  // Has any tool in this section already responded?
   let resumen: string | null = null;
   let listo = false;
   for (const turno of data.turnos) {
@@ -128,7 +128,7 @@ function detectarEstadoSeccion(
   }
   if (listo) return { estado: "listo", resumen };
 
-  // ¿El orquestador está consultando ahora mismo un tool de esta sección?
+  // Is the orchestrator currently consulting a tool in this section?
   if (data.estado === "dispatch" && data.mensaje) {
     for (const tool of seccion.tools) {
       if (data.mensaje.includes(tool)) {
@@ -136,7 +136,7 @@ function detectarEstadoSeccion(
       }
     }
   }
-  // ¿El tool ha sido pedido pero aún no ha respondido?
+  // Has the tool been requested but not responded yet?
   for (const turno of data.turnos) {
     for (const tc of turno.tools_pedidas) {
       if (seccion.tools.includes(tc.tool) && !tc.respuesta_completa && !tc.respuesta_resumen) {
@@ -180,11 +180,11 @@ export function BorradorEnVivo({ data }: Props) {
             </div>
             <div>
               <CardTitle className="text-lg text-white flex items-center gap-2">
-                El informe se está montando
+                The report is being assembled
                 <Sparkles className="w-4 h-4 text-emerald-300" />
               </CardTitle>
               <CardDescription>
-                Mira en directo cómo se rellenan los apartados a medida que cada equipo entrega su parte.
+                Watch live how sections are filled as each team delivers their part.
               </CardDescription>
             </div>
           </div>
@@ -192,7 +192,7 @@ export function BorradorEnVivo({ data }: Props) {
             <div className="font-bold text-emerald-300 text-lg">
               {totalListas}/{SECCIONES.length}
             </div>
-            <div>apartados listos</div>
+            <div>sections ready</div>
           </div>
         </div>
       </CardHeader>
@@ -201,7 +201,7 @@ export function BorradorEnVivo({ data }: Props) {
           <SeccionRow key={def.key} def={def} estado={estado} />
         ))}
 
-        {/* Conclusiones — solo aparecen cuando llega el informe_borrador */}
+        {/* Conclusions — only appear when informe_borrador arrives */}
         <ConclusionesBorrador respuestas={respuestas} listas={conclusionesListas} />
       </CardContent>
     </Card>
@@ -227,19 +227,19 @@ function SeccionRow({ def, estado }: { def: SeccionDef; estado: SeccionEstado })
           {estado.estado === "listo" && (
             <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-emerald-300">
               <CheckCircle2 className="w-3 h-3" />
-              listo
+              ready
             </span>
           )}
           {estado.estado === "trabajando" && (
             <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-blue-300">
               <Loader2 className="w-3 h-3 animate-spin" />
-              en directo
+              live
             </span>
           )}
           {estado.estado === "pendiente" && (
             <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-zinc-500">
               <Hourglass className="w-3 h-3" />
-              pendiente
+              pending
             </span>
           )}
         </div>
@@ -248,8 +248,8 @@ function SeccionRow({ def, estado }: { def: SeccionDef; estado: SeccionEstado })
             ? estado.resumen
             : estado.estado === "trabajando"
             ? equipo
-              ? `Veridict-Perito está pidiendo ahora mismo el informe a ${equipo}…`
-              : "Solicitud en curso a un equipo especialista…"
+              ? `Veridict-Expert is currently requesting the report from ${equipo}…`
+              : "Request in progress to a specialist team…"
             : def.descripcion}
         </div>
       </div>
@@ -290,24 +290,24 @@ function ConclusionesBorrador({
         )}
         <span className="text-xl leading-none">✍️</span>
         <span className="font-semibold text-white text-sm">
-          Conclusiones del perito (C1, C2, C3…)
+          Expert conclusions (C1, C2, C3…)
         </span>
         {listas ? (
           <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-purple-300">
             <Sparkles className="w-3 h-3" />
-            {respuestas.length} {respuestas.length === 1 ? "conclusión" : "conclusiones"}
+            {respuestas.length} {respuestas.length === 1 ? "conclusion" : "conclusions"}
           </span>
         ) : (
           <span className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wide text-zinc-500">
             <Hourglass className="w-3 h-3" />
-            esperando datos de los equipos
+            waiting for team data
           </span>
         )}
       </button>
       {!listas ? (
         <div className="text-xs text-zinc-400 mt-2">
-          Cuando todos los equipos hayan entregado, Veridict-Perito empezará a escribir las
-          respuestas a las preguntas del encargo aquí mismo.
+          When all teams have delivered, Veridict-Expert will start writing the
+          answers to the assignment questions right here.
         </div>
       ) : abierto ? (
         <div className="space-y-3 mt-3">
@@ -335,7 +335,7 @@ function ConclusionEstatica({ respuesta }: { respuesta: RespuestaPreguntaBorrado
       </p>
       {typeof respuesta.confianza === "number" && (
         <div className="text-[11px] text-zinc-500 mt-1">
-          Confianza: {Math.round(respuesta.confianza * 100)}%
+          Confidence: {Math.round(respuesta.confianza * 100)}%
         </div>
       )}
     </div>

@@ -19,27 +19,27 @@ function Field({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 const tipoHuellaLabel: Record<string, string> = {
-  frenada: "Frenada",
-  derrape: "Derrape (yaw)",
-  arrastre: "Arrastre",
-  aceleracion: "Aceleración",
+  frenada: "Braking",
+  derrape: "Yaw",
+  arrastre: "Drag",
+  aceleracion: "Acceleration",
 };
 
 const tipoDanoLabel: Record<string, string> = {
-  vehiculo_aparcado: "Vehículo aparcado",
-  valla: "Valla",
-  arbol: "Árbol",
-  bordillo: "Bordillo",
-  señal: "Señal",
-  muro: "Muro",
-  otro: "Otro",
+  vehiculo_aparcado: "Parked vehicle",
+  valla: "Fence",
+  arbol: "Tree",
+  bordillo: "Curb",
+  señal: "Sign",
+  muro: "Wall",
+  otro: "Other",
 };
 
 export function EscenaPanel({ escena }: Props) {
   if (!escena) {
     return (
       <div className="p-6 text-center text-veridict-gray text-sm">
-        Sin datos de escena registrados por el perito.
+        No scene data recorded by the expert.
       </div>
     );
   }
@@ -50,11 +50,11 @@ export function EscenaPanel({ escena }: Props) {
       <section className="p-4 rounded-lg bg-veridict-green-800 border border-veridict-green-600">
         <div className="flex items-center gap-2 mb-3 text-veridict-lime">
           <Eye className="w-4 h-4" />
-          <h4 className="text-sm font-medium">Datos del perito</h4>
+          <h4 className="text-sm font-medium">Expert data</h4>
         </div>
         <div className="grid md:grid-cols-3 gap-3">
           <Field
-            label="Punto impacto"
+            label="Impact point"
             value={
               escena.punto_impacto_lat != null && escena.punto_impacto_lon != null
                 ? `${escena.punto_impacto_lat.toFixed(5)}, ${escena.punto_impacto_lon.toFixed(5)}`
@@ -62,11 +62,11 @@ export function EscenaPanel({ escena }: Props) {
             }
           />
           <Field
-            label="Ángulo de impacto"
+            label="Impact angle"
             value={escena.angulo_impacto_deg != null ? `${escena.angulo_impacto_deg}°` : null}
           />
           <Field
-            label="Ancho de carril"
+            label="Lane width"
             value={escena.ancho_carril_m != null ? `${escena.ancho_carril_m} m` : null}
           />
           <Field
@@ -75,8 +75,8 @@ export function EscenaPanel({ escena }: Props) {
               escena.distancia_visibilidad_m != null ? `${escena.distancia_visibilidad_m} m` : null
             }
           />
-          <Field label="Estado asfalto" value={escena.estado_asfalto} />
-          <Field label="Señalización" value={escena.señalizacion_visible} />
+          <Field label="Asphalt condition" value={escena.estado_asfalto} />
+          <Field label="Signage" value={escena.señalizacion_visible} />
           <Field
             label="Heading final A"
             value={escena.orientacion_final_a_deg != null ? `${escena.orientacion_final_a_deg}°` : null}
@@ -98,11 +98,11 @@ export function EscenaPanel({ escena }: Props) {
         <div className="flex items-center gap-2 mb-3 text-veridict-lime">
           <Footprints className="w-4 h-4" />
           <h4 className="text-sm font-medium">
-            Huellas en la calzada ({escena.huellas?.length ?? 0})
+            Road marks ({escena.huellas?.length ?? 0})
           </h4>
         </div>
         {!escena.huellas || escena.huellas.length === 0 ? (
-          <p className="text-sm text-veridict-gray">Sin huellas registradas.</p>
+          <p className="text-sm text-veridict-gray">No marks recorded.</p>
         ) : (
           <div className="grid md:grid-cols-2 gap-3">
             {escena.huellas.map((h: HuellaCalzada, idx: number) => (
@@ -130,10 +130,10 @@ export function EscenaPanel({ escena }: Props) {
                   </span>
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <Field label="Longitud" value={`${h.longitud_m} m`} />
-                  <Field label="Ancho" value={h.ancho_cm != null ? `${h.ancho_cm} cm` : null} />
-                  <Field label="Inicio (x,y)" value={`(${h.inicio[0]}, ${h.inicio[1]})`} />
-                  <Field label="Fin (x,y)" value={`(${h.fin[0]}, ${h.fin[1]})`} />
+                  <Field label="Length" value={`${h.longitud_m} m`} />
+                  <Field label="Width" value={h.ancho_cm != null ? `${h.ancho_cm} cm` : null} />
+                  <Field label="Start (x,y)" value={`(${h.inicio[0]}, ${h.inicio[1]})`} />
+                  <Field label="End (x,y)" value={`(${h.fin[0]}, ${h.fin[1]})`} />
                 </div>
                 {h.observaciones && (
                   <p className="text-xs text-veridict-gray mt-2 italic">{h.observaciones}</p>
@@ -149,11 +149,11 @@ export function EscenaPanel({ escena }: Props) {
         <div className="flex items-center gap-2 mb-3 text-veridict-lime">
           <AlertOctagon className="w-4 h-4" />
           <h4 className="text-sm font-medium">
-            Daños secundarios ({escena.daños_secundarios?.length ?? 0})
+            Secondary damage ({escena.daños_secundarios?.length ?? 0})
           </h4>
         </div>
         {!escena.daños_secundarios || escena.daños_secundarios.length === 0 ? (
-          <p className="text-sm text-veridict-gray">Sin daños secundarios registrados.</p>
+          <p className="text-sm text-veridict-gray">No secondary damage recorded.</p>
         ) : (
           <div className="grid md:grid-cols-2 gap-3">
             {escena.daños_secundarios.map((d: DanoSecundario, idx: number) => (
@@ -168,13 +168,13 @@ export function EscenaPanel({ escena }: Props) {
                   <span className="text-xs text-veridict-gray">{d.lado_calzada}</span>
                   {d.vehiculo_causante && (
                     <span className="text-xs px-2 py-0.5 rounded bg-veridict-green-700 text-veridict-white">
-                      Causante: {d.vehiculo_causante}
+                      Caused by: {d.vehiculo_causante}
                     </span>
                   )}
                 </div>
                 <p className="text-sm text-veridict-white">{d.descripcion}</p>
                 <p className="text-xs text-veridict-gray font-mono mt-1">
-                  Posición: ({d.posicion[0]}, {d.posicion[1]})
+                  Position: ({d.posicion[0]}, {d.posicion[1]})
                 </p>
               </div>
             ))}

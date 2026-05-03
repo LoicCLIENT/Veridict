@@ -103,3 +103,4 @@ async def eliminar_caso(caso_id: str) -> dict:
 
     del casos_db[caso_id]
     return {"status": "deleted", "id": caso_id}
+# reload trigger

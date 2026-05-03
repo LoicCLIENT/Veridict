@@ -16,11 +16,11 @@ export function DocumentosPanel({ documentos, fotos }: Props) {
         <div className="flex items-center gap-2 mb-3 text-veridict-lime">
           <FileText className="w-4 h-4" />
           <h4 className="text-sm font-medium">
-            Documentos ({documentos?.length ?? 0})
+            Documents ({documentos?.length ?? 0})
           </h4>
         </div>
         {!documentos || documentos.length === 0 ? (
-          <p className="text-sm text-veridict-gray">Sin documentos.</p>
+          <p className="text-sm text-veridict-gray">No documents.</p>
         ) : (
           <div className="space-y-3">
             {documentos.map((d) => (
@@ -44,14 +44,14 @@ export function DocumentosPanel({ documentos, fotos }: Props) {
                       rel="noreferrer"
                       className="ml-auto inline-flex items-center gap-1 text-xs text-veridict-lime hover:underline"
                     >
-                      Abrir <ExternalLink className="w-3 h-3" />
+                      Open <ExternalLink className="w-3 h-3" />
                     </a>
                   )}
                 </div>
                 {d.texto_extraido && (
                   <details className="text-sm text-veridict-white">
                     <summary className="cursor-pointer text-xs text-veridict-gray mb-1">
-                      Texto extraído ({d.texto_extraido.length} car.)
+                      Extracted text ({d.texto_extraido.length} chars.)
                     </summary>
                     <pre className="whitespace-pre-wrap text-xs bg-veridict-green-700 p-2 rounded mt-2 max-h-64 overflow-auto">
                       {d.texto_extraido}
@@ -68,10 +68,10 @@ export function DocumentosPanel({ documentos, fotos }: Props) {
       <section>
         <div className="flex items-center gap-2 mb-3 text-veridict-lime">
           <ImageIcon className="w-4 h-4" />
-          <h4 className="text-sm font-medium">Fotos ({fotos?.length ?? 0})</h4>
+          <h4 className="text-sm font-medium">Photos ({fotos?.length ?? 0})</h4>
         </div>
         {!fotos || fotos.length === 0 ? (
-          <p className="text-sm text-veridict-gray">Sin fotos.</p>
+          <p className="text-sm text-veridict-gray">No photos.</p>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             {fotos.map((f) => (

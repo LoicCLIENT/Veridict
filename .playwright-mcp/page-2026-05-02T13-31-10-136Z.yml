@@ -1,0 +1,72 @@
+- main [ref=e2]:
+  - generic [ref=e3]:
+    - navigation [ref=e6]:
+      - link "Veridict" [ref=e7] [cursor=pointer]:
+        - /url: /
+        - img "Veridict" [ref=e8]
+      - link "View Demo" [ref=e9] [cursor=pointer]:
+        - /url: /demo
+        - button "View Demo" [ref=e10]
+    - generic [ref=e12]:
+      - paragraph [ref=e13]: AI-Powered Forensic Reconstruction
+      - heading "Expert reports in minutes" [level=1] [ref=e14]:
+        - text: Expert reports
+        - text: in minutes
+      - paragraph [ref=e15]: AI that analyzes accidents and generates court-ready forensic reports.
+      - generic [ref=e16]:
+        - link "View Demo" [ref=e17] [cursor=pointer]:
+          - /url: /demo
+          - button "View Demo" [ref=e18]:
+            - img [ref=e19]
+            - text: View Demo
+        - link "Documentation" [ref=e21] [cursor=pointer]:
+          - /url: /docs
+          - button "Documentation" [ref=e22]
+  - generic [ref=e27]:
+    - heading "From 3 days of work to 2 minutes." [level=2] [ref=e29]:
+      - text: From 3 days of work
+      - text: to 2 minutes.
+    - generic [ref=e30]:
+      - generic [ref=e31]:
+        - generic [ref=e32]: "01"
+        - heading "Automated analysis" [level=3] [ref=e33]
+        - paragraph [ref=e34]: Processes police reports, photos, and EDR data.
+      - generic [ref=e35]:
+        - generic [ref=e36]: "02"
+        - heading "5 AI agents" [level=3] [ref=e37]
+        - paragraph [ref=e38]: Multi-agent pipeline with verification.
+      - generic [ref=e39]:
+        - generic [ref=e40]: "03"
+        - heading "UNE-EN 16775 format" [level=3] [ref=e41]
+        - paragraph [ref=e42]: Reports with European standard compliance.
+      - generic [ref=e43]:
+        - generic [ref=e44]: "04"
+        - heading "Sigstore signature" [level=3] [ref=e45]
+        - paragraph [ref=e46]: Verifiable cryptographic traceability.
+  - generic [ref=e49]:
+    - generic [ref=e50]:
+      - generic [ref=e51]: "2"
+      - generic [ref=e52]: minutes
+    - generic [ref=e53]:
+      - generic [ref=e54]: "5"
+      - generic [ref=e55]: AI agents
+    - generic [ref=e56]:
+      - generic [ref=e57]: UNE
+      - generic [ref=e58]: certified
+  - generic [ref=e61]:
+    - heading "Try it now" [level=2] [ref=e62]
+    - paragraph [ref=e63]: No registration required. Sample case included.
+    - link "Open Demo" [ref=e64] [cursor=pointer]:
+      - /url: /demo
+      - button "Open Demo" [ref=e65]:
+        - text: Open Demo
+        - img [ref=e66]
+  - generic [ref=e69]:
+    - link "Veridict" [ref=e70] [cursor=pointer]:
+      - /url: /
+      - img "Veridict" [ref=e71]
+    - generic [ref=e72]:
+      - link "Docs" [ref=e73] [cursor=pointer]:
+        - /url: /docs
+      - link "Demo" [ref=e74] [cursor=pointer]:
+        - /url: /demo

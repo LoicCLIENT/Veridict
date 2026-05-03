@@ -14,31 +14,31 @@ interface AgentCardProps {
 
 const statusMessages: Record<AgentType, Record<AgentStatus, string>> = {
   extractor: {
-    idle: "Esperando documentos...",
-    thinking: "Extrayendo datos del atestado...",
-    done: "Extracción completada",
+    idle: "Waiting for documents...",
+    thinking: "Extracting data from report...",
+    done: "Extraction completed",
   },
   reconstructor: {
-    idle: "Esperando datos extraídos...",
-    thinking: "Calculando física del impacto...",
-    done: "Reconstrucción completada",
+    idle: "Waiting for extracted data...",
+    thinking: "Calculating impact physics...",
+    done: "Reconstruction completed",
   },
   legal: {
-    idle: "Esperando análisis físico...",
-    thinking: "Analizando normativa aplicable...",
-    done: "Análisis legal completado",
+    idle: "Waiting for physical analysis...",
+    thinking: "Analyzing applicable regulations...",
+    done: "Legal analysis completed",
   },
   adversarial: {
-    idle: "Esperando dictamen preliminar...",
-    thinking: "Verificando consistencia...",
-    done: "Verificación completada",
+    idle: "Waiting for preliminary report...",
+    thinking: "Verifying consistency...",
+    done: "Verification completed",
   },
 };
 
 const agentTitles: Record<AgentType, string> = {
-  extractor: "Agente Extractor",
-  reconstructor: "Agente Reconstructor",
-  legal: "Agente Legal",
+  extractor: "Extractor Agent",
+  reconstructor: "Reconstructor Agent",
+  legal: "Legal Agent",
   adversarial: "Devil's Advocate",
 };
 

@@ -29,7 +29,7 @@ export function InformePericialView({ casoId }: Props) {
       }
       setError(null);
     } catch {
-      setError("aún no generado");
+      setError("not yet generated");
     } finally {
       setLoading(false);
     }
@@ -57,7 +57,7 @@ export function InformePericialView({ casoId }: Props) {
       <Card className="bg-zinc-900/50 border-zinc-800">
         <CardContent className="flex items-center gap-3 p-6 text-zinc-400">
           <Loader2 className="w-4 h-4 animate-spin" />
-          Cargando informe…
+          Loading report…
         </CardContent>
       </Card>
     );
@@ -68,14 +68,14 @@ export function InformePericialView({ casoId }: Props) {
       <Card className="bg-zinc-900/50 border-zinc-800">
         <CardContent className="p-6 flex items-center justify-between">
           <div>
-            <p className="text-white font-medium">El informe aún no se ha generado.</p>
+            <p className="text-white font-medium">The report has not been generated yet.</p>
             <p className="text-xs text-zinc-500 mt-1">
-              Pulsa el botón para que Veridict genere el borrador del peritaje.
+              Click the button to have Veridict generate the expert report draft.
             </p>
           </div>
           <Button onClick={regenerar} disabled={regenerating} className="bg-blue-600 hover:bg-blue-500">
             {regenerating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2" />}
-            Generar informe
+            Generate Report
           </Button>
         </CardContent>
       </Card>
@@ -95,7 +95,7 @@ export function InformePericialView({ casoId }: Props) {
               <div>
                 <CardTitle className="text-xl text-white flex items-center gap-2">
                   <FileSignature className="w-5 h-5 text-blue-400" />
-                  Borrador de informe pericial
+                  Expert Report Draft
                 </CardTitle>
                 <CardDescription className="mt-1">{informe.resumen_caso}</CardDescription>
               </div>
@@ -119,8 +119,8 @@ export function InformePericialView({ casoId }: Props) {
         {informe.respuestas.length > 0 && (
           <Card className="bg-zinc-900/50 border-zinc-800">
             <CardHeader>
-              <CardTitle className="text-lg text-white">Respuesta a las preguntas del encargo</CardTitle>
-              <CardDescription>El informe responde literalmente a cada cuestión planteada por el solicitante.</CardDescription>
+              <CardTitle className="text-lg text-white">Answers to Assignment Questions</CardTitle>
+              <CardDescription>The report literally answers each question posed by the client.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2 mb-4 border-b border-zinc-800 pb-3">
@@ -149,9 +149,9 @@ export function InformePericialView({ casoId }: Props) {
             <CardHeader>
               <CardTitle className="text-lg text-white flex items-center gap-2">
                 <Car className="w-4 h-4 text-green-400" />
-                Fichas técnicas
+                Technical Specs
               </CardTitle>
-              <CardDescription>Datos del fabricante cargados automáticamente por Veridict.</CardDescription>
+              <CardDescription>Manufacturer data automatically loaded by Veridict.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {informe.fichas_tecnicas.map((f) => (
@@ -167,7 +167,7 @@ export function InformePericialView({ casoId }: Props) {
             <CardHeader>
               <CardTitle className="text-lg text-white flex items-center gap-2">
                 <Calculator className="w-4 h-4 text-amber-400" />
-                Cálculos físicos
+                Physics Calculations
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -193,9 +193,9 @@ export function InformePericialView({ casoId }: Props) {
             <CardHeader>
               <CardTitle className="text-lg text-white flex items-center gap-2">
                 <BookOpen className="w-4 h-4 text-purple-400" />
-                Normativa y bibliografía
+                Regulations and Bibliography
               </CardTitle>
-              <CardDescription>Marco aplicable según el tipo de encargo.</CardDescription>
+              <CardDescription>Applicable framework based on the assignment type.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
               {informe.normativa_aplicable.map((n, i) => (
@@ -203,7 +203,7 @@ export function InformePericialView({ casoId }: Props) {
               ))}
               {informe.bibliografia.length > 0 && (
                 <div className="pt-3 mt-3 border-t border-zinc-800">
-                  <p className="text-xs uppercase tracking-wide text-zinc-500 mb-2">Bibliografía técnica</p>
+                  <p className="text-xs uppercase tracking-wide text-zinc-500 mb-2">Technical Bibliography</p>
                   <ul className="text-sm text-zinc-400 space-y-1 list-disc pl-5">
                     {informe.bibliografia.map((b, i) => (
                       <li key={i}>{b}</li>
@@ -235,7 +235,7 @@ function ConfianzaBadge({ value }: { value: number }) {
   const color = pct >= 75 ? "bg-green-500/20 text-green-300 border-green-500/40"
     : pct >= 50 ? "bg-amber-500/20 text-amber-300 border-amber-500/40"
     : "bg-red-500/20 text-red-300 border-red-500/40";
-  return <Badge className={`${color} border`}>Confianza {pct}%</Badge>;
+  return <Badge className={`${color} border`}>Confidence {pct}%</Badge>;
 }
 
 function RespuestaCard({ respuesta }: { respuesta: RespuestaPregunta }) {
@@ -248,7 +248,7 @@ function RespuestaCard({ respuesta }: { respuesta: RespuestaPregunta }) {
       <p className="text-sm text-zinc-100 leading-relaxed whitespace-pre-line">{respuesta.respuesta}</p>
       {respuesta.citas.length > 0 && (
         <div className="mt-4 pt-3 border-t border-zinc-800">
-          <p className="text-xs uppercase tracking-wide text-zinc-500 mb-2">Citas</p>
+          <p className="text-xs uppercase tracking-wide text-zinc-500 mb-2">Citations</p>
           <div className="flex flex-wrap gap-1.5">
             {respuesta.citas.map((c, i) => (
               <span
@@ -263,7 +263,7 @@ function RespuestaCard({ respuesta }: { respuesta: RespuestaPregunta }) {
           </div>
         </div>
       )}
-      <div className="mt-3 text-xs text-zinc-500">Confianza de esta respuesta: {Math.round(respuesta.confianza * 100)}%</div>
+      <div className="mt-3 text-xs text-zinc-500">Confidence for this answer: {Math.round(respuesta.confianza * 100)}%</div>
     </div>
   );
 }
@@ -279,18 +279,18 @@ function FichaTecnicaCard({ ficha }: { ficha: FichaTecnicaVehiculo }) {
         {ficha.fuente && <span className="text-xs text-zinc-500">{ficha.fuente}</span>}
       </div>
       <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-zinc-400">
-        {ficha.masa_kg != null && <span>Masa: <span className="text-zinc-200">{ficha.masa_kg} kg</span></span>}
-        {ficha.longitud_m != null && <span>Longitud: <span className="text-zinc-200">{ficha.longitud_m} m</span></span>}
+        {ficha.masa_kg != null && <span>Mass: <span className="text-zinc-200">{ficha.masa_kg} kg</span></span>}
+        {ficha.longitud_m != null && <span>Length: <span className="text-zinc-200">{ficha.longitud_m} m</span></span>}
         {ficha.altura_parachoques_m && (
-          <span>Altura parachoques: <span className="text-zinc-200">{ficha.altura_parachoques_m[0]}–{ficha.altura_parachoques_m[1]} m</span></span>
+          <span>Bumper height: <span className="text-zinc-200">{ficha.altura_parachoques_m[0]}–{ficha.altura_parachoques_m[1]} m</span></span>
         )}
         {ficha.altura_largueros_m != null && (
-          <span>Largueros: <span className="text-zinc-200">{ficha.altura_largueros_m} m</span></span>
+          <span>Rails: <span className="text-zinc-200">{ficha.altura_largueros_m} m</span></span>
         )}
       </div>
       {ficha.sistemas_seguridad.length > 0 && (
         <div className="mt-2">
-          <p className="text-xs text-zinc-500 mb-1">Sistemas de seguridad</p>
+          <p className="text-xs text-zinc-500 mb-1">Safety systems</p>
           <ul className="text-xs text-zinc-300 space-y-0.5 list-disc pl-4">
             {ficha.sistemas_seguridad.map((s, i) => <li key={i}>{s}</li>)}
           </ul>

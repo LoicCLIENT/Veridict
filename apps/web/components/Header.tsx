@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import { Plus } from "lucide-react";
 
 const navItems = [
-  { href: "/casos", label: "Historial" },
+  { href: "/casos", label: "History" },
   { href: "/casos/demo-1", label: "Demo" },
-  { href: "/docs", label: "Documentación" },
+  { href: "/docs", label: "Docs" },
 ];
 
 export function Header() {
@@ -57,7 +57,7 @@ export function Header() {
           }`}
         >
           <Plus className="w-4 h-4" />
-          <span className="hidden sm:inline">Nuevo caso</span>
+          <span className="hidden sm:inline">New Case</span>
         </Link>
       </div>
 

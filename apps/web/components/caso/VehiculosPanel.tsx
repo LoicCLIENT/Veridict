@@ -22,7 +22,7 @@ export function VehiculosPanel({ vehiculos }: Props) {
   if (!vehiculos || vehiculos.length === 0) {
     return (
       <div className="p-6 text-center text-veridict-gray text-sm">
-        Sin vehículos registrados.
+        No vehicles registered.
       </div>
     );
   }
@@ -47,32 +47,32 @@ export function VehiculosPanel({ vehiculos }: Props) {
                 <Car className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="font-semibold text-veridict-white">Vehículo {v.id}</h4>
+                <h4 className="font-semibold text-veridict-white">Vehicle {v.id}</h4>
                 <p className="text-xs text-veridict-gray">
-                  {v.modelo || "Modelo desconocido"} · {v.matricula || "—"}
+                  {v.modelo || "Unknown model"} · {v.matricula || "—"}
                 </p>
               </div>
             </div>
 
             {/* Identificación / masa */}
             <div className="grid md:grid-cols-4 gap-3">
-              <Field label="Masa" value={v.masa_kg ? `${v.masa_kg} kg` : null} />
+              <Field label="Mass" value={v.masa_kg ? `${v.masa_kg} kg` : null} />
               <Field
-                label="Coef. rigidez A"
+                label="Stiffness coef. A"
                 value={v.coef_rigidez_a ? `${v.coef_rigidez_a} kPa` : null}
               />
               <Field
-                label="Coef. rigidez B"
+                label="Stiffness coef. B"
                 value={v.coef_rigidez_b ? `${v.coef_rigidez_b} kPa/m` : null}
               />
-              <Field label="Ancho daño" value={v.ancho_zona_danada_cm ? `${v.ancho_zona_danada_cm} cm` : null} />
+              <Field label="Damage width" value={v.ancho_zona_danada_cm ? `${v.ancho_zona_danada_cm} cm` : null} />
             </div>
 
             {/* Mediciones C1-C6 */}
             <div>
               <div className="flex items-center gap-2 text-xs text-veridict-gray mb-1">
                 <Gauge className="w-3 h-3" />
-                Mediciones C1–C6 (CRASH3, cm)
+                Measurements C1–C6 (CRASH3, cm)
               </div>
               <div className="grid grid-cols-6 gap-1">
                 {(v.mediciones_C ?? []).map((c, i) => (
@@ -89,11 +89,11 @@ export function VehiculosPanel({ vehiculos }: Props) {
             {/* Cinemática */}
             <div className="grid md:grid-cols-4 gap-3">
               <Field
-                label="Long. frenada"
+                label="Skid length"
                 value={v.longitud_frenada_m != null ? `${v.longitud_frenada_m} m` : null}
               />
               <Field
-                label="Huella post-impacto"
+                label="Post-impact marks"
                 value={
                   v.longitud_huellas_post_impacto_m != null
                     ? `${v.longitud_huellas_post_impacto_m} m`
@@ -101,11 +101,11 @@ export function VehiculosPanel({ vehiculos }: Props) {
                 }
               />
               <Field
-                label="EDR velocidad"
+                label="EDR speed"
                 value={v.edr_velocidad_kmh != null ? `${v.edr_velocidad_kmh} km/h` : null}
               />
               <Field
-                label="Ángulo aprox."
+                label="Approach angle"
                 value={v.angulo_aproximacion_deg != null ? `${v.angulo_aproximacion_deg}°` : null}
               />
             </div>
@@ -113,7 +113,7 @@ export function VehiculosPanel({ vehiculos }: Props) {
             {/* Posición y airbag */}
             <div className="grid md:grid-cols-3 gap-3">
               <Field
-                label="Posición final (x,y) m"
+                label="Final position (x,y) m"
                 value={
                   v.posicion_final
                     ? `(${v.posicion_final[0].toFixed(2)}, ${v.posicion_final[1].toFixed(2)})`
@@ -126,8 +126,8 @@ export function VehiculosPanel({ vehiculos }: Props) {
                   v.airbag_desplegado == null
                     ? null
                     : v.airbag_desplegado
-                    ? "Desplegado"
-                    : "No desplegado"
+                    ? "Deployed"
+                    : "Not deployed"
                 }
               />
               <Field
@@ -148,7 +148,7 @@ export function VehiculosPanel({ vehiculos }: Props) {
               <div className="p-3 rounded bg-veridict-green-700/40 border border-veridict-green-600">
                 <div className="text-xs text-veridict-gray flex items-center gap-1 mb-1">
                   <ShieldCheck className="w-3 h-3" />
-                  Declaración del conductor
+                  Driver statement
                 </div>
                 <p className="text-sm text-veridict-white italic">&quot;{v.version_conductor}&quot;</p>
               </div>

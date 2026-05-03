@@ -75,12 +75,71 @@ export interface Evento {
   posicion?: Ubicacion | null;
 }
 
+// ── Fuente de dato de entrada ─────────────────────────────────────────────────
+export type TipoFuenteDato =
+  | 'atestado'
+  | 'edr'
+  | 'tacografo'
+  | 'declaracion_conductor'
+  | 'declaracion_testigo'
+  | 'medicion_escena'
+  | 'foto_analisis'
+  | 'ficha_tecnica_dgt'
+  | 'ficha_tecnica_fabricante'
+  | 'base_datos_crash3'
+  | 'catalogo_europeo'
+  | 'calculo_derivado'
+  | 'estimacion_pericial'
+  | 'otro';
+
+export interface DatoEntrada {
+  nombre: string;           // "Masa vehículo A", "Longitud huella frenada"
+  valor: number | string;   // 1350 o "Sin ABS"
+  unidad?: string;          // "kg", "m"
+  fuente: TipoFuenteDato;
+  fuente_detalle?: string;  // "Atestado nº 2024/1234, pág. 3"
+  confianza?: number;       // 0-1
+  foto_id?: string;         // ID de foto asociada si aplica
+}
+
+export interface PasoMetodologico {
+  orden: number;
+  descripcion: string;
+  formula_parcial?: string;
+  resultado_parcial?: string;
+  notas?: string;
+}
+
+export interface ReferenciaCalculo {
+  tipo: 'normativa' | 'paper' | 'libro' | 'manual' | 'base_datos';
+  titulo: string;
+  autores?: string;
+  anio?: number;
+  url?: string;
+  boe?: string;           // Para normativas españolas
+  extracto?: string;      // Fragmento relevante
+  pagina?: string;
+}
+
 export interface CalculoFisico {
   nombre: string;
   formula: string;
   valor: number;
   unidad: string;
   justificacion: string;
+  // ── Campos extendidos (opcionales para compatibilidad) ──
+  categoria?: 'velocidad' | 'energia' | 'fuerza' | 'tiempo' | 'distancia' | 'masa' | 'otro';
+  confianza?: number;           // 0-1, nivel de certeza del cálculo
+  metodo?: string;              // "CRASH3", "Conservación del momento", "Cinemática inversa"
+  datos_entrada?: DatoEntrada[];
+  pasos?: PasoMetodologico[];
+  referencias?: ReferenciaCalculo[];
+  validaciones?: string[];      // Comprobaciones realizadas
+  limitaciones?: string[];      // Posibles fuentes de error
+  sensibilidad?: string;        // Ej: "±5% por incertidumbre en coef. fricción"
+  alternativas_consideradas?: string;
+  foto_ids?: string[];          // IDs de fotos usadas en el análisis
+  timestamp?: string;           // Cuándo se realizó el cálculo
 }
 
 export interface Infraccion {

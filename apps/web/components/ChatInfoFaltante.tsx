@@ -47,7 +47,7 @@ export function ChatInfoFaltante({
     setProcesoErr(null);
     // Paso 1 visible inmediatamente
     setProceso([
-      { id: "annot", label: "Anotando tu respuesta en el chat", status: "running" },
+      { id: "annot", label: "Recording your response in the chat", status: "running" },
     ]);
     try {
       const { informe: tras_start, afecta_a } = await api.iniciarRespuestaIncremental(
@@ -71,7 +71,7 @@ export function ChatInfoFaltante({
         ...(prev ?? []),
         ...afecta_a.map((cid) => ({
           id: cid,
-          label: `Reescribiendo ${cid} con Sonnet 4.6 (manteniendo el resto intacto)`,
+          label: `Rewriting ${cid} with Sonnet 4.6 (keeping the rest intact)`,
           status: "pending" as StepStatus,
         })),
       ]);
@@ -101,7 +101,7 @@ export function ChatInfoFaltante({
     } catch (e) {
       console.error(e);
       setProcesoErr(
-        "No se pudo completar la edición incremental. Inténtalo de nuevo."
+        "Could not complete incremental edit. Please try again."
       );
     } finally {
       setSending(false);
@@ -113,10 +113,10 @@ export function ChatInfoFaltante({
       <CardHeader>
         <CardTitle className="text-lg text-white flex items-center gap-2">
           <MessageCircle className="w-4 h-4 text-blue-400" />
-          Información que falta
+          Missing Information
         </CardTitle>
         <CardDescription>
-          Veridict te pregunta por datos que mejorarían el informe. Responde y lo regenera al instante.
+          Veridict is asking about data that would improve the report. Respond and it regenerates instantly.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -141,10 +141,10 @@ export function ChatInfoFaltante({
                   {m.rol === "claude" ? (
                     <Sparkles className="w-3 h-3 text-blue-400" />
                   ) : (
-                    <span className="text-xs font-medium text-zinc-400">Tú</span>
+                    <span className="text-xs font-medium text-zinc-400">You</span>
                   )}
                   <span className="text-xs text-zinc-500">
-                    {m.rol === "claude" ? "Veridict" : "Perito"}
+                    {m.rol === "claude" ? "Veridict" : "Expert"}
                   </span>
                 </div>
                 <p className="text-xs leading-relaxed">{m.contenido}</p>
@@ -158,7 +158,7 @@ export function ChatInfoFaltante({
           <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 flex items-start gap-2">
             <CheckCircle2 className="w-4 h-4 text-green-400 flex-shrink-0 mt-0.5" />
             <div className="text-xs text-green-200/80">
-              Veridict no necesita más información para este informe. Si quieres añadir algo, regenera el informe tras editar el caso.
+              Veridict doesn't need more information for this report. If you want to add something, regenerate the report after editing the case.
             </div>
           </div>
         )}
@@ -166,7 +166,7 @@ export function ChatInfoFaltante({
         {pendientes.length > 0 && (
           <div className="space-y-2">
             <p className="text-xs uppercase tracking-wide text-zinc-500">
-              Preguntas pendientes ({pendientes.length})
+              Pending questions ({pendientes.length})
             </p>
             {pendientes.map((q) => (
               <PreguntaItem
@@ -200,7 +200,7 @@ export function ChatInfoFaltante({
         {respondidas.length > 0 && (
           <div className="space-y-1.5 pt-2 border-t border-zinc-800">
             <p className="text-xs uppercase tracking-wide text-zinc-500">
-              Ya respondidas ({respondidas.length})
+              Already answered ({respondidas.length})
             </p>
             {respondidas.map((q) => (
               <div key={q.id} className="text-xs text-zinc-500 flex items-start gap-2">
@@ -236,13 +236,13 @@ function FotoUploadInline({
       const result = await api.uploadFoto(casoId, file);
       setInfo(
         result?.descripcion
-          ? `✓ Indexada: ${result.descripcion}`
-          : "✓ Foto subida e indexada."
+          ? `✓ Indexed: ${result.descripcion}`
+          : "✓ Photo uploaded and indexed."
       );
       onUploaded();
     } catch (err) {
       console.error(err);
-      setInfo("Error al subir la foto.");
+      setInfo("Error uploading photo.");
     } finally {
       setUploading(false);
     }
@@ -258,7 +258,7 @@ function FotoUploadInline({
       title={contexto}
     >
       {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Camera className="w-3.5 h-3.5" />}
-      <span>{uploading ? "Indexando…" : info ?? "Subir la foto que pide Veridict"}</span>
+      <span>{uploading ? "Indexing…" : info ?? "Upload the photo Veridict is asking for"}</span>
       <input
         type="file"
         accept="image/*"
@@ -300,10 +300,10 @@ function PreguntaItem({
 
   const labelByPriority =
     pregunta.prioridad === "bloqueante"
-      ? "Bloqueante"
+      ? "Blocking"
       : pregunta.prioridad === "recomendable"
-      ? "Recomendable"
-      : "Mejora";
+      ? "Recommended"
+      : "Nice-to-have";
 
   return (
     <div className={`p-3 rounded-lg border ${colorByPriority}`}>
@@ -315,7 +315,7 @@ function PreguntaItem({
               {labelByPriority}
             </span>
             {pregunta.afecta_a.length > 0 && (
-              <span className="text-[10px] text-zinc-500">→ afecta {pregunta.afecta_a.join(", ")}</span>
+              <span className="text-[10px] text-zinc-500">→ affects {pregunta.afecta_a.join(", ")}</span>
             )}
           </div>
           <p className="text-sm text-white leading-snug">{pregunta.pregunta}</p>
@@ -337,7 +337,7 @@ function PreguntaItem({
           onClick={onActivate}
           className="text-xs text-blue-400 hover:text-blue-300"
         >
-          Responder por texto →
+          Reply with text →
         </button>
       ) : (
         <div className="space-y-2">
@@ -345,7 +345,7 @@ function PreguntaItem({
             rows={3}
             value={draft}
             onChange={(e) => onChange(e.target.value)}
-            placeholder="Escribe la información que tienes…"
+            placeholder="Write the information you have…"
             className="w-full px-2 py-1.5 text-sm rounded border border-zinc-700 bg-zinc-900 text-white placeholder:text-zinc-500 focus:border-blue-500 outline-none resize-none"
             autoFocus
           />
@@ -360,12 +360,12 @@ function PreguntaItem({
               {sending ? (
                 <>
                   <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                  Procesando…
+                  Processing…
                 </>
               ) : (
                 <>
                   <Send className="w-3 h-3 mr-1" />
-                  Enviar
+                  Send
                 </>
               )}
             </Button>
@@ -408,12 +408,12 @@ function ProcesoEdicion({
         )}
         <span className="text-xs font-semibold text-zinc-100">
           {error
-            ? "Error en la edición incremental"
+            ? "Error in incremental editing"
             : allDone
-            ? "Edición incremental completada"
+            ? "Incremental editing completed"
             : running
             ? running.label
-            : "Iniciando edición incremental"}
+            : "Starting incremental editing"}
         </span>
         <span className="ml-auto text-[10px] uppercase tracking-wide text-zinc-500">
           {done}/{total}
@@ -457,8 +457,8 @@ function ProcesoEdicion({
       )}
       {allDone && (
         <p className="text-[11px] text-emerald-200/80">
-          Solo se han reescrito las conclusiones afectadas — el resto del informe
-          (resumen, fichas, cálculos, normativa…) queda intacto.
+          Only affected conclusions have been rewritten — the rest of the report
+          (summary, specs, calculations, regulations…) remains intact.
         </p>
       )}
     </div>
