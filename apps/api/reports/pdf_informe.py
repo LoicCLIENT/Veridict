@@ -282,6 +282,19 @@ def generar_pdf(informe: InformePericial, caso: Caso, output_path: Path) -> Path
         ("BOTTOMPADDING", (0, 0), (-1, -1), 7),
     ]))
     story.append(t)
+
+    # Fórmula deontológica pericial (estándar)
+    story.append(Spacer(1, 1.0 * cm))
+    story.append(Paragraph(
+        "<i>El/los perito(s) firmante(s) manifiestan, conjunta y solidariamente, "
+        "bajo promesa de decir verdad, que han actuado y actuarán con la mayor "
+        "objetividad posible, tomando en consideración tanto lo que pueda favorecer "
+        "como lo que pueda causar perjuicio a cualquiera de las partes, conociendo "
+        "las sanciones penales en las que podrían incurrir si incumplieran el deber "
+        "del perito. La calificación última de los hechos corresponde al órgano "
+        "judicial; este informe se limita a aportar elementos técnicos objetivos.</i>",
+        s["CoverMeta"]))
+
     story.append(PageBreak())
 
     # Cambia de plantilla a la de cuerpo

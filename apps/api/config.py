@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     # Models
     model_sonnet: str = "claude-sonnet-4-6"
     model_opus: str = "claude-opus-4-7"
+    model_haiku: str = "claude-haiku-4-5-20251001"
 
     # External APIs
     aemet_api_key: str = ""

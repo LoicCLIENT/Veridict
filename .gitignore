@@ -46,3 +46,7 @@ htmlcov/
 *.pem
 .vercel
 .turbo
+
+# Local JSON DB
+apps/api/db/casos.json
+apps/api/db/casos_*.json.tmp

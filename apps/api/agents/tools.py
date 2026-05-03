@@ -91,9 +91,15 @@ TOOLS: list[dict[str, Any]] = [
     {
         "name": "consultar_legal",
         "description": (
-            "LegalAgent — Normativa aplicable al encargo, con enlace BOE/EUR-Lex "
-            "y bibliografía. Filtra por tipo de encargo y opcionalmente por "
-            "palabras clave (p.ej. ['airbag','antiempotramiento'])."
+            "LegalAgent — Selecciona del corpus normativo español los artículos "
+            "aplicables al caso, ordenados por relevancia, razonado por LLM. "
+            "Pasa `descripcion_caso` (1-2 frases sobre los hechos) y "
+            "`preguntas_encargo` (las cuestiones C_i del informe) para que el "
+            "agente seleccione con criterio. `palabras_clave` es solo "
+            "orientación complementaria. Devuelve cada artículo con BOE, "
+            "extracto, motivo_aplicabilidad y relevancia (primaria/secundaria/"
+            "complementaria). Detecta también advertencias temporales (ej. "
+            "norma no vigente a la fecha del siniestro)."
         ),
         "input_schema": {
             "type": "object",
@@ -105,7 +111,12 @@ TOOLS: list[dict[str, Any]] = [
                              "cuantia_danos", "otro"],
                 },
                 "fecha_siniestro_iso": {"type": "string"},
-                "palabras_clave": {"type": "array", "items": {"type": "string"}},
+                "descripcion_caso": {"type": "string",
+                    "description": "1-2 frases sobre los hechos para contextualizar."},
+                "preguntas_encargo": {"type": "array", "items": {"type": "string"},
+                    "description": "Las cuestiones C_i del informe."},
+                "palabras_clave": {"type": "array", "items": {"type": "string"},
+                    "description": "Pistas orientativas opcionales."},
             },
             "required": ["tipo_encargo"],
         },
@@ -248,17 +259,30 @@ TOOLS: list[dict[str, Any]] = [
         },
     },
     {
+        "name": "listar_biblioteca_fotos",
+        "description": (
+            "BibliotecaFotosAgent — Devuelve el INVENTARIO COMPLETO de fotos "
+            "del caso ya indexadas por visión Claude, agrupadas por tipo "
+            "(vehiculo_frontal, vehiculo_detalle_dano, escena_huellas, "
+            "escena_senalizacion, croquis, lesion, etc.). Cada foto trae id, "
+            "descripción, tags y vehículo asociado. LLAMA ESTA TOOL AL "
+            "PRINCIPIO de la investigación, ANTES de `buscar_foto_perito`, "
+            "para saber qué material gráfico tiene el caso. Después, con esa "
+            "información, decide qué fotos pedirle al BibliotecaFotosAgent "
+            "para sostener cada conclusión."
+        ),
+        "input_schema": {"type": "object", "properties": {}},
+    },
+    {
         "name": "buscar_foto_perito",
         "description": (
-            "BibliotecaFotosAgent — Busca entre las fotografías que el perito "
-            "ha subido al caso una que cumpla un CRITERIO descriptivo (p.ej. "
-            "'frontal del SEAT con parabrisas dañado', 'huella de frenada en "
-            "calzada', 'señal de limitación de velocidad'). Devuelve la mejor "
-            "coincidencia con su URL + alternativas. Si NO existe ninguna que "
-            "cumpla el criterio, devuelve `requiere_foto=true` y la pregunta "
-            "concreta que el perito debe responder subiendo la imagen. "
-            "USA esta tool ANTES de `analizar_imagen_dano` cuando necesites "
-            "una imagen específica."
+            "BibliotecaFotosAgent — Busca entre las fotografías del caso una "
+            "que cumpla un CRITERIO descriptivo (p.ej. 'frontal del SEAT con "
+            "parabrisas dañado', 'huella de frenada en calzada', 'bicicleta "
+            "Orbea con daños'). Devuelve la mejor coincidencia con su URL + "
+            "alternativas. Si NO existe ninguna, devuelve `requiere_foto=true` "
+            "y la pregunta para el perito. Recomendable haber consultado "
+            "primero `listar_biblioteca_fotos` para conocer el inventario."
         ),
         "input_schema": {
             "type": "object",
@@ -320,6 +344,9 @@ async def dispatch(name: str, args: dict[str, Any], *, contexto: dict | None = N
         return await conformidad_spec.analizar_conformidad(
             hechos=hechos, lesiones=lesiones, **args,
         )
+    if name == "listar_biblioteca_fotos":
+        fotos = (contexto or {}).get("fotos") or []
+        return await biblioteca_spec.listar_biblioteca(fotos)
     if name == "buscar_foto_perito":
         fotos = (contexto or {}).get("fotos") or []
         return await biblioteca_spec.buscar_foto(args.get("criterio", ""), fotos)

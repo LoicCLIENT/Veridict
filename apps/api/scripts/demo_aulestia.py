@@ -66,8 +66,21 @@ CASO_INPUT = {
             "modelo": "Ibiza",
             "anio": 2018,
             "color": "blanco",
-            "conductor": "JME (vecino de la zona)",
-        }
+            "conductor": "JME (vecino de la zona, conoce el trazado y la limitación)",
+        },
+        {
+            "id": "B",
+            "matricula": "n/a (ciclo, sin matricula)",
+            "marca": "Orbea",
+            "modelo": "bicicleta deportiva (n.º bastidor 3773)",
+            "anio": None,
+            "color": "rojo",
+            "conductor": (
+                "IBU (ciclista) — sillin a 79 cm del suelo, manillar de 55 cm de anchura. "
+                "Circulaba en sentido descendente por la mitad derecha de la calzada. "
+                "Marcas de derrape en cubierta trasera de la bicicleta."
+            ),
+        },
     ],
     "hechos_atestado": {
         "numero_atestado": "Ertzaintza Aulestia 21052020",
@@ -120,7 +133,7 @@ CASO_INPUT = {
 
 # ── Extracción de imágenes del PDF original ──────────────────────────────────
 
-def extraer_fotos_del_pdf(pdf: Path, out_dir: Path, max_n: int = 6) -> list[Path]:
+def extraer_fotos_del_pdf(pdf: Path, out_dir: Path, max_n: int = 40) -> list[Path]:
     """Devuelve hasta max_n imágenes del PDF, las más relevantes (más grandes)."""
     out_dir.mkdir(parents=True, exist_ok=True)
     doc = fitz.open(str(pdf))
@@ -180,6 +193,13 @@ async def descargar_pdf(client: httpx.AsyncClient, caso_id: str, dest: Path) -> 
     return dest
 
 
+async def descargar_trace(client: httpx.AsyncClient, caso_id: str, dest: Path) -> Path:
+    r = await client.get(f"{API}/api/casos/{caso_id}/trace.md", timeout=60)
+    r.raise_for_status()
+    dest.write_bytes(r.content)
+    return dest
+
+
 # ── Main ─────────────────────────────────────────────────────────────────────
 
 async def main():
@@ -187,7 +207,7 @@ async def main():
         print(f"!! PDF original no encontrado: {PDF_ORIGINAL}")
         sys.exit(1)
     print(f">> Extrayendo fotos del PDF original ({PDF_ORIGINAL.name})…")
-    fotos = extraer_fotos_del_pdf(PDF_ORIGINAL, EXTRACT_DIR, max_n=6)
+    fotos = extraer_fotos_del_pdf(PDF_ORIGINAL, EXTRACT_DIR, max_n=40)
     print(f"   {len(fotos)} fotos extraídas en {EXTRACT_DIR}:")
     for f in fotos:
         size_kb = f.stat().st_size // 1024
@@ -246,8 +266,16 @@ async def main():
         await descargar_pdf(client, caso_id, out_pdf)
         print(f"   PDF guardado en: {out_pdf}")
         print(f"   Tamaño: {out_pdf.stat().st_size // 1024} KB")
-        print("\n>> Listo. Abre el PDF para revisarlo:")
-        print(f"   {out_pdf}")
+
+        print("\n>> Descargando trace deep-log (.md)…")
+        out_trace = ROOT / "uploads" / "_pdfs" / f"trace_aulestia_{caso_id[:8]}.md"
+        await descargar_trace(client, caso_id, out_trace)
+        print(f"   Trace guardado en: {out_trace}")
+        print(f"   Tamaño: {out_trace.stat().st_size // 1024} KB")
+
+        print("\n>> Listo. Abre los dos archivos:")
+        print(f"   PDF:   {out_pdf}")
+        print(f"   Trace: {out_trace}")
 
 
 if __name__ == "__main__":

@@ -19,6 +19,7 @@ from typing import Any
 from anthropic import APIError
 
 from agents.tools import TOOLS, dispatch
+from agents import trace_store
 from config import get_claude, get_settings
 from models import (
     AnalisisBiomecanico,
@@ -81,8 +82,11 @@ REGLAS:
 
 3.bis CRÍTICA AL ATESTADO. Si `analizar_conformidad_atestado` devuelve valoración "incompleto" o "deficiente", AÑADE una respuesta extra al final con `pregunta_id="C-AT"` y `pregunta="Crítica metodológica al atestado"` que enumere las incongruencias y omisiones más relevantes. Cita las que detectó el agente con `{"tipo":"hecho","referencia":"ConformidadAtestadoAgent — R<n>"}`.
 
-4. FOTOS DEL PERITO — ES OBLIGATORIO QUE EXPLORES LA BIBLIOTECA EXHAUSTIVAMENTE.
-   En el payload tienes `fotos_perito_catalogo`: lista de fotos YA INDEXADAS (id, tipo, descripción, tags). NO recibes las URLs directamente; debes pedirlas.
+4. FOTOS DEL PERITO — EXPLORACIÓN EXHAUSTIVA OBLIGATORIA.
+
+   PRIMER PASO OBLIGATORIO: llama `listar_biblioteca_fotos()` ANTES que cualquier otra tool de fotos. Devuelve el inventario COMPLETO ya clasificado por visión Claude (por tipo: vehiculo_frontal, vehiculo_detalle_dano, escena_huellas, escena_senalizacion, croquis, lesion…). Con eso conoces qué tienes a tu disposición.
+
+   En el payload solo recibes `n_fotos_disponibles` y `tipos_fotos_disponibles`. La biblioteca completa (con descripciones e ids) la obtienes UNA VEZ con `listar_biblioteca_fotos`. NO recibes URLs hasta llamar `buscar_foto_perito` o `listar_biblioteca_fotos`.
 
    REGLA DURA: por CADA respuesta C_i que vayas a emitir, identifica al menos UN aspecto visual relevante y llama `buscar_foto_perito(criterio="...")` para localizarlo. Para cada foto encontrada, llama `analizar_imagen_dano(image_url, contexto="qué quieres ver")` para tener una descripción técnica que puedas citar.
 
@@ -101,6 +105,10 @@ REGLAS:
 
 5. CITAS OBLIGATORIAS. Toda afirmación cuantitativa o normativa va con cita {tipo, referencia, extracto}.
    Tipos válidos: 'calculo' | 'normativa' | 'ficha_tecnica' | 'hecho' | 'imagen' | 'meteo' | 'escena'.
+
+5.bis CALIFICACIÓN TÉCNICA DE LA COLISIÓN. El campo `tipo_colision` del input es genérico (atropello, alcance, lateral…). En la respuesta C1 (o donde proceda) DEBES dar la calificación TÉCNICA precisa de la colisión observada: por ejemplo "fronto-lateral excéntrica turismo-bicicleta", "alcance trasero centrado", "frontal centrado entre dos turismos", "lateral con contacto puerta-paragolpes", etc. La calificación se deduce de la zona de impacto del vehículo y la dirección relativa de las víctimas. NO repitas el enum genérico del input.
+
+5.ter LLAMADA AL LegalAgent. Cuando invoques `consultar_legal`, pasa SIEMPRE `descripcion_caso` (1-2 frases con los hechos núcleo) y `preguntas_encargo` (las cuestiones C_i del informe). Esto permite al agente seleccionar normativa con criterio en lugar de filtrar por palabras.
 
 6. EFICIENCIA: como máximo 8-10 tool calls. No repitas la misma tool con los mismos inputs.
 
@@ -132,14 +140,14 @@ def _payload_inicial(caso: Caso) -> dict:
             caso.hechos_atestado.model_dump(mode="json") if caso.hechos_atestado else None
         ),
         "lesiones": [l.model_dump(mode="json") for l in caso.lesiones],
-        "fotos_perito_catalogo": [
-            {
-                "id": f.id, "tipo": f.tipo.value if f.tipo else "otro",
-                "vehiculo_id": f.vehiculo_id, "descripcion": f.descripcion,
-                "tags": f.tags, "calidad": f.calidad,
-            }
-            for f in caso.fotos if f.url
-        ],
+        # Catálogo COMPACTO. La descripción larga + tags + calidad de cada foto
+        # se consultan SOLO bajo demanda con `listar_biblioteca_fotos` o
+        # `buscar_foto_perito`. Esto evita inflar el payload del modelo cuando
+        # hay decenas de fotos indexadas.
+        "n_fotos_disponibles": sum(1 for f in caso.fotos if f.url),
+        "tipos_fotos_disponibles": sorted({
+            (f.tipo.value if f.tipo else "otro") for f in caso.fotos if f.url
+        }),
         "chat_previo": [
             {"rol": m.rol, "contenido": m.contenido}
             for m in (caso.informe.chat if caso.informe else [])
@@ -161,7 +169,12 @@ def _extract_json(text: str) -> dict:
         raise
 
 
-async def coordinar(caso: Caso) -> dict:  # noqa: C901 - tamaño aceptable para el orquestador
+async def coordinar(caso: Caso, *, caso_id: str | None = None) -> dict:  # noqa: C901 - tamaño aceptable para el orquestador
+    """Orquesta los specialists con tool_use.
+
+    Si se pasa `caso_id`, va escribiendo el progreso al `trace_store` para
+    que el frontend pueda hacer polling y verlo en directo.
+    """
     contexto_dispatch = {
         "fotos": list(caso.fotos),
         "hechos_atestado": caso.hechos_atestado.model_dump(mode="json") if caso.hechos_atestado else {},
@@ -174,6 +187,10 @@ async def coordinar(caso: Caso) -> dict:  # noqa: C901 - tamaño aceptable para 
     """
     settings = get_settings()
     if not settings.anthropic_api_key:
+        if caso_id:
+            trace_store.finalize(caso_id, estado="error",
+                                 mensaje="ANTHROPIC_API_KEY no configurada",
+                                 error="ANTHROPIC_API_KEY no configurada")
         return {
             "informe_data": None,
             "tool_calls": [],
@@ -194,10 +211,20 @@ async def coordinar(caso: Caso) -> dict:  # noqa: C901 - tamaño aceptable para 
     tool_calls_log: list[ToolCallLog] = []
     imagenes_recopiladas: list[ImagenAnalizada] = []
     datos_por_tool: dict[str, dict] = {}   # último 'datos' devuelto por cada tool name
+    datos_completos: list[dict] = []       # secuencia ordenada de {tool, inputs, datos}
+    razonamiento_perito: list[dict] = []   # turnos del Perito {turno, texto, tools_pedidas}
     final_json: dict | None = None
     error: str | None = None
 
+    print(f"[perito] === START caso={caso.id} turnos_max={MAX_TURNS} ===", flush=True)
+    if caso_id:
+        trace_store.update(caso_id, estado="contexto_listo",
+                           mensaje="Veridict-Perito recibe el caso y arranca el primer turno…")
     for turn in range(MAX_TURNS):
+        print(f"[perito] turno {turn + 1}/{MAX_TURNS} → llamando a Opus…", flush=True)
+        if caso_id:
+            trace_store.update(caso_id, estado="llamando_perito",
+                               mensaje=f"Turno {turn + 1}: el perito decide siguiente paso…")
         try:
             resp = await client.messages.create(
                 model=MODEL_PERITO_DEFAULT,
@@ -209,6 +236,7 @@ async def coordinar(caso: Caso) -> dict:  # noqa: C901 - tamaño aceptable para 
         except APIError as e:
             # Si Opus no está disponible, fallback a Sonnet
             if turn == 0 and "model" in str(e).lower():
+                print(f"[perito] Opus falló ({e}); fallback a Sonnet", flush=True)
                 try:
                     resp = await client.messages.create(
                         model=settings.model_sonnet,
@@ -219,24 +247,56 @@ async def coordinar(caso: Caso) -> dict:  # noqa: C901 - tamaño aceptable para 
                     )
                 except APIError as e2:
                     error = str(e2)
+                    print(f"[perito] ERROR fallback Sonnet: {e2}", flush=True)
                     break
             else:
                 error = str(e)
+                print(f"[perito] ERROR turno {turn + 1}: {e}", flush=True)
                 break
 
         # Persistir el turno del asistente para mantener contexto
         messages.append({"role": "assistant", "content": resp.content})
 
+        # Capturar el razonamiento del Perito (text blocks entre tool_use)
+        text_blocks = "".join(
+            b.text for b in resp.content if getattr(b, "type", None) == "text"
+        ).strip()
+        tools_pedidas = [
+            {"name": b.name, "input": b.input or {}}
+            for b in resp.content if getattr(b, "type", None) == "tool_use"
+        ]
+        if text_blocks or tools_pedidas:
+            turno_dict = {
+                "turno": turn + 1,
+                "razonamiento": text_blocks,
+                "tools_pedidas": tools_pedidas,
+                "stop_reason": resp.stop_reason,
+            }
+            razonamiento_perito.append(turno_dict)
+            if caso_id:
+                trace_store.append_turno(caso_id, turno_dict)
+
+        if text_blocks:
+            print(f"[perito] turno {turn + 1} pensamiento: {text_blocks[:200]}", flush=True)
         if resp.stop_reason == "tool_use":
+            print(f"[perito] turno {turn + 1} → {len(tools_pedidas)} tool_use: "
+                  f"{[t['name'] for t in tools_pedidas]}", flush=True)
             tool_results = []
             for block in resp.content:
                 if getattr(block, "type", None) == "tool_use":
                     name = block.name
                     args = block.input or {}
+                    print(f"[perito]   → dispatch {name}({json.dumps(args, ensure_ascii=False)[:120]})", flush=True)
+                    if caso_id:
+                        trace_store.update(caso_id, estado="dispatch",
+                                           mensaje=f"Turno {turn + 1}: consultando {name}…")
                     try:
                         out = await dispatch(name, args, contexto=contexto_dispatch)
                     except Exception as e:
                         out = {"datos": {"error": f"excepción en tool: {e}"}, "_log": None}
+                        print(f"[perito]   ✗ {name} excepción: {e}", flush=True)
+                    else:
+                        print(f"[perito]   ✓ {name} ok", flush=True)
 
                     log: ToolCallLog | None = out.get("_log")
                     if log:
@@ -244,6 +304,15 @@ async def coordinar(caso: Caso) -> dict:  # noqa: C901 - tamaño aceptable para 
                         imagenes_recopiladas.extend(log.imagenes)
                     if "datos" in out and isinstance(out["datos"], dict):
                         datos_por_tool[name] = out["datos"]
+                        dato_record = {
+                            "turno": turn + 1,
+                            "tool": name,
+                            "inputs": args,
+                            "datos": out["datos"],
+                        }
+                        datos_completos.append(dato_record)
+                        if caso_id:
+                            trace_store.append_tool_call(caso_id, dato_record)
 
                     tool_results.append({
                         "type": "tool_result",
@@ -255,26 +324,42 @@ async def coordinar(caso: Caso) -> dict:  # noqa: C901 - tamaño aceptable para 
             continue
 
         # stop_reason == "end_turn" → buscamos JSON final en los bloques de texto
+        print(f"[perito] turno {turn + 1} stop_reason=end_turn → cerrando informe", flush=True)
+        if caso_id:
+            trace_store.update(caso_id, estado="cerrando",
+                               mensaje="Redactando informe pericial final…")
         text_out = "".join(b.text for b in resp.content if getattr(b, "type", None) == "text")
         try:
             final_json = _extract_json(text_out)
         except Exception:
             # Forzar un turno final pidiendo SOLO el JSON
+            print("[perito] JSON no parseable, forzando cierre…", flush=True)
+            if caso_id:
+                trace_store.update(caso_id, estado="cerrando",
+                                   mensaje="Forzando cierre del JSON pericial…")
             final_json = await _forzar_json_final(client, settings, messages)
             if final_json is None:
                 error = "El Perito no devolvió un JSON parseable tras forzar el cierre."
         break
     else:
         # Tope de turnos alcanzado — pedimos JSON con los datos recopilados
+        print(f"[perito] tope {MAX_TURNS} turnos alcanzado, forzando cierre…", flush=True)
+        if caso_id:
+            trace_store.update(caso_id, estado="cerrando",
+                               mensaje=f"Tope de {MAX_TURNS} turnos alcanzado, forzando cierre…")
         final_json = await _forzar_json_final(client, settings, messages)
         if final_json is None:
             error = f"Se alcanzó el límite de {MAX_TURNS} turnos sin respuesta final."
 
+    print(f"[perito] === END caso={caso.id} turnos={len(razonamiento_perito)} "
+          f"tool_calls={len(tool_calls_log)} error={error or 'none'} ===", flush=True)
     return {
         "informe_data": final_json,
         "tool_calls": tool_calls_log,
         "imagenes_recopiladas": imagenes_recopiladas,
         "datos_por_tool": datos_por_tool,
+        "datos_completos": datos_completos,
+        "razonamiento_perito": razonamiento_perito,
         "error": error,
     }
 

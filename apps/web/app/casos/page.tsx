@@ -18,7 +18,7 @@ export default function CasosPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await api.getDemoCasos();
+      const data = await api.getCasos();
       setCasos(data);
     } catch (e) {
       console.error("Error loading casos:", e);

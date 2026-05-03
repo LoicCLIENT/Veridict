@@ -160,8 +160,9 @@ async def clasificar_foto(image_url: str, contexto: dict | None = None) -> dict:
 
     client = get_claude()
     try:
+        # Clasificación masiva (40+ fotos) → Haiku 4.5: visión rápida y barata
         resp = await client.messages.create(
-            model=settings.model_sonnet,
+            model=settings.model_haiku,
             max_tokens=600,
             system=SYS_CLASIFICAR,
             messages=[{
@@ -203,6 +204,51 @@ async def aplicar_clasificacion_a_foto(foto: Foto, contexto: dict | None = None)
 # ─────────────────────────────────────────────────────────────────────────────
 # Búsqueda por criterio (invocada por el Perito como tool)
 # ─────────────────────────────────────────────────────────────────────────────
+
+async def listar_biblioteca(fotos: list[Foto]) -> dict:
+    """Devuelve el catálogo COMPLETO de fotos del caso.
+
+    Útil para que el Perito coordinador "abra el armario" y vea qué tipos
+    de imágenes hay disponibles antes de buscar por criterio.
+    """
+    t0 = time.time()
+    fotos_validas = [f for f in fotos if f.url]
+
+    # Agrupar por tipo. Recortamos descripcion a 140 chars y omitimos calidad
+    # para que el payload entre dentro del rate limit aunque haya 40+ fotos.
+    por_tipo: dict[str, list[dict]] = {}
+    for f in fotos_validas:
+        tipo = f.tipo.value if f.tipo else "otro"
+        desc = (f.descripcion or "")
+        if len(desc) > 140:
+            desc = desc[:140] + "…"
+        por_tipo.setdefault(tipo, []).append({
+            "id": f.id,
+            "descripcion": desc,
+            "vehiculo_id": f.vehiculo_id,
+        })
+
+    resumen = (
+        f"{len(fotos_validas)} fotos clasificadas en {len(por_tipo)} tipos: "
+        + ", ".join(f"{t} ({len(v)})" for t, v in por_tipo.items())
+    )
+    log = ToolCallLog(
+        agente="BibliotecaFotosAgent",
+        pregunta="listar_biblioteca: inventario completo",
+        inputs={"n_fotos": len(fotos_validas)},
+        resultado_resumen=resumen,
+        fuentes_consultadas=["Repositorio de fotos del caso"],
+        duracion_ms=int((time.time() - t0) * 1000),
+    )
+    return {
+        "datos": {
+            "total": len(fotos_validas),
+            "por_tipo": por_tipo,
+            "tipos_disponibles": list(por_tipo.keys()),
+        },
+        "_log": log,
+    }
+
 
 async def buscar_foto(criterio: str, fotos: list[Foto]) -> dict:
     """Devuelve {datos, _log} con los campos:
@@ -262,8 +308,9 @@ async def buscar_foto(criterio: str, fotos: list[Foto]) -> dict:
 
     client = get_claude()
     try:
+        # Match semántico simple → Haiku 4.5
         resp = await client.messages.create(
-            model=settings.model_sonnet,
+            model=settings.model_haiku,
             max_tokens=400,
             system=SYS_BUSCAR,
             messages=[{"role": "user", "content": user_msg}],

@@ -107,6 +107,41 @@ async def analizar_escena(
     ]
 
     senales = osm.get("senales", [])
+
+    # Marcar incertidumbres explícitas del DEM/OSM para que el Perito las traduzca
+    # a info_faltante en el panel de preguntas al perito humano.
+    pendiente = elev.get("pendiente_pct")
+    advertencias_dato: list[str] = []
+    if pendiente is not None and pendiente > 30:
+        advertencias_dato.append(
+            f"La pendiente devuelta por el DEM ({pendiente}%) es físicamente inverosímil "
+            f"para una vía rodada abierta a tráfico (>30%). Probablemente el muestreo "
+            f"radial del DEM ha caído en un talud lateral, no en la traza de la vía. "
+            f"Solicita al perito la pendiente medida in situ o aportada por el atestado."
+        )
+    if pendiente is None:
+        advertencias_dato.append(
+            "No se ha podido obtener pendiente fiable del DEM. Solicita al perito "
+            "la pendiente medida in situ."
+        )
+    if not vias:
+        advertencias_dato.append(
+            "OpenStreetMap no tiene esta vía mapeada con suficiente detalle. "
+            "La anchura, número de carriles, velocidad máxima y señalización deben "
+            "ser confirmadas por el perito mediante medición in situ o atestado."
+        )
+    if via_principal and not via_principal.get("maxspeed"):
+        advertencias_dato.append(
+            "OSM no registra `maxspeed` para esta vía. Solicita al perito la "
+            "limitación reglamentaria del tramo (genérica o por señal específica)."
+        )
+    visibilidad_estimada_m = None  # OSM no aporta visibilidad efectiva — se debe medir
+    if vias:
+        advertencias_dato.append(
+            "La distancia de visibilidad efectiva NO se puede derivar de OSM. "
+            "Solicita al perito la medición in situ o el escaneo láser 3D del tramo."
+        )
+
     datos = {
         "direccion_resuelta": direccion_resuelta,
         "lat_resuelta": lat_eff,
@@ -120,27 +155,25 @@ async def analizar_escena(
         "tiene_carril_bici": osm.get("cycleway", False),
         "n_pasos_peatones": osm.get("crossings", 0),
         "elevacion_m": elev.get("elevacion_m"),
-        "pendiente_pct": elev.get("pendiente_pct"),
+        "pendiente_pct": pendiente,
         "pendiente_media_pct": elev.get("pendiente_media_pct"),
+        "pendiente_fiable": pendiente is not None and pendiente <= 30,
+        "visibilidad_estimada_m": visibilidad_estimada_m,
+        "advertencias_dato": advertencias_dato,
         "imagenes_disponibles": len(imagenes),
         "fuentes": fuentes,
     }
 
     falta_info = None
     requiere_foto = False
-    if not vias:
-        falta_info = (
-            f"OpenStreetMap no devuelve vías en {lat_eff:.5f},{lon_eff:.5f} "
-            f"ni ampliando el radio a {intentos[-1][0]} m. La zona puede no estar "
-            f"mapeada con detalle. Pídele al perito una foto del entorno o "
-            f"confirmación de la dirección exacta."
-        )
+    if advertencias_dato:
+        falta_info = " ".join(advertencias_dato)
+    if not imagenes and vias:
+        msg = ("No hay imágenes Mapillary disponibles en la zona. Si el perito puede "
+               "subir fotografía panorámica del lugar, mejorará el análisis.")
+        falta_info = (falta_info + " " + msg) if falta_info else msg
         requiere_foto = True
-    elif not imagenes:
-        falta_info = (
-            "No hay imágenes Mapillary disponibles en la zona. Si el perito puede "
-            "subir fotografía panorámica del lugar, mejorará el análisis."
-        )
+    if not vias:
         requiere_foto = True
 
     nombre_via = via_principal.get("name") if via_principal else None

@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { motion, useInView } from "framer-motion";
+import { api, type Caso } from "@/lib/api";
 import {
   ArrowRight,
   FileSearch,
@@ -60,6 +61,44 @@ export default function Home() {
   const featuresInView = useInView(featuresRef, { once: true, margin: "-100px" });
   const casesInView = useInView(casesRef, { once: true, margin: "-100px" });
   const pipelineInView = useInView(pipelineRef, { once: true, margin: "-100px" });
+
+  const [casos, setCasos] = useState<Caso[]>([]);
+  const [casosLoading, setCasosLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .getCasos()
+      .then((data) => {
+        if (!cancelled) setCasos(data);
+      })
+      .catch(() => {
+        if (!cancelled) setCasos([]);
+      })
+      .finally(() => {
+        if (!cancelled) setCasosLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const tipoLabel = (tipo: Caso["tipo_colision"]) => {
+    const labels: Record<string, string> = {
+      frontal: "Frontal",
+      lateral: "Lateral",
+      alcance: "Alcance",
+      atropello: "Atropello",
+    };
+    return labels[tipo] ?? tipo;
+  };
+
+  const casoTitulo = (c: Caso) =>
+    c.encargo?.procedimiento || `Caso ${c.id.slice(0, 8)}`;
+  const casoDescripcion = (c: Caso) =>
+    c.encargo?.observaciones?.slice(0, 140) ||
+    c.hechos_atestado?.observaciones?.slice(0, 140) ||
+    "Sin descripción disponible";
 
   return (
     <main className="min-h-screen bg-veridict-green-900 overflow-hidden">
@@ -335,29 +374,50 @@ export default function Home() {
               </p>
             </motion.div>
 
-            <motion.div variants={staggerContainer} className="grid md:grid-cols-3 gap-6">
-              <CasePreview
-                id="1"
-                title="Cambio de carril M-30"
-                type="Alcance lateral"
-                description="Lluvia, exceso velocidad, cambio sin senalizar"
-                status="completed"
-              />
-              <CasePreview
-                id="2"
-                title="Atropello C/ Alcala"
-                type="Atropello peaton"
-                description="Version conductor incompatible con fisica"
-                status="completed"
-              />
-              <CasePreview
-                id="3"
-                title="Colision multiple A-6"
-                type="Alcance trasero"
-                description="Sin huellas frenada (ABS), datos EDR disponibles"
-                status="completed"
-              />
-            </motion.div>
+            {casosLoading ? (
+              <motion.div
+                variants={fadeInUp}
+                className="text-center text-veridict-gray py-12"
+              >
+                Cargando casos…
+              </motion.div>
+            ) : casos.length === 0 ? (
+              <motion.div
+                variants={fadeInUp}
+                className="text-center text-veridict-gray py-12"
+              >
+                Aún no hay casos en la base de datos.{" "}
+                <Link
+                  href="/casos/nuevo"
+                  className="text-veridict-lime underline"
+                >
+                  Crea el primero
+                </Link>
+                .
+              </motion.div>
+            ) : (
+              <motion.div
+                variants={staggerContainer}
+                className="grid md:grid-cols-3 gap-6"
+              >
+                {casos.slice(0, 3).map((c) => (
+                  <CasePreview
+                    key={c.id}
+                    id={c.id}
+                    title={casoTitulo(c)}
+                    type={tipoLabel(c.tipo_colision)}
+                    description={casoDescripcion(c)}
+                    status={
+                      c.estado === "completado"
+                        ? "completed"
+                        : c.estado === "procesando"
+                        ? "processing"
+                        : "pending"
+                    }
+                  />
+                ))}
+              </motion.div>
+            )}
 
             <motion.div variants={fadeInUp} className="text-center mt-12">
               <Magnet magnetStrength={2} padding={40}>

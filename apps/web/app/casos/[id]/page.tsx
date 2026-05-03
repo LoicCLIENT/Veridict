@@ -18,6 +18,8 @@ import { EscenaPanel } from "@/components/caso/EscenaPanel";
 import { DocumentosPanel } from "@/components/caso/DocumentosPanel";
 import { InformeDocumento } from "@/components/InformeDocumento";
 import { ChatInfoFaltante } from "@/components/ChatInfoFaltante";
+import { RazonamientoOrquestadorView } from "@/components/RazonamientoOrquestador";
+import { SpecialistTrace } from "@/components/SpecialistTrace";
 import type { InformePericial } from "@veridict/types";
 import { mapEventosToTimeline } from "@/lib/mapTimeline";
 import { useToast } from "@/components/ui/toast";
@@ -35,7 +37,6 @@ import {
   Calculator,
   Scale,
   Download,
-  Play,
   ArrowLeft,
   CheckCircle2,
   AlertTriangle,
@@ -48,6 +49,10 @@ import {
   Sparkles,
   RefreshCw,
   Loader2,
+  Brain,
+  ClipboardList,
+  X,
+  Copy,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -70,6 +75,7 @@ export default function CasoDetailPage() {
   const [informe, setInforme] = useState<InformePericial | null>(null);
   const [informeLoading, setInformeLoading] = useState(true);
   const [informeRegenerating, setInformeRegenerating] = useState(false);
+  const [showFormulario, setShowFormulario] = useState(false);
 
   useEffect(() => {
     async function loadCaso() {
@@ -123,62 +129,6 @@ export default function CasoDetailPage() {
     } finally {
       setInformeRegenerating(false);
     }
-  };
-
-  const handleAnalizar = async () => {
-    if (!caso) return;
-    try {
-      await api.iniciarAnalisis(caso.id);
-    } catch (error) {
-      console.error("Error iniciando análisis:", error);
-      toast.error("Error", "No se pudo iniciar el análisis.");
-      return;
-    }
-    setIsProcessing(true);
-    setOverallProgress(0);
-    setCaso({ ...caso, estado: "procesando" });
-
-    const intervalId = setInterval(async () => {
-      try {
-        const estado = await api.getEstado(caso.id);
-        setAgentStates(mapEstadoToAgents(estado));
-        setOverallProgress(estado.progreso ?? 0);
-
-        const terminal = isTerminal(estado);
-        if (terminal === "completado") {
-          clearInterval(intervalId);
-          try {
-            const resultado = await api.getDictamen(caso.id);
-            setCaso((prev) =>
-              prev ? { ...prev, estado: "completado", resultado } : prev
-            );
-            toast.success(
-              "Análisis completado",
-              "Los 4 agentes han procesado el caso exitosamente."
-            );
-          } catch (e) {
-            console.error("Error fetching dictamen:", e);
-            toast.error("Error", "No se pudo obtener el dictamen final.");
-          }
-          setIsProcessing(false);
-        } else if (terminal === "error") {
-          clearInterval(intervalId);
-          setIsProcessing(false);
-          setCaso((prev) =>
-            prev ? { ...prev, estado: "escalado_humano" } : prev
-          );
-          toast.error(
-            "Análisis fallido",
-            estado.etapa_actual || "El análisis no pudo completarse."
-          );
-        }
-      } catch (e) {
-        console.error("Error polling estado:", e);
-        clearInterval(intervalId);
-        setIsProcessing(false);
-        toast.error("Error de red", "Se perdió la conexión con el backend.");
-      }
-    }, 1500);
   };
 
   const handleDownloadPdf = async () => {
@@ -237,6 +187,7 @@ export default function CasoDetailPage() {
 
   const tabs = [
     { id: "informe", label: "Informe", icon: FileSignature },
+    { id: "razonamiento", label: "Razonamiento", icon: Brain },
     { id: "mapa", label: "Simulación", icon: Map },
     { id: "cronologia", label: "Cronología", icon: Clock },
     { id: "calculos", label: "Cálculos", icon: Calculator },
@@ -301,10 +252,10 @@ export default function CasoDetailPage() {
           </div>
         </div>
         <div className="flex gap-2">
-          {caso.estado === "creado" && (
-            <Button onClick={handleAnalizar}>
-              <Play className="w-4 h-4 mr-2" />
-              Analizar con IA
+          {caso.formulario_origen && (
+            <Button variant="outline" onClick={() => setShowFormulario(true)}>
+              <ClipboardList className="w-4 h-4 mr-2" />
+              Ver formulario
             </Button>
           )}
           {caso.estado === "completado" && (
@@ -399,8 +350,19 @@ export default function CasoDetailPage() {
                       ) : (
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                           {/* Documento del informe */}
-                          <div className="lg:col-span-2">
-                            <div className="flex justify-end mb-3">
+                          <div className="lg:col-span-2 space-y-6">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setPanelActivo("razonamiento")}
+                                  className="border-blue-500/40 text-blue-300 hover:bg-blue-500/10"
+                                >
+                                  <Brain className="w-3.5 h-3.5 mr-2" />
+                                  Ver razonamiento del orquestador
+                                </Button>
+                              </div>
                               <Button
                                 variant="outline"
                                 size="sm"
@@ -416,7 +378,14 @@ export default function CasoDetailPage() {
                                 Regenerar
                               </Button>
                             </div>
-                            <InformeDocumento informe={informe} caso={caso} />
+
+                            {/* Sección de razonamiento condensada arriba del documento */}
+                            <RazonamientoOrquestadorView
+                              casoId={casoId}
+                              onNavigateToPanel={(panel) => setPanelActivo(panel)}
+                            />
+
+                            <InformeDocumento informe={informe} caso={caso} onInformeUpdate={setInforme} />
                           </div>
                           {/* Chat lateral */}
                           <div className="lg:col-span-1">
@@ -432,8 +401,24 @@ export default function CasoDetailPage() {
                       )}
                     </div>
                   )}
+                  {panelActivo === "razonamiento" && (
+                    <div className="p-4 md:p-6">
+                      <RazonamientoOrquestadorView
+                        casoId={casoId}
+                        onNavigateToPanel={(panel) => setPanelActivo(panel)}
+                      />
+                    </div>
+                  )}
                   {panelActivo === "mapa" && (
-                    <MapaReconstruccion ubicacion={caso.ubicacion} />
+                    <div className="p-4 md:p-6 space-y-4">
+                      <SpecialistTrace
+                        casoId={casoId}
+                        tools={["obtener_frame_simulacion", "simular_fisica"]}
+                        title="Trabajo del SimulacionAgent"
+                        description="Frames de la simulación física que el orquestador ha pedido para reconstruir la dinámica del siniestro."
+                      />
+                      <MapaReconstruccion ubicacion={caso.ubicacion} />
+                    </div>
                   )}
                   {panelActivo === "cronologia" && (
                     <div className="p-4 h-full">
@@ -445,35 +430,97 @@ export default function CasoDetailPage() {
                     </div>
                   )}
                   {panelActivo === "calculos" && (
-                    <CalculosFisicos calculos={caso.resultado?.calculos || []} />
+                    <div className="p-4 md:p-6 space-y-4">
+                      <SpecialistTrace
+                        casoId={casoId}
+                        tools={["simular_fisica", "analizar_biomecanica"]}
+                        title="Trabajo del SimulacionAgent y BiomecanicaAgent"
+                        description="Cálculos físicos deterministas (CRASH3, balance momento, Stannard-Baker, WAD) y patrón biomecánico que el orquestador ha citado para inferir velocidades y compatibilidad lesional."
+                      />
+                      <CalculosFisicos calculos={caso.resultado?.calculos || []} />
+                    </div>
                   )}
                   {panelActivo === "legal" && (
-                    <RazonamientoLegal
-                      infracciones={caso.resultado?.infracciones || []}
-                      veredicto={caso.resultado?.veredicto}
-                    />
+                    <div className="p-4 md:p-6 space-y-4">
+                      <SpecialistTrace
+                        casoId={casoId}
+                        tools={["consultar_legal"]}
+                        title="Trabajo del LegalAgent"
+                        description="Artículos del RGC/LSV/RGV consultados en el BOE y jurisprudencia citada por el specialist legal."
+                      />
+                      <RazonamientoLegal
+                        infracciones={caso.resultado?.infracciones || []}
+                        veredicto={caso.resultado?.veredicto}
+                      />
+                    </div>
                   )}
                   {panelActivo === "confrontacion" && (
-                    <ConfrontacionTab
-                      vehiculos={caso.vehiculos ?? []}
-                      contrastes={caso.resultado?.contraste_versiones}
-                      compatibilidad={caso.resultado?.compatibilidad_versiones}
-                      calculos={caso.resultado?.calculos}
-                      adversarial={caso.resultado?.verificacion_adversarial}
-                    />
+                    <div className="p-4 md:p-6 space-y-4">
+                      <SpecialistTrace
+                        casoId={casoId}
+                        tools={["verificar_atestado", "analizar_conformidad_atestado"]}
+                        title="Trabajo del AtestadoAgent y ConformidadAgent"
+                        description="Verificación de incongruencias entre las versiones del atestado y la evidencia física, y análisis de conformidad procesal."
+                      />
+                      <ConfrontacionTab
+                        vehiculos={caso.vehiculos ?? []}
+                        contrastes={caso.resultado?.contraste_versiones}
+                        compatibilidad={caso.resultado?.compatibilidad_versiones}
+                        calculos={caso.resultado?.calculos}
+                        adversarial={caso.resultado?.verificacion_adversarial}
+                      />
+                    </div>
                   )}
                   {panelActivo === "contexto" && (
-                    <ContextoPanel contexto={caso.resultado?.contexto ?? caso.contexto} />
+                    <div className="p-4 md:p-6 space-y-4">
+                      <SpecialistTrace
+                        casoId={casoId}
+                        tools={["consultar_meteo"]}
+                        title="Trabajo del MeteoAgent"
+                        description="Datos meteorológicos históricos (Open-Meteo) y posición solar (deslumbramiento) en el momento del siniestro."
+                      />
+                      <ContextoPanel contexto={caso.resultado?.contexto ?? caso.contexto} />
+                    </div>
                   )}
                   {panelActivo === "vehiculos" && (
-                    <VehiculosPanel vehiculos={caso.vehiculos ?? []} />
+                    <div className="p-4 md:p-6 space-y-4">
+                      <SpecialistTrace
+                        casoId={casoId}
+                        tools={["consultar_ficha_tecnica"]}
+                        title="Trabajo del FichaAgent"
+                        description="Ficha técnica completa de cada vehículo (masa, dimensiones, rigidez, sistemas de seguridad) consultada por el specialist."
+                      />
+                      <VehiculosPanel vehiculos={caso.vehiculos ?? []} />
+                    </div>
                   )}
-                  {panelActivo === "escena" && <EscenaPanel escena={caso.escena} />}
+                  {panelActivo === "escena" && (
+                    <div className="p-4 md:p-6 space-y-4">
+                      <SpecialistTrace
+                        casoId={casoId}
+                        tools={["consultar_escena"]}
+                        title="Trabajo del EscenaAgent"
+                        description="Geometría de la vía (OSM Overpass), señalización, pendiente (DEM), e imágenes ground-level (Mapillary) recopiladas por el specialist."
+                      />
+                      <EscenaPanel escena={caso.escena} />
+                    </div>
+                  )}
                   {panelActivo === "docs" && (
-                    <DocumentosPanel
-                      documentos={caso.documentos ?? []}
-                      fotos={caso.fotos ?? []}
-                    />
+                    <div className="p-4 md:p-6 space-y-4">
+                      <SpecialistTrace
+                        casoId={casoId}
+                        tools={[
+                          "listar_biblioteca_fotos",
+                          "buscar_foto_perito",
+                          "analizar_imagen_dano",
+                        ]}
+                        title="Trabajo de BibliotecaFotos y Vision"
+                        description="Indexado por visión Claude de la biblioteca fotográfica del caso y análisis de daños sobre fotografías concretas pedidas por el orquestador."
+                      />
+                      <DocumentosPanel
+                        documentos={caso.documentos ?? []}
+                        fotos={caso.fotos ?? []}
+                      />
+                    </div>
                   )}
                   {panelActivo === "dictamen" && (
                     <div className="p-6">
@@ -662,6 +709,69 @@ export default function CasoDetailPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ── Modal: Ver formulario original ─────────────────────────────── */}
+      {showFormulario && caso.formulario_origen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
+          onClick={() => setShowFormulario(false)}
+        >
+          <div
+            className="bg-zinc-950 border border-zinc-700 rounded-xl shadow-2xl w-full max-w-3xl max-h-[85vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-800">
+              <div className="flex items-center gap-2">
+                <ClipboardList className="w-5 h-5 text-blue-400" />
+                <h3 className="text-white font-medium">Formulario original del caso</h3>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    const blob = new Blob(
+                      [JSON.stringify(caso.formulario_origen, null, 2)],
+                      { type: "application/json" },
+                    );
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement("a");
+                    a.href = url;
+                    a.download = `caso_${caso.id.slice(0, 8)}_formulario.json`;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                  }}
+                >
+                  <Download className="w-4 h-4 mr-2" />
+                  Descargar JSON
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      JSON.stringify(caso.formulario_origen, null, 2),
+                    );
+                    toast.success("Copiado", "JSON del formulario en el portapapeles.");
+                  }}
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copiar
+                </Button>
+                <button
+                  onClick={() => setShowFormulario(false)}
+                  className="p-1 text-zinc-400 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+            <pre className="flex-1 overflow-auto p-5 text-xs text-zinc-200 font-mono whitespace-pre-wrap break-words">
+              {JSON.stringify(caso.formulario_origen, null, 2)}
+            </pre>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

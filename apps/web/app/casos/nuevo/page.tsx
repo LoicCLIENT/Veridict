@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import {
   HeartPulse,
   Paperclip,
   Wand2,
+  Upload,
 } from "lucide-react";
 
 type TipoEncargoUI =
@@ -106,6 +107,7 @@ export default function NuevoCasoPage() {
   const router = useRouter();
   const toast = useToast();
   const [loading, setLoading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number; current_name?: string } | null>(null);
   const [showAdjuntos, setShowAdjuntos] = useState(false);
 
   // ── Bloque 0: Encargo pericial
@@ -157,6 +159,153 @@ export default function NuevoCasoPage() {
     presupuesto?: File;
     otros: File[];
   }>({ fotos: [], otros: [] });
+
+  // ── Persistencia automática del formulario en localStorage ────────────────
+  // Las fotos (objetos File) NO pueden persistirse en localStorage; el resto sí.
+  const STORAGE_KEY = "veridict_nuevo_caso_draft_v1";
+  const restoredRef = useRef(false);
+  const [draftRestaurado, setDraftRestaurado] = useState(false);
+
+  // 1) Cargar al montar (una sola vez)
+  useEffect(() => {
+    if (restoredRef.current) return;
+    restoredRef.current = true;
+    try {
+      const raw = typeof window !== "undefined" ? localStorage.getItem(STORAGE_KEY) : null;
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      if (draft.encargo) setEncargo(draft.encargo);
+      if (draft.siniestro) setSiniestro(draft.siniestro);
+      if (draft.vehiculos) setVehiculos(draft.vehiculos);
+      if (draft.atestado) setAtestado(draft.atestado);
+      if (draft.velocidades) setVelocidades(draft.velocidades);
+      if (draft.lesiones) setLesiones(draft.lesiones);
+      setDraftRestaurado(true);
+    } catch (e) {
+      console.warn("No se pudo restaurar el borrador:", e);
+    }
+  }, []);
+
+  // 2) Guardar en cada cambio (debounced suficiente con un setTimeout corto)
+  useEffect(() => {
+    if (!restoredRef.current) return;
+    if (typeof window === "undefined") return;
+    const t = setTimeout(() => {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          encargo, siniestro, vehiculos, atestado, velocidades, lesiones,
+          savedAt: new Date().toISOString(),
+        }));
+      } catch (e) {
+        // localStorage lleno o desactivado; ignoramos
+      }
+    }, 250);
+    return () => clearTimeout(t);
+  }, [encargo, siniestro, vehiculos, atestado, velocidades, lesiones]);
+
+  // ── Importar JSON (rellenar el formulario desde un fichero) ──────────────
+  const importarJSON = async (file: File) => {
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+
+      // Encargo
+      if (data.encargo) {
+        setEncargo({
+          tipo: (data.encargo.tipo ?? "responsabilidad_trafico") as TipoEncargoUI,
+          preguntas: Array.isArray(data.encargo.preguntas) && data.encargo.preguntas.length > 0
+            ? data.encargo.preguntas.map(String)
+            : [""],
+          solicitante: data.encargo.solicitante ?? "",
+          parte: (data.encargo.parte ?? "imparcial") as ParteUI,
+          procedimiento: data.encargo.procedimiento ?? "",
+          observaciones: data.encargo.observaciones ?? "",
+        });
+      }
+
+      // Siniestro
+      const fecha = data.fecha_accidente ? String(data.fecha_accidente) : "";
+      const fechaSolo = fecha.includes("T") ? fecha.split("T")[0] : fecha;
+      const horaSolo = fecha.includes("T") ? (fecha.split("T")[1] ?? "").slice(0, 5) : "";
+      setSiniestro({
+        fecha_accidente: fechaSolo,
+        hora_accidente: horaSolo,
+        tipo_colision: data.tipo_colision ?? "alcance",
+        direccion: data.direccion ?? "",
+        lat: data.ubicacion?.lat != null ? String(data.ubicacion.lat) : "",
+        lon: data.ubicacion?.lon != null ? String(data.ubicacion.lon) : "",
+      });
+
+      // Vehículos
+      if (Array.isArray(data.vehiculos_identificacion) && data.vehiculos_identificacion.length > 0) {
+        setVehiculos(
+          data.vehiculos_identificacion.map((v: any, i: number) => ({
+            id: v.id ?? String.fromCharCode(65 + i),
+            matricula: v.matricula ?? "",
+            marca: v.marca ?? "",
+            modelo: v.modelo ?? "",
+            anio: v.anio != null ? String(v.anio) : "",
+            color: v.color ?? "",
+            conductor: v.conductor ?? "",
+          })),
+        );
+      }
+
+      // Atestado + velocidades
+      if (data.hechos_atestado) {
+        const ha = data.hechos_atestado;
+        setAtestado({
+          numero_atestado: ha.numero_atestado ?? "",
+          cuerpo_actuante: ha.cuerpo_actuante ?? "guardia_civil",
+          hay_huellas_frenada:
+            ha.hay_huellas_frenada == null
+              ? "no_consta"
+              : ha.hay_huellas_frenada
+                ? "si"
+                : "no",
+          condiciones_meteorologicas: ha.condiciones_meteorologicas ?? "",
+          estado_calzada: ha.estado_calzada ?? "",
+          visibilidad: ha.visibilidad ?? "",
+          declaraciones: ha.declaraciones ?? "",
+        });
+        if (Array.isArray(ha.velocidades_declaradas)) {
+          setVelocidades(
+            ha.velocidades_declaradas.map((v: any) => ({
+              vehiculo_id: v.vehiculo_id ?? "A",
+              valor_kmh: v.valor_kmh != null ? String(v.valor_kmh) : "",
+              fuente: (v.fuente ?? "declaracion_conductor") as FuenteVelocidad,
+            })),
+          );
+        }
+      }
+
+      // Lesiones
+      if (Array.isArray(data.lesiones)) {
+        setLesiones(
+          data.lesiones.map((l: any) => ({
+            ocupante: l.ocupante ?? "",
+            vehiculo_id: l.vehiculo_id ?? "A",
+            zona_corporal: l.zona_corporal ?? "",
+            gravedad: (l.gravedad ?? "leve") as LesionForm["gravedad"],
+            dias_baja: l.dias_baja != null ? String(l.dias_baja) : "",
+          })),
+        );
+      }
+
+      toast.success("JSON importado", "Revisa los campos y pulsa «Generar borrador» cuando quieras.");
+    } catch (e) {
+      console.error("Error importando JSON:", e);
+      toast.error("JSON inválido", "El fichero no se pudo interpretar como un caso.");
+    }
+  };
+
+  // 3) Limpiar borrador (botón en la UI)
+  const limpiarBorrador = () => {
+    if (typeof window === "undefined") return;
+    if (!confirm("¿Borrar el formulario completo? Esta acción no se puede deshacer.")) return;
+    localStorage.removeItem(STORAGE_KEY);
+    window.location.reload();
+  };
 
   const addVehiculo = () => {
     const nextId = String.fromCharCode(65 + vehiculos.length);
@@ -221,6 +370,7 @@ export default function NuevoCasoPage() {
         ubicacion: {
           lat: siniestro.lat ? parseFloat(siniestro.lat) : 0,
           lon: siniestro.lon ? parseFloat(siniestro.lon) : 0,
+          direccion: siniestro.direccion?.trim() || undefined,
         },
         encargo: {
           tipo: encargo.tipo,
@@ -263,14 +413,31 @@ export default function NuevoCasoPage() {
           })),
       });
 
-      // Adjuntos como evidencia (no input para extraer)
-      if (files.atestado) await api.uploadAtestado(caso.id, files.atestado);
-      for (const foto of files.fotos) await api.uploadFoto(caso.id, foto);
+      // Adjuntos como evidencia
+      if (files.atestado) {
+        setUploadProgress({ current: 0, total: files.fotos.length + 1, current_name: "atestado" });
+        await api.uploadAtestado(caso.id, files.atestado);
+      }
+      for (let i = 0; i < files.fotos.length; i++) {
+        const foto = files.fotos[i];
+        setUploadProgress({
+          current: i + 1 + (files.atestado ? 1 : 0),
+          total: files.fotos.length + (files.atestado ? 1 : 0),
+          current_name: foto.name,
+        });
+        await api.uploadFoto(caso.id, foto);
+      }
+      setUploadProgress(null);
 
       toast.success(
         "Caso creado",
-        "Veridict completará ficha técnica, normativa y cálculos. Generando informe…"
+        files.fotos.length > 0
+          ? `${files.fotos.length} fotos indexadas. Generando informe…`
+          : "Veridict completará ficha técnica, normativa y cálculos. Generando informe…"
       );
+
+      // Borrador entregado con éxito → limpiamos el localStorage para la próxima vez
+      try { localStorage.removeItem(STORAGE_KEY); } catch {}
 
       // Disparar la generación del informe; no bloqueamos la navegación
       api.generarInforme(caso.id).catch((err) => console.error("Informe error:", err));
@@ -291,13 +458,47 @@ export default function NuevoCasoPage() {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white">Nuevo peritaje</h1>
-        <p className="text-zinc-400 mt-2">
-          Indica el encargo y los datos que conoces. Veridict completará ficha técnica del vehículo,
-          normativa aplicable, simulación física y bibliografía.
-        </p>
+      <div className="mb-8 flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-white">Nuevo peritaje</h1>
+          <p className="text-zinc-400 mt-2">
+            Indica el encargo y los datos que conoces. Veridict completará ficha técnica del vehículo,
+            normativa aplicable, simulación física y bibliografía.
+          </p>
+        </div>
+        <label className="flex items-center gap-2 px-3 py-2 rounded-lg border border-zinc-700 bg-zinc-900 hover:border-blue-500/50 cursor-pointer text-sm text-zinc-300 hover:text-white transition-colors flex-shrink-0">
+          <Upload className="w-4 h-4" />
+          Importar JSON
+          <input
+            type="file"
+            accept="application/json,.json"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) importarJSON(f);
+              e.target.value = "";
+            }}
+          />
+        </label>
       </div>
+
+      {draftRestaurado && (
+        <div className="mb-6 p-3 rounded-lg border border-blue-500/30 bg-blue-500/5 flex items-center justify-between gap-3">
+          <p className="text-sm text-blue-200">
+            ✓ Se ha restaurado el borrador guardado automáticamente. Sigue donde lo dejaste.
+            <span className="text-blue-400/80 ml-2 text-xs">
+              (las fotos no se guardan; vuelve a seleccionarlas si las necesitas)
+            </span>
+          </p>
+          <button
+            type="button"
+            onClick={limpiarBorrador}
+            className="text-xs px-3 py-1.5 rounded border border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+          >
+            Empezar de cero
+          </button>
+        </div>
+      )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
 
@@ -845,22 +1046,90 @@ export default function NuevoCasoPage() {
           </CardContent>
         </Card>
 
-        {/* ── Bloque 5: Adjuntos (anexo) ────────────────────────────────── */}
-        <Card className="bg-zinc-900/50 border-zinc-800">
-          <CardHeader className="cursor-pointer select-none" onClick={() => setShowAdjuntos(!showAdjuntos)}>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-zinc-700/50 rounded-lg">
-                  <Paperclip className="w-5 h-5 text-zinc-400" />
-                </div>
-                <div>
-                  <CardTitle className="text-lg text-white">Documentación adjunta (anexo)</CardTitle>
-                  <CardDescription>Evidencia que acompaña al informe. No se usa para extraer datos automáticamente.</CardDescription>
-                </div>
+        {/* ── Bloque 5: Biblioteca visual del caso ─────────────────────── */}
+        <Card className="bg-gradient-to-br from-purple-500/5 to-blue-500/5 border-purple-500/20">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-purple-500/20 rounded-lg">
+                <Camera className="w-5 h-5 text-purple-300" />
               </div>
-              {showAdjuntos ? <ChevronUp className="w-5 h-5 text-zinc-400" /> : <ChevronDown className="w-5 h-5 text-zinc-400" />}
+              <div>
+                <CardTitle className="text-lg text-white">Biblioteca visual del caso</CardTitle>
+                <CardDescription>
+                  Sube todas las fotografías que tengas (coche, bici, daños, escena, atestado, croquis, lesiones).
+                  El BibliotecaFotosAgent las clasificará automáticamente con visión Claude y el orquestador podrá pedir cualquiera de ellas durante la redacción del informe.
+                </CardDescription>
+              </div>
             </div>
           </CardHeader>
+          <CardContent className="space-y-3">
+            {/* Drop zone principal multi-foto */}
+            <label className={`block p-6 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${
+              files.fotos.length > 0
+                ? "border-purple-500/50 bg-purple-500/5"
+                : "border-zinc-700 hover:border-purple-500/40 hover:bg-purple-500/5"
+            }`}>
+              <div className="flex flex-col items-center gap-2 text-center">
+                <Camera className={`w-8 h-8 ${files.fotos.length > 0 ? "text-purple-300" : "text-zinc-500"}`} />
+                {files.fotos.length === 0 ? (
+                  <>
+                    <p className="text-sm font-medium text-white">Arrastra aquí las fotografías o haz click</p>
+                    <p className="text-xs text-zinc-500">JPEG, PNG · varias a la vez · sin límite práctico</p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-sm font-medium text-purple-300">
+                      ✓ {files.fotos.length} {files.fotos.length === 1 ? "foto seleccionada" : "fotos seleccionadas"}
+                    </p>
+                    <p className="text-xs text-zinc-400">Click para añadir más o reemplazar</p>
+                  </>
+                )}
+              </div>
+              <input
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={(e) => setFiles({ ...files, fotos: [...files.fotos, ...Array.from(e.target.files || [])] })}
+                className="hidden"
+              />
+            </label>
+
+            {/* Preview de las fotos seleccionadas */}
+            {files.fotos.length > 0 && (
+              <div className="grid grid-cols-3 md:grid-cols-5 gap-2 pt-2">
+                {files.fotos.map((f, i) => {
+                  const url = URL.createObjectURL(f);
+                  return (
+                    <div key={i} className="relative group rounded-lg overflow-hidden border border-zinc-800">
+                      <img src={url} alt={f.name} className="w-full h-20 object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => setFiles({ ...files, fotos: files.fotos.filter((_, j) => j !== i) })}
+                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-red-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        ×
+                      </button>
+                      <div className="absolute bottom-0 left-0 right-0 px-1 py-0.5 bg-black/60 text-white text-[10px] truncate">
+                        {f.name}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Documentos PDF anexos colapsables */}
+            <div className="pt-3 border-t border-zinc-800">
+              <button
+                type="button"
+                onClick={() => setShowAdjuntos(!showAdjuntos)}
+                className="flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+              >
+                {showAdjuntos ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                Documentos PDF anexos (atestado completo, parte amistoso, informe médico, presupuesto…)
+              </button>
+            </div>
+          </CardContent>
           {showAdjuntos && (
             <CardContent className="space-y-3 pt-0">
               <div className="grid grid-cols-2 gap-3">
@@ -877,7 +1146,7 @@ export default function NuevoCasoPage() {
                   />
                   <span className="text-xs text-zinc-500">{files.atestado ? `✓ ${files.atestado.name}` : "Click para adjuntar"}</span>
                 </label>
-                <label className="p-3 border border-dashed border-zinc-700 rounded-lg hover:border-zinc-500 cursor-pointer">
+                <label className="p-3 border border-dashed border-zinc-700 rounded-lg hover:border-zinc-500 cursor-pointer hidden">
                   <div className="flex items-center gap-2 mb-1">
                     <Camera className="w-4 h-4 text-purple-400" />
                     <span className="text-sm text-white">Fotografías</span>
@@ -956,10 +1225,17 @@ export default function NuevoCasoPage() {
             className="flex-1 bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-50"
           >
             {loading ? (
-              <>
-                <span className="animate-spin mr-2">⏳</span>
-                Procesando...
-              </>
+              uploadProgress ? (
+                <>
+                  <span className="animate-spin mr-2">📷</span>
+                  Indexando foto {uploadProgress.current}/{uploadProgress.total}…
+                </>
+              ) : (
+                <>
+                  <span className="animate-spin mr-2">⏳</span>
+                  Procesando…
+                </>
+              )
             ) : (
               <>
                 <Sparkles className="w-4 h-4 mr-2" />

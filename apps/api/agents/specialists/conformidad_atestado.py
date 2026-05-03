@@ -1,33 +1,105 @@
-"""ConformidadAtestadoAgent — crítica metodológica del atestado policial.
+"""ConformidadAtestadoAgent — auditoría metodológica del atestado por LLM.
 
-Detecta de forma DETERMINISTA (sin LLM) las incongruencias y omisiones típicas
-de los atestados, según el patrón crítico que IURGI/ITRASA aplica.
-
-Reglas implementadas:
-  R1. Si el atestado afirma un límite genérico de 30 km/h en vía urbana antes
-      del 11/05/2021 → ERROR (RD 970/2020 entró en vigor ese día).
-  R2. Si dice "no se observan huellas" del vehículo Y el conductor dice haber
-      frenado al máximo → INCONGRUENCIA (en seco una frenada plena deja huella).
-  R3. Si hay declaraciones de retroceso del vehículo grande tras impactar a un
-      vehículo mucho menor → física improbable.
-  R4. Ausencia de cálculos de velocidad en el atestado.
-  R5. Croquis mencionado pero "sin escala" o sin acotar.
-  R6. Si hay fallecimiento: ausencia de prueba toxicológica/drogas (delito vial).
-  R7. Si la velocidad declarada es ≤25 km/h y hay lesiones letales en cabeza
-      contra parabrisas/techo: incompatible con la biomecánica.
+NO usa reglas regex. Delega al LLM Claude la lectura del texto del atestado
+(declaraciones + observaciones) y el cruce con el resto de evidencia para
+detectar incongruencias y omisiones, aplicando un manual pericial entregado
+como conocimiento autoritativo en el system prompt.
 """
 
 from __future__ import annotations
 
+import json
+import re
 import time
-from datetime import datetime
 from typing import Optional
 
-from models import HechosAtestado, Lesion, ToolCallLog
+from anthropic import APIError
+
+from config import get_claude, get_settings
+from models import ToolCallLog
 
 
-# Fecha de entrada en vigor del límite genérico 30 km/h urbano
-RD_970_2020_VIGENCIA = datetime(2021, 5, 11).date()
+SYSTEM_CONFORMIDAD = """Eres el AGENTE DE CONFORMIDAD DOCUMENTAL del equipo pericial VERIDICT.
+
+Tu cometido es auditar metodológicamente un atestado policial detectando incongruencias internas, contradicciones con la evidencia física, errores de marco normativo y omisiones obligatorias del expediente.
+
+NO atribuyes culpa. NO valoras la conducta del conductor. SOLO juzgas la calidad técnica del atestado.
+
+═══════════════════════════════════════════════════════════════════════════════
+MANUAL PERICIAL — checklist crítico que debes aplicar a TODO atestado
+═══════════════════════════════════════════════════════════════════════════════
+
+A. MARCO NORMATIVO Y FECHAS
+  - Compara los límites de velocidad citados con la normativa vigente A FECHA del siniestro.
+    · El RD 970/2020 introdujo el límite genérico urbano de 30 km/h y entró en vigor el 11/05/2021.
+    · Antes de esa fecha el límite genérico urbano era 50 km/h.
+    · Si el atestado afirma o asume 30 km/h genérico antes del 11/05/2021 → INCONGRUENCIA ALTA.
+  - Si el atestado cita una norma derogada o no vigente a la fecha → INCONGRUENCIA ALTA.
+
+B. COHERENCIA DECLARACIÓN-EVIDENCIA FÍSICA
+  - Si el conductor declara haber accionado el freno al máximo (o frenada plena) Y el atestado constata que NO HAY HUELLAS de frenada del vehículo en calzada seca con asfalto en buen estado → INCONGRUENCIA ALTA. Una frenada plena con neumáticos bloqueados deja huella visible.
+  - Si la velocidad declarada y la velocidad calculada (que se te aporta como dato) difieren más del 20% → INCONGRUENCIA ALTA.
+  - Si el atestado describe un retroceso post-impacto del vehículo de mayor masa frente a uno de mucha menor masa (peatón/ciclista/moto) → INCONGRUENCIA MEDIA: por conservación del momento, lo físicamente esperable es que el vehículo continúe avanzando.
+
+C. ELEMENTOS OBLIGATORIOS QUE SUELEN OMITIRSE
+  - En siniestros con resultado letal o lesiones graves: pruebas de detección de alcohol y otras drogas (art. 379 CP). Si no se mencionan → OMISIÓN.
+  - Cálculo de velocidad por metodología reconocida (Stannard-Baker, CRASH3, EBS) cuando hay huellas o daños cuantificables. Si no se aporta → OMISIÓN.
+  - Croquis a escala y acotado. Si el atestado refiere croquis "sin escala", "desproporcionado" o "sin acotaciones" → INCONGRUENCIA MEDIA.
+  - En atropellos: posicionamiento del PDI (punto de impacto), posición final del vehículo y de la víctima, cota lateral de huellas respecto al borde de la vía. Si faltan → OMISIÓN.
+  - En siniestros con velocidad relevante: estado de neumáticos y dispositivos de retención del vehículo.
+
+D. CALIDAD METODOLÓGICA
+  - Conclusiones del atestado expresadas como hipótesis sin sustento técnico ("podría circular más próximo", "se estima") cuando el dato es desconocido → OMISIÓN.
+  - Apriorismos no justificados de posición o trayectoria → INCONGRUENCIA MEDIA.
+
+═══════════════════════════════════════════════════════════════════════════════
+INSTRUCCIONES DE SALIDA
+═══════════════════════════════════════════════════════════════════════════════
+
+1. Lee el atestado entero (declaraciones + observaciones) que se te aporta.
+2. Cruza con la fecha del siniestro y con las velocidades declarada y calculada.
+3. Para cada hallazgo: cita LITERALMENTE el fragmento del atestado que lo motiva (entre comillas) y razónalo.
+4. Asigna severidad: "alta" (afecta gravemente a la valoración judicial), "media" (debilita la prueba), "baja" (defecto formal).
+5. Valoración global:
+   · "satisfactorio": ninguna alta y a lo sumo 1 omisión.
+   · "incompleto": 0-1 alta y/o 2-3 medias/omisiones.
+   · "deficiente": ≥1 alta crítica O ≥2 altas O ≥4 medias/omisiones.
+
+DEVUELVE EXCLUSIVAMENTE UN JSON con esta forma (sin markdown, sin texto antes ni después):
+
+{
+  "incongruencias": [
+    {"severidad": "alta|media|baja",
+     "titulo": "Título corto y operativo (máx 12 palabras)",
+     "descripcion": "Cita literal entre comillas + por qué es incongruente, 40-80 palabras."}
+  ],
+  "elementos_omitidos": [
+    "Texto autocontenido describiendo la omisión y la norma o práctica que la exige (40-70 palabras)."
+  ],
+  "valoracion_global": "satisfactorio|incompleto|deficiente",
+  "recomendaciones": ["Acción concreta para subsanar (1-2 frases)..."]
+}
+
+REGLAS DURAS:
+- Idioma: español de España, registro pericial.
+- NO inventes incongruencias que no estén respaldadas por el texto aportado.
+- NO repitas la lista del manual: APLÍCALA.
+- Si el atestado no presenta defectos relevantes, devuelve listas vacías y valoracion_global="satisfactorio".
+- JSON puro."""
+
+
+def _extract_json(text: str) -> dict:
+    text = text.strip()
+    fenced = re.search(r"```(?:json)?\s*(\{.*\})\s*```", text, re.DOTALL)
+    if fenced:
+        text = fenced.group(1)
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        first, last = text.find("{"), text.rfind("}")
+        if 0 <= first < last:
+            return json.loads(text[first : last + 1])
+        raise
 
 
 async def analizar_conformidad(
@@ -38,164 +110,88 @@ async def analizar_conformidad(
     velocidad_calculada_kmh: Optional[float] = None,
     es_atropello: bool = False,
 ) -> dict:
-    """Devuelve {datos: AnalisisConformidadAtestado-like, _log}."""
+    """Devuelve {datos, _log}. La estructura de `datos` es la que devuelve el LLM."""
     t0 = time.time()
-    incongruencias: list[dict] = []
-    omitidos: list[str] = []
-    recomendaciones: list[str] = []
+    settings = get_settings()
 
-    declaraciones = ((hechos or {}).get("declaraciones") or "").lower()
-    observaciones = ((hechos or {}).get("observaciones") or "").lower()
-    cuerpo_actuante = (hechos or {}).get("cuerpo_actuante", "")
-    hay_huellas = (hechos or {}).get("hay_huellas_frenada")
-    todo = declaraciones + " " + observaciones
-
-    # R1 — Límite 30 km/h pre-2021
-    fecha = None
-    if fecha_siniestro_iso:
-        try:
-            fecha = datetime.fromisoformat(str(fecha_siniestro_iso).replace("Z", "")).date()
-        except ValueError:
-            fecha = None
-    if fecha and fecha < RD_970_2020_VIGENCIA and ("30 km/h" in todo or "límite genérico de 30" in todo or "limite generico de 30" in todo):
-        incongruencias.append({
-            "severidad": "alta",
-            "titulo": "Límite genérico 30 km/h erróneo para la fecha",
-            "descripcion": (
-                f"El atestado refiere un límite genérico urbano de 30 km/h, pero la fecha del "
-                f"siniestro ({fecha.isoformat()}) es anterior al 11/05/2021, entrada en vigor "
-                f"del RD 970/2020 que introduce ese límite. En esa fecha el límite genérico "
-                f"urbano era de 50 km/h."
-            ),
-        })
-
-    # R2 — frenada plena sin huella
-    if hay_huellas is False and any(k in todo for k in ("freno al máximo", "freno al maximo", "frenada al máximo", "frenada al maximo", "frenó al máximo", "freno maximo", "frenado al máximo")):
-        incongruencias.append({
-            "severidad": "alta",
-            "titulo": "Frenada plena declarada sin huella en calzada",
-            "descripcion": (
-                "El conductor declara haber accionado el freno al máximo, pero el atestado "
-                "indica que no se observan huellas de frenada del vehículo. En condiciones "
-                "de asfalto seco con μ ~0,75, una frenada plena con neumáticos bloqueados "
-                "deja huella visible. La ausencia es incompatible con la declaración: o la "
-                "frenada no fue plena (falta de atención, pisada tardía o suave) o la "
-                "velocidad era inferior a la declarada."
-            ),
-        })
-
-    # R3 — retroceso post-impacto
-    if any(k in todo for k in ("retrocede", "retrocedió", "rebotado", "rebota", "retroceso")):
-        if any(k in todo for k in ("camión", "camion", "turismo", "vehículo", "vehiculo")):
-            incongruencias.append({
-                "severidad": "media",
-                "titulo": "Retroceso post-impacto físicamente improbable",
-                "descripcion": (
-                    "El atestado consigna un retroceso del vehículo tras el impacto. Si el "
-                    "vehículo de mayor masa colisiona contra otro de mucha menor masa "
-                    "(peatón, ciclista, motocicleta), la conservación del momento implica "
-                    "que aquél continuará avanzando, no retrocediendo. Un retroceso real "
-                    "exigiría intervención voluntaria del conductor o coeficiente de "
-                    "restitución imposible."
-                ),
-            })
-
-    # R4 — ausencia de cálculos de velocidad
-    if not any(k in todo for k in ("cálculo de velocidad", "calculo de velocidad", "stannard", "crash3", "ebs", "deceleración")):
-        omitidos.append(
-            "El atestado no incluye cálculo de velocidad mediante metodología reconocida "
-            "(Stannard-Baker, CRASH3, EBS) pese a disponer de huellas/daños cuantificables."
-        )
-
-    # R5 — croquis sin escala
-    if "sin escala" in todo or "sin acotar" in todo or "desproporcionado" in todo or "desproporcionados" in todo:
-        incongruencias.append({
-            "severidad": "media",
-            "titulo": "Croquis sin escala o sin acotaciones",
-            "descripcion": (
-                "El atestado refiere un croquis sin escala o desproporcionado. Un croquis "
-                "pericial debe levantarse a escala definida y acotar las distancias clave "
-                "(huellas, posiciones finales, anchura de calzada) para permitir su "
-                "verificación posterior."
-            ),
-        })
-
-    # R6 — atropello/fallecimiento sin prueba toxicológica
-    fallecimiento = any((l or {}).get("gravedad") == "fallecimiento" for l in (lesiones or []))
-    if (es_atropello or fallecimiento) and not any(k in todo for k in ("droga", "alcohol", "alcoholemia", "tóxico", "toxicológ", "etilometría", "etilometria")):
-        omitidos.append(
-            "En siniestros con resultado letal o lesiones graves, las diligencias deben "
-            "consignar la realización de pruebas de detección de alcohol y otras drogas "
-            "(art. 379 CP y normativa concordante). El atestado no recoge mención expresa."
-        )
-
-    # R7 — velocidad declarada incompatible con la calculada
-    if velocidad_declarada_kmh is not None and velocidad_calculada_kmh is not None:
-        diff = velocidad_calculada_kmh - velocidad_declarada_kmh
-        if diff > 0.20 * max(velocidad_declarada_kmh, 1):
-            incongruencias.append({
-                "severidad": "alta",
-                "titulo": "Velocidad declarada incompatible con la evidencia física",
-                "descripcion": (
-                    f"Declaración del conductor: {velocidad_declarada_kmh} km/h. Cálculo "
-                    f"físico (huellas/daños/biomecánica): {velocidad_calculada_kmh} km/h. "
-                    f"Diferencia +{diff:.1f} km/h, fuera del margen aceptable del 15-20%. "
-                    f"La evidencia física rebate la declaración."
-                ),
-            })
-
-    # R8 — atropello sin posicionamiento de huellas o víctima
-    if es_atropello and not any(k in todo for k in ("posición final", "posicion final", "punto de impacto", "pdi", "huellas a", "huella de ", "metros del borde")):
-        omitidos.append(
-            "En atropello, el atestado debe consignar punto de impacto (PDI), posición "
-            "final del vehículo y de la víctima, y origen/fin de huellas con cota lateral "
-            "respecto al borde de la vía. No constan estos elementos con precisión."
-        )
-
-    # Recomendaciones
-    if incongruencias or omitidos:
-        recomendaciones.append(
-            "Solicitar diligencias complementarias para subsanar las omisiones señaladas "
-            "y aclarar las incongruencias detectadas."
-        )
-    if any(i.get("severidad") == "alta" for i in incongruencias):
-        recomendaciones.append(
-            "Considerar las incongruencias de severidad ALTA como prueba de descargo de "
-            "la declaración del conductor en su literalidad."
-        )
-
-    # Valoración global
-    n_alta = sum(1 for i in incongruencias if i.get("severidad") == "alta")
-    n_media = sum(1 for i in incongruencias if i.get("severidad") == "media")
-    if n_alta == 0 and n_media == 0 and not omitidos:
-        valoracion = "satisfactorio"
-    elif n_alta >= 2 or (n_alta >= 1 and len(omitidos) >= 2):
-        valoracion = "deficiente"
-    else:
-        valoracion = "incompleto"
-
-    out = {
-        "incongruencias": incongruencias,
-        "elementos_omitidos": omitidos,
-        "valoracion_global": valoracion,
-        "recomendaciones": recomendaciones,
+    payload = {
+        "fecha_siniestro_iso": fecha_siniestro_iso,
+        "es_atropello": es_atropello,
+        "atestado": {
+            "numero_atestado": hechos.get("numero_atestado"),
+            "cuerpo_actuante": hechos.get("cuerpo_actuante"),
+            "hay_huellas_frenada_vehiculo": hechos.get("hay_huellas_frenada"),
+            "estado_calzada": hechos.get("estado_calzada"),
+            "visibilidad": hechos.get("visibilidad"),
+            "condiciones_meteorologicas": hechos.get("condiciones_meteorologicas"),
+            "velocidades_declaradas": hechos.get("velocidades_declaradas") or [],
+            "declaraciones_textuales": hechos.get("declaraciones"),
+            "observaciones_atestado": hechos.get("observaciones"),
+        },
+        "lesiones": lesiones or [],
+        "contraste_velocidad": {
+            "velocidad_declarada_kmh": velocidad_declarada_kmh,
+            "velocidad_calculada_kmh": velocidad_calculada_kmh,
+        },
     }
 
-    resumen = (
-        f"Valoración: {valoracion}. {len(incongruencias)} incongruencias "
-        f"({n_alta} altas, {n_media} medias), {len(omitidos)} omisiones."
-    )
+    out_data = None
+    error = None
+
+    if settings.anthropic_api_key:
+        client = get_claude()
+        user_msg = (
+            "Audita el siguiente atestado siguiendo el manual pericial:\n\n"
+            + json.dumps(payload, ensure_ascii=False, indent=2)
+            + "\n\nDevuelve SOLO el JSON especificado en las instrucciones."
+        )
+        try:
+            resp = await client.messages.create(
+                model=settings.model_sonnet,
+                max_tokens=2048,
+                system=SYSTEM_CONFORMIDAD,
+                messages=[{"role": "user", "content": user_msg}],
+            )
+            text = "".join(b.text for b in resp.content if hasattr(b, "text"))
+            out_data = _extract_json(text)
+        except (APIError, ValueError, json.JSONDecodeError) as e:
+            error = str(e)
+    else:
+        error = "ANTHROPIC_API_KEY no configurada — no se pudo invocar el LLM."
+
+    if not out_data:
+        out_data = {
+            "incongruencias": [],
+            "elementos_omitidos": [],
+            "valoracion_global": "no_evaluado",
+            "recomendaciones": ([f"Error en el LLM: {error}"] if error else []),
+        }
+
+    n_alta = sum(1 for i in out_data.get("incongruencias", []) if i.get("severidad") == "alta")
+    n_media = sum(1 for i in out_data.get("incongruencias", []) if i.get("severidad") == "media")
+    n_om = len(out_data.get("elementos_omitidos", []))
+    valoracion = out_data.get("valoracion_global", "no_evaluado")
+
+    resumen = (f"Valoración: {valoracion}. {n_alta + n_media + sum(1 for i in out_data.get('incongruencias', []) if i.get('severidad') == 'baja')} "
+               f"incongruencias ({n_alta} altas, {n_media} medias), {n_om} omisiones.")
+
     log = ToolCallLog(
         agente="ConformidadAtestadoAgent",
-        pregunta=f"Análisis crítico del atestado ({cuerpo_actuante})",
-        inputs={"es_atropello": es_atropello, "fecha": fecha_siniestro_iso,
-                "v_declarada": velocidad_declarada_kmh,
-                "v_calculada": velocidad_calculada_kmh},
+        pregunta=f"Auditoría LLM del atestado ({hechos.get('cuerpo_actuante', 'desconocido')})",
+        inputs={
+            "es_atropello": es_atropello,
+            "fecha": fecha_siniestro_iso,
+            "v_declarada": velocidad_declarada_kmh,
+            "v_calculada": velocidad_calculada_kmh,
+            "n_lesiones": len(lesiones or []),
+        },
         resultado_resumen=resumen,
         fuentes_consultadas=[
-            "Reglas internas Veridict (R1-R8) basadas en práctica pericial IURGI/AEIAT",
+            "Claude Sonnet (razonamiento pericial)",
+            "Manual pericial AEIAT/IURGI (en system prompt)",
             "RD 970/2020", "Art. 379 CP",
         ],
+        falta_info=error,
         duracion_ms=int((time.time() - t0) * 1000),
     )
-    return {"datos": out, "_log": log}
+    return {"datos": out_data, "_log": log}

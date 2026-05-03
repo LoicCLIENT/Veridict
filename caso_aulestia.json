@@ -1,0 +1,66 @@
+{
+  "fecha_accidente": "2020-05-21T20:38:00",
+  "ubicacion": {
+    "lat": 43.33,
+    "lon": -2.6203,
+    "direccion": "Barrio Zubero, Aulestia, Bizkaia"
+  },
+  "tipo_colision": "atropello",
+  "encargo": {
+    "tipo": "atropello",
+    "preguntas": [
+      "Determinar la velocidad real del turismo en el momento de la colisión contra el ciclista.",
+      "Establecer si el accidente era evitable cumpliendo la normativa de circulación.",
+      "Indicar la conducta del conductor del turismo respecto al límite de velocidad y la atención debida."
+    ],
+    "solicitante": "Juzgado de Instrucción de Markina-Xemein",
+    "parte": "demandante",
+    "procedimiento": "Diligencias previas — Aulestia 21052020",
+    "observaciones": "Atropello mortal en Barrio Zubero (Aulestia, Bizkaia) el 21/05/2020 a las 20:38. Turismo SEAT Ibiza colisiona contra ciclista en curva con visibilidad efectiva de 26,5 m, calzada de 3,10-3,20 m y pendiente del 9-11,6 %. Límite específico R-301 de 20 km/h. RD 970/2020 (límite genérico 30 km/h en vía urbana) NO vigente todavía a esa fecha; el genérico era 50 km/h."
+  },
+  "vehiculos_identificacion": [
+    {
+      "id": "A",
+      "matricula": "3526-BKL",
+      "marca": "SEAT",
+      "modelo": "Ibiza",
+      "anio": 2018,
+      "color": "blanco",
+      "conductor": "JME (vecino de la zona, conoce el trazado y la limitación)"
+    },
+    {
+      "id": "B",
+      "matricula": "n/a (ciclo)",
+      "marca": "Orbea",
+      "modelo": "bicicleta deportiva (n.º bastidor 3773)",
+      "color": "rojo",
+      "conductor": "IBU — sillín a 79 cm del suelo, manillar 55 cm de anchura. Circulaba descendente por la mitad derecha de la calzada. Marcas de derrape en cubierta trasera."
+    }
+  ],
+  "hechos_atestado": {
+    "numero_atestado": "Ertzaintza Aulestia 21052020",
+    "cuerpo_actuante": "ertzaintza",
+    "velocidades_declaradas": [
+      {
+        "vehiculo_id": "A",
+        "valor_kmh": 20,
+        "fuente": "declaracion_conductor"
+      }
+    ],
+    "hay_huellas_frenada": true,
+    "condiciones_meteorologicas": "tarde clara, asfalto seco",
+    "estado_calzada": "seco",
+    "visibilidad": "diurna pero curva con visibilidad reducida (efectiva 26,5 m)",
+    "declaraciones": "El conductor del turismo declara que circulaba entre 10 y 20 km/h ascendiendo una pendiente del 9 al 11,6 %. Manifiesta que vio al ciclista y accionó el freno al máximo, pero en el momento del impacto el turismo no estaba detenido. El atestado consigna expresamente que «no se observan huellas de frenado» del turismo, pese a la frenada plena declarada. La huella de 8 metros, que finaliza a 1,2 m del borde de la vía e inicia a menos de 1 m del mismo, corresponde al CICLISTA bajando, no al turismo.",
+    "observaciones": "Características del lugar (medidas in situ por el perito instructor):\n- Anchura de la calzada: 3,10 a 3,20 m.\n- Pendiente: entre 9 % y 11,6 % (ascendente para el turismo, descendente para el ciclista).\n- Distancia de visibilidad efectiva: 26,5 m lineales (>30 m por la trayectoria curva).\n- Coeficiente de adherencia neumático-asfalto estimado: μ = 0,75.\n- Existe una zona terriza diáfana de varios metros de anchura y longitud a la derecha del turismo, con desnivel máximo de 4 cm, que habría permitido una maniobra evasiva sin riesgo.\n- Límite de velocidad en el lugar: señal específica R-301 de 20 km/h en la entrada al Barrio Zubero auzoa.\n- En 2020 NO existía aún el límite genérico de 30 km/h en vía urbana (introducido por el RD 970/2020 vigente desde el 11/05/2021); el genérico vigente era 50 km/h."
+  },
+  "lesiones": [
+    {
+      "ocupante": "IBU",
+      "vehiculo_id": "B",
+      "zona_corporal": "cabeza (lesiones cefálicas letales)",
+      "gravedad": "fallecimiento",
+      "secuelas": "Lesiones cefálicas incompatibles con la vida según autopsia. Trayectoria del cuerpo del ciclista tras el impacto: contacto inicial con paragolpes delantero, deslizamiento sobre el capó (impronta visible en chapa), impacto contra el parabrisas delantero lado derecho y hendidura en el techo extremo derecho del turismo. Patrón de impactos compatible con WAD (Wrap Around Distance) ≥ 1,8 m, propio de velocidades del orden de 45-60 km/h en colisión turismo-ciclista."
+    }
+  ]
+}

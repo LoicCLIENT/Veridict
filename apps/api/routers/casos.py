@@ -1,20 +1,24 @@
 """Router for caso CRUD operations."""
 
-from fastapi import APIRouter, HTTPException
-from typing import Dict
+import json
+from pathlib import Path
 
+from fastapi import APIRouter, HTTPException, UploadFile, File
+
+from db import JsonCasoStore
 from models import Caso, CasoCreate, CasoUpdate, EstadoCaso
 
 router = APIRouter()
 
-# In-memory storage for demo (replace with database in production)
-casos_db: Dict[str, Caso] = {}
+# Persistencia local en JSON: apps/api/db/casos.json
+_DB_PATH = Path(__file__).resolve().parent.parent / "db" / "casos.json"
+casos_db: JsonCasoStore = JsonCasoStore(_DB_PATH)
 
 
-@router.post("", response_model=Caso)
-async def crear_caso(caso_input: CasoCreate) -> Caso:
-    """Create a new caso (v2 payload: encargo + identificación + hechos + lesiones)."""
-    caso = Caso(
+def _build_caso(caso_input: CasoCreate) -> Caso:
+    """Construye un Caso a partir de un CasoCreate y guarda el payload original."""
+    formulario_origen = json.loads(caso_input.model_dump_json())
+    return Caso(
         fecha_accidente=caso_input.fecha_accidente,
         ubicacion=caso_input.ubicacion,
         tipo_colision=caso_input.tipo_colision,
@@ -22,7 +26,34 @@ async def crear_caso(caso_input: CasoCreate) -> Caso:
         vehiculos_identificacion=caso_input.vehiculos_identificacion,
         hechos_atestado=caso_input.hechos_atestado,
         lesiones=caso_input.lesiones,
+        formulario_origen=formulario_origen,
     )
+
+
+@router.post("", response_model=Caso)
+async def crear_caso(caso_input: CasoCreate) -> Caso:
+    """Create a new caso (v2 payload: encargo + identificación + hechos + lesiones)."""
+    caso = _build_caso(caso_input)
+    casos_db[caso.id] = caso
+    return caso
+
+
+@router.post("/import-json", response_model=Caso)
+async def importar_caso_json(file: UploadFile = File(...)) -> Caso:
+    """Importa un caso desde un fichero JSON con la forma de `CasoCreate`.
+
+    Permite crear casos sin tener que rellenar el formulario a mano.
+    """
+    raw = await file.read()
+    try:
+        data = json.loads(raw.decode("utf-8"))
+    except (json.JSONDecodeError, UnicodeDecodeError) as e:
+        raise HTTPException(status_code=400, detail=f"JSON inválido: {e}")
+    try:
+        caso_input = CasoCreate.model_validate(data)
+    except Exception as e:  # pydantic ValidationError
+        raise HTTPException(status_code=422, detail=f"Estructura inválida: {e}")
+    caso = _build_caso(caso_input)
     casos_db[caso.id] = caso
     return caso
 

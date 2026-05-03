@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { api } from "@/lib/api";
 import type {
   InformePericial,
   Caso,
@@ -12,6 +14,7 @@ import { CalculoFisico } from "@veridict/types";
 interface Props {
   informe: InformePericial;
   caso: Caso;
+  onInformeUpdate?: (i: InformePericial) => void;
 }
 
 /**
@@ -19,7 +22,7 @@ interface Props {
  * con secciones numeradas y tipografía pericial. NO usa cards/tabs internas:
  * se lee de arriba abajo como si fuera el PDF firmable.
  */
-export function InformeDocumento({ informe, caso }: Props) {
+export function InformeDocumento({ informe, caso, onInformeUpdate }: Props) {
   const encargo = caso.encargo;
   const fechaStr = caso.fecha_accidente
     ? new Date(caso.fecha_accidente).toLocaleDateString("es-ES", {
@@ -214,7 +217,12 @@ export function InformeDocumento({ informe, caso }: Props) {
           </p>
           <div className="space-y-6">
             {informe.respuestas.map((r) => (
-              <RespuestaBloque key={r.pregunta_id} respuesta={r} />
+              <RespuestaBloque
+                key={r.pregunta_id}
+                respuesta={r}
+                casoId={caso.id}
+                onUpdate={onInformeUpdate}
+              />
             ))}
           </div>
         </Section>
@@ -447,14 +455,104 @@ function NormativaBloque({ fuente }: { fuente: FuenteNormativa }) {
   );
 }
 
-function RespuestaBloque({ respuesta }: { respuesta: RespuestaPregunta }) {
+function RespuestaBloque({
+  respuesta,
+  casoId,
+  onUpdate,
+}: {
+  respuesta: RespuestaPregunta;
+  casoId: string;
+  onUpdate?: (i: InformePericial) => void;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(respuesta.respuesta);
+  const [saving, setSaving] = useState(false);
+
+  const startEdit = () => {
+    setDraft(respuesta.respuesta);
+    setEditing(true);
+  };
+
+  const cancel = () => {
+    setEditing(false);
+    setDraft(respuesta.respuesta);
+  };
+
+  const save = async () => {
+    if (draft.trim() === respuesta.respuesta.trim()) {
+      setEditing(false);
+      return;
+    }
+    setSaving(true);
+    try {
+      const informeActualizado = await api.editarRespuesta(casoId, respuesta.pregunta_id, {
+        respuesta: draft.trim(),
+      });
+      onUpdate?.(informeActualizado);
+      setEditing(false);
+    } catch (e) {
+      console.error(e);
+      alert("No se pudo guardar la edición.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
-    <div>
-      <h3 className="font-semibold text-white">
-        <span className="font-mono text-blue-400 mr-2">{respuesta.pregunta_id}.</span>
-        {respuesta.pregunta}
-      </h3>
-      <p className="mt-2 text-zinc-200 whitespace-pre-line">{respuesta.respuesta}</p>
+    <div className="group">
+      <div className="flex items-baseline justify-between gap-3">
+        <h3 className="font-semibold text-white flex-1">
+          <span className="font-mono text-blue-400 mr-2">{respuesta.pregunta_id}.</span>
+          {respuesta.pregunta}
+        </h3>
+        {!editing && (
+          <button
+            type="button"
+            onClick={startEdit}
+            className="text-xs text-zinc-500 hover:text-blue-300 opacity-0 group-hover:opacity-100 transition-opacity font-sans"
+            title="Editar manualmente esta conclusión"
+          >
+            ✎ Editar
+          </button>
+        )}
+      </div>
+
+      {!editing ? (
+        <p className="mt-2 text-zinc-200 whitespace-pre-line">{respuesta.respuesta}</p>
+      ) : (
+        <div className="mt-2 space-y-2">
+          <textarea
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            rows={Math.min(14, Math.max(6, draft.split("\n").length + 2))}
+            className="w-full px-3 py-2 rounded border border-blue-500/40 bg-zinc-900 text-zinc-100 font-sans text-sm leading-relaxed focus:border-blue-400 focus:ring-1 focus:ring-blue-500 outline-none"
+            disabled={saving}
+            autoFocus
+          />
+          <div className="flex justify-end gap-2 font-sans">
+            <button
+              type="button"
+              onClick={cancel}
+              disabled={saving}
+              className="text-xs px-3 py-1.5 rounded border border-zinc-700 text-zinc-300 hover:bg-zinc-800"
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={save}
+              disabled={saving}
+              className="text-xs px-3 py-1.5 rounded bg-blue-600 hover:bg-blue-500 text-white disabled:opacity-60"
+            >
+              {saving ? "Guardando…" : "Guardar edición"}
+            </button>
+          </div>
+          <p className="text-[11px] text-zinc-500 font-sans">
+            Edición manual del perito firmante. No se invoca al modelo.
+          </p>
+        </div>
+      )}
+
       {respuesta.citas.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1.5">
           {respuesta.citas.map((c, i) => (

@@ -7,9 +7,11 @@ Reemplaza el pipeline monolítico anterior. Mantiene el mismo contrato público:
 
 from __future__ import annotations
 
+import json
 from typing import Optional
 
 from agents.perito import construir_informe, coordinar
+from agents import trace_store
 from models import (
     CalculoFisico,
     Caso,
@@ -112,13 +114,22 @@ async def generar_informe(caso: Caso) -> InformePericial:
         )
 
     # 3. Llamar al Perito coordinador con tool_use
-    coord_out = await coordinar(caso)
+    trace_store.init(caso.id)
+    try:
+        coord_out = await coordinar(caso, caso_id=caso.id)
+    except Exception as e:
+        trace_store.finalize(caso.id, estado="error",
+                             mensaje=f"Excepción en coordinador: {e}", error=str(e))
+        raise
 
     if not coord_out.get("informe_data"):
         from agents.perito import (  # type: ignore
             _build_biomecanico, _build_conformidad, _build_escena, _build_meteo,
         )
-        fallback = _fallback_informe(caso, coord_out.get("error", "error desconocido"))
+        err_msg = coord_out.get("error", "error desconocido")
+        trace_store.finalize(caso.id, estado="error",
+                             mensaje=f"Informe degradado: {err_msg}", error=err_msg)
+        fallback = _fallback_informe(caso, err_msg)
         fallback.fichas_tecnicas = fichas
         fallback.normativa_aplicable = normativa
         fallback.bibliografia = bibliografia
@@ -146,7 +157,290 @@ async def generar_informe(caso: Caso) -> InformePericial:
         calculos_recopilados=calculos,
         chat_previo=chat_previo,
     )
+    # Adjunto el trace en memoria para poder volcarlo desde el endpoint /trace
+    setattr(informe, "_trace", {
+        "razonamiento_perito": coord_out.get("razonamiento_perito", []),
+        "datos_completos": coord_out.get("datos_completos", []),
+    })
+    trace_store.finalize(caso.id, estado="completado",
+                         mensaje="Informe pericial listo")
     return informe
+
+
+def _build_trace_markdown(caso) -> str:
+    """Genera el deep-log estructurado: razonamiento del Perito turno a turno,
+    inputs y outputs completos de cada especialista, y comparación con IURGI."""
+    informe = caso.informe
+    trace = getattr(informe, "_trace", {}) or {}
+    razon = trace.get("razonamiento_perito", [])
+    datos_c = trace.get("datos_completos", [])
+
+    encargo = caso.encargo
+    out: list[str] = []
+    out.append("# Trace deep-log del orquestador VERIDICT-PERITO")
+    out.append("")
+    out.append(f"**Caso:** `{caso.id}`  ")
+    out.append(f"**Fecha siniestro:** {caso.fecha_accidente.isoformat() if caso.fecha_accidente else '—'}  ")
+    out.append(f"**Tipo:** {caso.tipo_colision.value if caso.tipo_colision else '—'}  ")
+    if encargo:
+        out.append(f"**Encargo:** {encargo.tipo.value} — {encargo.solicitante or '—'}  ")
+        out.append(f"**Procedimiento:** {encargo.procedimiento or '—'}  ")
+    out.append("")
+    out.append("---")
+    out.append("")
+
+    # ── 1. Conversación turno a turno ───────────────────────────────────────
+    out.append("## 1. Conversación orquestador ↔ especialistas (turno a turno)")
+    out.append("")
+    out.append(f"El Perito Opus 4.7 ejecutó **{len(razon)} turnos** invocando "
+               f"**{len(datos_c)} llamadas a tools**. Para cada turno se documenta:")
+    out.append("- Razonamiento intermedio del Perito (text blocks).")
+    out.append("- Tools que el Perito decidió invocar y con qué inputs.")
+    out.append("- Datos completos devueltos por cada specialist.")
+    out.append("")
+
+    # Indexar tool calls por turno
+    by_turn: dict[int, list[dict]] = {}
+    for d in datos_c:
+        by_turn.setdefault(d["turno"], []).append(d)
+
+    for r in razon:
+        turn = r["turno"]
+        out.append(f"### Turno {turn}")
+        if r.get("razonamiento"):
+            out.append("**🧠 Razonamiento del Perito:**")
+            out.append("")
+            out.append("> " + r["razonamiento"].replace("\n", "\n> "))
+            out.append("")
+        else:
+            out.append("*(El Perito no emite texto en este turno; pasa directamente a tool_use.)*")
+            out.append("")
+
+        if r.get("stop_reason") == "tool_use":
+            out.append(f"**🔧 Tools invocadas en este turno: {len(r['tools_pedidas'])}**")
+            out.append("")
+            for i, tp in enumerate(r["tools_pedidas"], 1):
+                tool_name = tp["name"]
+                inputs = tp.get("input", {})
+                out.append(f"#### {turn}.{i} → `{tool_name}`")
+                out.append("")
+                out.append("**Inputs del Perito:**")
+                out.append("```json")
+                out.append(json.dumps(inputs, ensure_ascii=False, indent=2))
+                out.append("```")
+                # Buscar la respuesta correspondiente
+                respuesta = next(
+                    (d for d in by_turn.get(turn, [])
+                     if d["tool"] == tool_name and d["inputs"] == inputs),
+                    None,
+                )
+                if respuesta:
+                    out.append("")
+                    out.append("**Respuesta del especialista:**")
+                    out.append("```json")
+                    out.append(json.dumps(_recortar(respuesta["datos"]),
+                                          ensure_ascii=False, indent=2))
+                    out.append("```")
+                out.append("")
+        else:
+            out.append(f"*(stop_reason: `{r.get('stop_reason')}` — fin de la investigación)*")
+            out.append("")
+
+    out.append("---")
+    out.append("")
+
+    # ── 2. Resumen por agente ───────────────────────────────────────────────
+    out.append("## 2. Resumen por especialista (todos los outputs)")
+    out.append("")
+    by_agente: dict[str, list] = {}
+    for tc in (informe.tool_calls or []):
+        by_agente.setdefault(tc.agente, []).append(tc)
+    for agente, calls in by_agente.items():
+        out.append(f"### {agente} ({len(calls)} llamadas)")
+        for c in calls:
+            out.append(f"- **Pregunta:** {c.pregunta}")
+            out.append(f"  - **Resultado:** {c.resultado_resumen or '—'}")
+            if c.fuentes_consultadas:
+                out.append(f"  - **Fuentes:** {' · '.join(c.fuentes_consultadas)}")
+            if c.falta_info:
+                out.append(f"  - ⚠️ **Falta:** {c.falta_info}")
+            out.append(f"  - **Duración:** {c.duracion_ms or 0} ms")
+        out.append("")
+    out.append("---")
+    out.append("")
+
+    # ── 3. Comparativa lado a lado con IURGI ────────────────────────────────
+    out.append("## 3. Comparativa con el informe IURGI/ITRASA oficial")
+    out.append("")
+    out.append("Sección a sección del PDF oficial vs lo que ha producido Veridict.")
+    out.append("")
+
+    secciones = [
+        ("§2 Tipo de accidente y condiciones del lugar",
+         "Colisión fronto-lateral excéntrica turismo–bicicleta. Vía urbana en pendiente, anchura 3.10–3.20 m, calzada estrecha en curva.",
+         _veredict_seccion_2(informe, caso)),
+        ("§3 Características del lugar (LIDAR 3D)",
+         "Anchura 3.10–3.20 m, distancia visibilidad 26.5 m / >30 m según trayectoria curva, pendiente 9-11.6%.",
+         _veredict_seccion_3(informe, caso)),
+        ("§5 Vehículos implicados",
+         "SEAT Ibiza (anchura 1.64 m según Virtual Crash 5.0). Bicicleta Orbea, sillín 79 cm, manillar 55 cm.",
+         _veredict_seccion_5(informe)),
+        ("§6 Análisis del atestado policial (CRÍTICA)",
+         "Errores: límite genérico 30 km/h erróneo para 2020; croquis sin escala; sin cálculos de velocidad; retroceso 'imposible'; ausencia de pruebas drogas; conclusiones carentes de rigor científico.",
+         _veredict_seccion_6(informe)),
+        ("§7 Análisis de velocidad del turismo",
+         "Daños altos en parabrisas/techo → ≥50 km/h según UC3M-GC 2020.",
+         _veredict_seccion_7(informe)),
+        ("§8 Estudio biomecánico",
+         "Leyes de Newton, Ec=½mv². Energía a 50 km/h: 110.918 J vs 17.747 J reglamentaria (×6.25). Lesiones cefálicas letales por autopsia.",
+         _veredict_seccion_8(informe)),
+        ("§9 Evitabilidad",
+         "A 20 km/h con μ=0.75: detención en 1.89 m / 0.76 s. Tiempo ciclista huella 8 m: 3.33 s. Conductor tenía margen de 1.57 s para evitar la colisión.",
+         _veredict_seccion_9(informe)),
+        ("§10 Condicionantes y posibles causas",
+         "Quebranto Art. 3 RGC (diligencia), Art. 45 RGC (adecuación velocidad), Art. 46 RGC (moderación ante ciclistas/edificios). Conductor vecino conocedor de la vía.",
+         _veredict_seccion_10(informe)),
+        ("§11 Conclusiones (7 puntos)",
+         "1) Fronto-lateral excéntrica. 2) Velocidad excesiva ≥50 km/h (exceso 150%). 3) Energía ×6.25. 4) Lesiones letales coherentes. 5) Conductor sin maniobra evasiva con 3.33 s. 6) Evitable por simple respeto al RGC. 7) Atestado deficiente.",
+         _veredict_seccion_11(informe)),
+    ]
+
+    for titulo, iurgi, veridict in secciones:
+        out.append(f"### {titulo}")
+        out.append("")
+        out.append("| | IURGI/ITRASA oficial | Veridict |")
+        out.append("|---|---|---|")
+        out.append(f"| Contenido | {iurgi} | {veridict} |")
+        out.append("")
+
+    out.append("---")
+    out.append("")
+    out.append("## 4. Conclusiones del Perito Veridict")
+    out.append("")
+    for r in (informe.respuestas or []):
+        out.append(f"### {r.pregunta_id} — confianza {int(r.confianza*100)}%")
+        out.append(f"**Q:** {r.pregunta}")
+        out.append("")
+        out.append(f"**A:** {r.respuesta}")
+        out.append("")
+        if r.citas:
+            out.append("**Citas:**")
+            for c in r.citas:
+                out.append(f"- `[{c.tipo}]` {c.referencia}" + (f" — *{c.extracto}*" if c.extracto else ""))
+            out.append("")
+    out.append("")
+
+    out.append(f"**Confianza global:** {int((informe.confianza_global or 0)*100)}%")
+    return "\n".join(out)
+
+
+def _recortar(d, max_len: int = 600):
+    """Recorta valores largos para que el JSON sea legible en Markdown."""
+    if isinstance(d, dict):
+        return {k: _recortar(v, max_len) for k, v in d.items()}
+    if isinstance(d, list):
+        return [_recortar(x, max_len) for x in d[:8]]   # max 8 items
+    if isinstance(d, str) and len(d) > max_len:
+        return d[:max_len] + "…"
+    return d
+
+
+def _veredict_seccion_2(informe, caso) -> str:
+    parts = []
+    if caso.tipo_colision:
+        parts.append(f"Tipo: {caso.tipo_colision.value}")
+    if informe.contexto_escena:
+        e = informe.contexto_escena
+        if e.via_principal_nombre:
+            parts.append(f"vía: {e.via_principal_nombre}")
+        if e.pendiente_pct is not None:
+            parts.append(f"pendiente: {e.pendiente_pct}%")
+    return "; ".join(parts) or "—"
+
+
+def _veredict_seccion_3(informe, caso) -> str:
+    parts = []
+    if informe.contexto_escena:
+        e = informe.contexto_escena
+        if e.anchura_m: parts.append(f"anchura {e.anchura_m} m (OSM)")
+        if e.pendiente_pct is not None: parts.append(f"pendiente {e.pendiente_pct}% (DEM)")
+        if e.n_imagenes_mapillary: parts.append(f"{e.n_imagenes_mapillary} imágenes Mapillary")
+    if caso.hechos_atestado and caso.hechos_atestado.observaciones:
+        parts.append("observaciones del perito instructor citadas")
+    return "; ".join(parts) or "Datos limitados — sin LIDAR 3D"
+
+
+def _veredict_seccion_5(informe) -> str:
+    out = []
+    for f in informe.fichas_tecnicas or []:
+        out.append(f"{f.marca} {f.modelo}: masa {f.masa_kg} kg, ancho {f.ancho_m} m, "
+                   f"{len(f.sistemas_seguridad)} sistemas seguridad, fuente {f.fuente}")
+    return " · ".join(out) or "—"
+
+
+def _veredict_seccion_6(informe) -> str:
+    if not informe.conformidad_atestado:
+        return "No analizada"
+    c = informe.conformidad_atestado
+    return (f"Valoración global: **{c.valoracion_global}**. "
+            f"{len(c.incongruencias)} incongruencias, "
+            f"{len(c.elementos_omitidos)} omisiones detectadas. "
+            f"Reglas R1-R8 aplicadas automáticamente.")
+
+
+def _veredict_seccion_7(informe) -> str:
+    bio = informe.analisis_biomecanico
+    parts = []
+    for c in informe.calculos or []:
+        if "huella" in c.nombre.lower() or "stannard" in (c.formula or "").lower():
+            parts.append(f"velocidad por huella: {c.valor} {c.unidad}")
+    if bio and bio.wad:
+        parts.append(f"WAD {bio.wad.zona_impacto}: {bio.wad.velocidad_min_kmh}-{bio.wad.velocidad_max_kmh} km/h")
+    return "; ".join(parts) or "—"
+
+
+def _veredict_seccion_8(informe) -> str:
+    bio = informe.analisis_biomecanico
+    if not bio:
+        return "—"
+    parts = []
+    if bio.energia_cinetica_kj is not None:
+        parts.append(f"Ec={bio.energia_cinetica_kj} kJ")
+    if bio.probabilidad_ais3_pct is not None:
+        parts.append(f"AIS3+ p={bio.probabilidad_ais3_pct}%")
+    if bio.mecanismos_lesivos_compatibles:
+        parts.append(f"{len(bio.mecanismos_lesivos_compatibles)} mecanismos lesivos identificados")
+    if bio.cadena_4_impactos_sucesivos:
+        parts.append("cadena de 4 impactos documentada")
+    if bio.analisis_craneal:
+        parts.append("análisis cefálico (5 tipos lesión craneal)")
+    return "; ".join(parts) or "—"
+
+
+def _veredict_seccion_9(informe) -> str:
+    parts = []
+    for c in informe.calculos or []:
+        if "detenc" in c.nombre.lower() or "detenc" in (c.formula or "").lower():
+            parts.append(f"{c.nombre}: {c.valor} {c.unidad}")
+    # Buscar también si hay cita de tiempo_huella en respuestas
+    for r in informe.respuestas or []:
+        if "tiempo_huella" in r.respuesta.lower() or "3,08" in r.respuesta or "3.08" in r.respuesta:
+            parts.append("tiempo_huella ciclista: 3.08 s (vs IURGI 3.33 s)")
+            break
+    return "; ".join(parts) or "—"
+
+
+def _veredict_seccion_10(informe) -> str:
+    refs = [n.referencia for n in (informe.normativa_aplicable or [])]
+    return f"{len(refs)} artículos: {', '.join(refs[:6])}" if refs else "—"
+
+
+def _veredict_seccion_11(informe) -> str:
+    n = len(informe.respuestas or [])
+    out = f"{n} conclusiones generadas"
+    if informe.conformidad_atestado and informe.conformidad_atestado.valoracion_global in ("incompleto", "deficiente"):
+        out += " (incluye C-AT crítica al atestado)"
+    return out
 
 
 async def responder_pregunta_perito(

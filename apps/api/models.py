@@ -25,6 +25,7 @@ class TipoColision(str, Enum):
 class Ubicacion(BaseModel):
     lat: float
     lon: float
+    direccion: Optional[str] = None  # "AP-9, p.k. 67,400 sentido Vigo"
 
 
 class Vehiculo(BaseModel):
@@ -284,6 +285,9 @@ class Caso(BaseModel):
     # ── Metadatos ───────────────────────────────────────────────────────────
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
+    # Payload original del formulario (CasoCreate completo) tal cual lo envió
+    # el frontend o el import JSON. Se conserva para poder revisarlo desde la UI.
+    formulario_origen: Optional[dict] = None
 
 
 # ── Request/Response helpers ──────────────────────────────────────────────────

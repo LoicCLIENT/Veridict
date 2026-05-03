@@ -17,7 +17,8 @@
       "mcp__vercel__getprojects",
       "mcp__vercel__createproject",
       "Bash(taskkill:*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(python -c \"import json; print\\(json.load\\(open\\('apps/api/db/casos.json',encoding='utf-8'\\)\\)\\)\")"
     ]
   }
 }

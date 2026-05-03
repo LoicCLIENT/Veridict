@@ -10,6 +10,7 @@ export type TipoColision = 'frontal' | 'lateral' | 'alcance' | 'atropello';
 export interface Ubicacion {
   lat: number;
   lon: number;
+  direccion?: string | null;
 }
 
 export interface Vehiculo {
@@ -258,6 +259,8 @@ export interface Caso {
   // ── Metadatos ───────────────────────────────────────────────────────
   created_at?: string;
   updated_at?: string;
+  // Payload original del formulario / import JSON (forma de CasoCreate)
+  formulario_origen?: CasoCreate | null;
 }
 
 export interface CasoCreate {
@@ -444,6 +447,44 @@ export interface InformePericial {
 export interface RespuestaPeritoInput {
   info_id: string;
   respuesta: string;
+}
+
+// ── Razonamiento del orquestador (trace turno a turno) ───────────────────────
+
+export interface ToolCallTrace {
+  tool: string;
+  inputs: Record<string, unknown>;
+  respuesta_resumen?: string | null;
+  respuesta_completa?: Record<string, unknown> | null;
+}
+
+export interface TurnoOrquestador {
+  turno: number;
+  razonamiento: string;
+  tools_pedidas: ToolCallTrace[];
+  stop_reason?: string | null;
+}
+
+export type EstadoRazonamiento =
+  | "iniciando"
+  | "contexto_listo"
+  | "llamando_perito"
+  | "dispatch"
+  | "cerrando"
+  | "completado"
+  | "error";
+
+export interface RazonamientoOrquestador {
+  caso_id: string;
+  estado?: EstadoRazonamiento;
+  mensaje?: string;
+  error?: string | null;
+  started_at?: string | null;
+  updated_at?: string | null;
+  en_vivo?: boolean;
+  n_turnos: number;
+  n_tool_calls: number;
+  turnos: TurnoOrquestador[];
 }
 
 export interface EstadoAnalisis {

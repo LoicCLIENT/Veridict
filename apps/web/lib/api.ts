@@ -4,6 +4,7 @@ import type {
   Resultado,
   EstadoAnalisis,
   InformePericial as InformePericialT,
+  RazonamientoOrquestador as RazonamientoOrquestadorT,
 } from "@veridict/types";
 
 export type {
@@ -78,6 +79,21 @@ export const api = {
       body: JSON.stringify(data),
     }).then((r) => handle<Caso>(r, "Error creating caso")),
 
+  importarCasoJson: async (file: File): Promise<Caso> => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch(`${API_BASE}/api/casos/import-json`, {
+      method: "POST",
+      body: formData,
+    });
+    if (!res.ok) {
+      let detail = "";
+      try { detail = (await res.json()).detail || ""; } catch {}
+      throw new Error(`Error importando JSON (${res.status})${detail ? `: ${detail}` : ""}`);
+    }
+    return res.json();
+  },
+
   // Upload
   uploadAtestado: async (casoId: string, file: File): Promise<void> => {
     const formData = new FormData();
@@ -126,17 +142,6 @@ export const api = {
     return res.blob();
   },
 
-  // Demo
-  getDemoCasos: (): Promise<Caso[]> =>
-    fetch(`${API_BASE}/api/demo/casos`).then((r) =>
-      handle<Caso[]>(r, "Error fetching demo casos")
-    ),
-
-  resetDemoCaso: async (casoId: string): Promise<void> => {
-    const res = await fetch(`${API_BASE}/api/demo/casos/${casoId}/reset`, { method: "POST" });
-    if (!res.ok) throw new Error(`Error resetting demo caso (${res.status})`);
-  },
-
   // ── Peritaje v2: informe estructurado + chat info faltante ────────────────
   generarInforme: (casoId: string): Promise<InformePericialT> =>
     fetch(`${API_BASE}/api/casos/${casoId}/informe`, { method: "POST" }).then((r) =>
@@ -148,16 +153,33 @@ export const api = {
       handle<InformePericialT>(r, "Error obteniendo informe")
     ),
 
+  getRazonamiento: (casoId: string): Promise<RazonamientoOrquestadorT> =>
+    fetch(`${API_BASE}/api/casos/${casoId}/razonamiento`).then((r) =>
+      handle<RazonamientoOrquestadorT>(r, "Error obteniendo razonamiento")
+    ),
+
   responderInfoFaltante: (
     casoId: string,
     infoId: string,
     respuesta: string
   ): Promise<InformePericialT> =>
-    fetch(`${API_BASE}/api/casos/${casoId}/responder`, {
+    fetch(`${API_BASE}/api/casos/${casoId}/responder-incremental`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ info_id: infoId, respuesta }),
     }).then((r) => handle<InformePericialT>(r, "Error enviando respuesta")),
+
+  // Edición manual del perito sobre una respuesta del informe (sin LLM)
+  editarRespuesta: (
+    casoId: string,
+    preguntaId: string,
+    cambios: { respuesta?: string; confianza?: number },
+  ): Promise<InformePericialT> =>
+    fetch(`${API_BASE}/api/casos/${casoId}/informe/respuesta/${preguntaId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(cambios),
+    }).then((r) => handle<InformePericialT>(r, "Error editando respuesta")),
 
   health: async (): Promise<boolean> => {
     try {
