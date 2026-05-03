@@ -112,6 +112,8 @@ REGLAS:
 
    Si una categoría no tiene match (`requiere_foto=true`), AÑÁDELA a `info_faltante` con la pregunta concreta. Si SÍ tiene match, CITA la imagen en la respuesta correspondiente con `{"tipo":"imagen","referencia":"<id corto> — <descripción>"}`.
 
+   FORMATO DE LA REFERENCIA — OBLIGATORIO. El `<id corto>` es el primer fragmento (8 chars) del `id` UUID que te devolvió `buscar_foto_perito`/`listar_biblioteca_fotos`/`generar_frame_simulacion` (ej. para `id="e2a59537-1c4d-..."` → `e2a59537`). DEBE ir AL INICIO de la `referencia`, sin paréntesis ni etiquetas previas. Ejemplos válidos: `"e2a59537 — Parabrisas frontal fracturado"`, `"3a7702e0 — Frame croquis_general v_A=50 v_B=34.9"`. Ejemplos PROHIBIDOS: `"FOTO-PARABRISAS-01 (e2a59537) — ..."`, `"SimulacionAgent — croquis (3a7702e0) — ..."`, `"e2a59537-1c4d-... — ..."`. Si no recuerdas el id, NO inventes una etiqueta: vuelve a llamar a la tool correspondiente.
+
    El objetivo es que el informe final esté SUSTENTADO POR EVIDENCIA VISUAL del expediente, no solo por números. Apunta a 4-8 imágenes citadas si el catálogo lo permite.
 
 5. CITAS OBLIGATORIAS. Toda afirmación cuantitativa o normativa va con cita {tipo, referencia, extracto}.
@@ -247,7 +249,7 @@ async def coordinar(caso: Caso, *, caso_id: str | None = None) -> dict:  # noqa:
         try:
             resp = await client.messages.create(
                 model=MODEL_PERITO_DEFAULT,
-                max_tokens=4096,
+                max_tokens=12000,
                 system=SYSTEM_PROMPT,
                 tools=TOOLS,
                 messages=messages,
@@ -259,7 +261,7 @@ async def coordinar(caso: Caso, *, caso_id: str | None = None) -> dict:  # noqa:
                 try:
                     resp = await client.messages.create(
                         model=settings.model_sonnet,
-                        max_tokens=4096,
+                        max_tokens=12000,
                         system=SYSTEM_PROMPT,
                         tools=TOOLS,
                         messages=messages,
@@ -342,23 +344,32 @@ async def coordinar(caso: Caso, *, caso_id: str | None = None) -> dict:  # noqa:
             messages.append({"role": "user", "content": tool_results})
             continue
 
-        # stop_reason == "end_turn" → buscamos JSON final en los bloques de texto
-        print(f"[perito] turno {turn + 1} stop_reason=end_turn → cerrando informe", flush=True)
+        # stop_reason == "end_turn" o "max_tokens" → buscamos JSON final en los bloques de texto
+        truncado = resp.stop_reason == "max_tokens"
+        print(f"[perito] turno {turn + 1} stop_reason={resp.stop_reason} → cerrando informe"
+              + (" (TRUNCADO por max_tokens, forzaré cierre limpio)" if truncado else ""),
+              flush=True)
         if caso_id:
             trace_store.update(caso_id, estado="cerrando",
                                mensaje="Redactando informe pericial final…")
         text_out = "".join(b.text for b in resp.content if getattr(b, "type", None) == "text")
-        try:
-            final_json = _extract_json(text_out)
-        except Exception:
-            # Forzar un turno final pidiendo SOLO el JSON
-            print("[perito] JSON no parseable, forzando cierre…", flush=True)
-            if caso_id:
-                trace_store.update(caso_id, estado="cerrando",
-                                   mensaje="Forzando cierre del JSON pericial…")
+        if truncado:
+            # No intentamos parsear JSON truncado — vamos directo al cierre forzado.
             final_json = await _forzar_json_final(client, settings, messages)
             if final_json is None:
-                error = "El Perito no devolvió un JSON parseable tras forzar el cierre."
+                error = "El Perito truncó la respuesta y el cierre forzado tampoco devolvió JSON válido."
+        else:
+            try:
+                final_json = _extract_json(text_out)
+            except Exception:
+                # Forzar un turno final pidiendo SOLO el JSON
+                print("[perito] JSON no parseable, forzando cierre…", flush=True)
+                if caso_id:
+                    trace_store.update(caso_id, estado="cerrando",
+                                       mensaje="Forzando cierre del JSON pericial…")
+                final_json = await _forzar_json_final(client, settings, messages)
+                if final_json is None:
+                    error = "El Perito no devolvió un JSON parseable tras forzar el cierre."
         if caso_id and final_json:
             trace_store.update(caso_id, informe_borrador=final_json,
                                mensaje="Informe redactado, ensamblando vista final…")
@@ -424,7 +435,7 @@ async def _forzar_json_final(client, settings, messages: list[dict]) -> dict | N
         try:
             resp = await client.messages.create(
                 model=model,
-                max_tokens=8192,
+                max_tokens=16000,
                 system=CLOSING_SYSTEM,
                 messages=list(messages) + [closing_user],
             )

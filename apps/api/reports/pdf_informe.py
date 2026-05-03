@@ -208,10 +208,16 @@ def _resolve_imagen_cita(referencia: str, caso, informe) -> tuple[Optional[str],
         return None, None
     ref = referencia.strip()
 
-    # 1. Prefijo hexadecimal al inicio (`51781a2e — ...` o `bce1a083`)
-    m = re.match(r"^[\W_]*([a-f0-9]{6,32})\b", ref, flags=re.IGNORECASE)
-    if m:
-        prefix = m.group(1).lower()
+    # 1. Token hexadecimal en CUALQUIER posición de la referencia (al inicio
+    # `51781a2e — ...`, entre paréntesis `FOTO-PARABRISAS-01 (e2a59537)`, o tras
+    # un prefijo `SimulacionAgent — croquis_general (3a7702e0)`). Exigimos al
+    # menos un dígito en el token para descartar palabras inglesas que sólo
+    # contengan letras a-f (p.ej. "facade", "decade").
+    hex_tokens = re.findall(r"\b([a-f0-9]{6,32})\b", ref, flags=re.IGNORECASE)
+    for tok in hex_tokens:
+        if not any(ch.isdigit() for ch in tok):
+            continue
+        prefix = tok.lower()
         for foto in (caso.fotos or []):
             if (foto.id or "").lower().startswith(prefix) and foto.url:
                 return foto.url, foto.descripcion or ref
