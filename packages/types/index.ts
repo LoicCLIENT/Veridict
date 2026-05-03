@@ -427,6 +427,123 @@ export interface ToolCallLog {
   timestamp?: string;
 }
 
+// ── SimulationAgent: escena cenital animable ─────────────────────────────────
+
+export type TipoActorSimulacion =
+  | 'turismo'
+  | 'motocicleta'
+  | 'bicicleta'
+  | 'peaton'
+  | 'ciclomotor'
+  | 'camion'
+  | 'autobus'
+  | 'mobiliario_urbano';
+
+export type TipoViaSimulacion =
+  | 'recta'
+  | 'curva'
+  | 'interseccion'
+  | 'urbana_estrecha'
+  | 'autovia';
+
+export type TipoObstaculoEscena =
+  | 'edificio'
+  | 'muro'
+  | 'zona_terriza'
+  | 'talud'
+  | 'poste'
+  | 'farola'
+  | 'senal'
+  | 'vegetacion'
+  | 'acera'
+  | 'bordillo'
+  | 'quitamiedos'
+  | 'barrera'
+  | 'otro';
+
+export interface TrayectoriaPunto {
+  x: number;
+  y: number;
+  t: number;          // segundos
+  v_kmh: number;
+  rotation_deg?: number | null;
+  frenando?: boolean | null;
+}
+
+export interface ActorSimulacion {
+  id: string;
+  tipo: TipoActorSimulacion;
+  etiqueta: string;
+  color?: string | null;
+  largo_m: number;
+  ancho_m: number;
+  masa_kg?: number | null;
+  trayectoria: TrayectoriaPunto[];
+  velocidad_inicial_kmh?: number | null;
+  velocidad_impacto_kmh?: number | null;
+  frena_desde_t?: number | null;
+}
+
+export interface ObstaculoEscena {
+  tipo: TipoObstaculoEscena;
+  poligono: Array<[number, number]>;
+  altura_m?: number | null;
+  limita_visibilidad?: boolean;
+  descripcion?: string | null;
+}
+
+export interface HuellaSimulacion {
+  actor_id?: string | null;
+  tipo: 'frenada' | 'derrape' | 'arrastre' | string;
+  inicio: [number, number];
+  fin: [number, number];
+  longitud_m?: number | null;
+}
+
+export interface ViaSimulacion {
+  tipo: TipoViaSimulacion;
+  carriles: number;
+  ancho_carril_m: number;
+  ancho_total_m?: number | null;
+  limite_kmh: number;
+  pendiente_pct?: number | null;
+  superficie?: string | null;
+  sentido_unico?: boolean | null;
+  /** Eje central de la calzada. Si tiene ≥2 puntos, el renderer dibuja la
+   *  vía siguiendo este path con stroke-width = ancho_total_m. Vacío = recta horizontal. */
+  eje_via?: Array<[number, number]>;
+}
+
+export interface ImpactoSimulacion {
+  x: number;
+  y: number;
+  t: number;
+  angulo_deg: number;
+  delta_v_por_actor: Record<string, number>;
+}
+
+export interface MetaEscenaSimulacion {
+  meteo?: string | null;
+  condicion_calzada?: string | null;
+  visibilidad_m?: number | null;
+  direccion?: string | null;
+  lat?: number | null;
+  lon?: number | null;
+  es_dia?: boolean | null;
+}
+
+export interface EscenaSimulacionData {
+  via: ViaSimulacion;
+  actores: ActorSimulacion[];
+  impacto?: ImpactoSimulacion | null;
+  obstaculos?: ObstaculoEscena[];
+  huellas?: HuellaSimulacion[];
+  meta: MetaEscenaSimulacion;
+  duracion_s: number;
+  falta_info?: string[];
+  descripcion?: string | null;
+}
+
 export interface InformePericial {
   resumen_caso: string;
   fichas_tecnicas: FichaTecnicaVehiculo[];
@@ -439,6 +556,7 @@ export interface InformePericial {
   chat: MensajeChat[];
   tool_calls: ToolCallLog[];
   imagenes: ImagenAnalizada[];
+  simulacion_escena?: EscenaSimulacionData | null;
   confianza_global: number;
   pdf_url?: string | null;
   sigstore_hash?: string | null;
@@ -485,6 +603,9 @@ export interface RazonamientoOrquestador {
   n_turnos: number;
   n_tool_calls: number;
   turnos: TurnoOrquestador[];
+  /** JSON parcial del informe que va devolviendo el orquestador en su turno final.
+   * Se rellena solo cuando el orquestador termina la fase de investigación. */
+  informe_borrador?: Record<string, unknown> | null;
 }
 
 export interface EstadoAnalisis {

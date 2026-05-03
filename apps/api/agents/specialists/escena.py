@@ -110,16 +110,25 @@ async def analizar_escena(
 
     # Marcar incertidumbres explícitas del DEM/OSM para que el Perito las traduzca
     # a info_faltante en el panel de preguntas al perito humano.
-    pendiente = elev.get("pendiente_pct")
+    pendiente_raw = elev.get("pendiente_pct")
     advertencias_dato: list[str] = []
-    if pendiente is not None and pendiente > 30:
+    pendiente: Optional[float]
+    pendiente_descartada: Optional[float] = None
+    if pendiente_raw is not None and abs(pendiente_raw) > 30:
+        # DEM SRTM ha muestreado un talud lateral, no la traza. Descartamos el
+        # dato para que NO aparezca en el informe ni induzca a error al perito
+        # (caso Aulestia: DEM devolvió 68 % en una vía con pendiente real ~10 %).
+        pendiente_descartada = pendiente_raw
+        pendiente = None
         advertencias_dato.append(
-            f"La pendiente devuelta por el DEM ({pendiente}%) es físicamente inverosímil "
-            f"para una vía rodada abierta a tráfico (>30%). Probablemente el muestreo "
-            f"radial del DEM ha caído en un talud lateral, no en la traza de la vía. "
-            f"Solicita al perito la pendiente medida in situ o aportada por el atestado."
+            f"La pendiente devuelta por el DEM ({pendiente_raw}%) es físicamente "
+            f"inverosímil para una vía rodada (>30%) — descartada. El muestreo "
+            f"radial del DEM probablemente cayó en un talud lateral. Aporta la "
+            f"pendiente medida in situ o consignada en el atestado."
         )
-    if pendiente is None:
+    else:
+        pendiente = pendiente_raw
+    if pendiente is None and pendiente_descartada is None:
         advertencias_dato.append(
             "No se ha podido obtener pendiente fiable del DEM. Solicita al perito "
             "la pendiente medida in situ."
@@ -135,11 +144,16 @@ async def analizar_escena(
             "OSM no registra `maxspeed` para esta vía. Solicita al perito la "
             "limitación reglamentaria del tramo (genérica o por señal específica)."
         )
-    visibilidad_estimada_m = None  # OSM no aporta visibilidad efectiva — se debe medir
+    # Visibilidad efectiva: OSM no la aporta. Es un dato CRÍTICO para evitabilidad
+    # (el art. 45 RGC obliga a poder detenerse dentro del campo de visión). Lo
+    # exponemos explícitamente como campo dedicado para que el frontend pinte
+    # "pendiente de medir in situ" en lugar de omitirlo.
+    visibilidad_efectiva_m: Optional[float] = None
     if vias:
         advertencias_dato.append(
-            "La distancia de visibilidad efectiva NO se puede derivar de OSM. "
-            "Solicita al perito la medición in situ o el escaneo láser 3D del tramo."
+            "Falta visibilidad efectiva del tramo (m): no se deriva de OSM ni del "
+            "DEM. Aporta la medición in situ o escaneo láser 3D — es clave para "
+            "el análisis de evitabilidad ex art. 45 RGC."
         )
 
     datos = {
@@ -157,8 +171,10 @@ async def analizar_escena(
         "elevacion_m": elev.get("elevacion_m"),
         "pendiente_pct": pendiente,
         "pendiente_media_pct": elev.get("pendiente_media_pct"),
-        "pendiente_fiable": pendiente is not None and pendiente <= 30,
-        "visibilidad_estimada_m": visibilidad_estimada_m,
+        "pendiente_fiable": pendiente is not None,
+        "pendiente_descartada_pct": pendiente_descartada,
+        "visibilidad_efectiva_m": visibilidad_efectiva_m,
+        "visibilidad_efectiva_fuente": None,
         "advertencias_dato": advertencias_dato,
         "imagenes_disponibles": len(imagenes),
         "fuentes": fuentes,
@@ -177,10 +193,15 @@ async def analizar_escena(
         requiere_foto = True
 
     nombre_via = via_principal.get("name") if via_principal else None
+    pendiente_str = (
+        f"{pendiente}%" if pendiente is not None
+        else (f"DEM={pendiente_descartada}% (descartada, inverosímil)"
+              if pendiente_descartada is not None else "no disponible")
+    )
     resumen = (
         f"Vía: {nombre_via or via_principal.get('highway') if via_principal else 'desconocida'}, "
         f"vmáx OSM: {via_principal.get('maxspeed') if via_principal else '—'}, "
-        f"pendiente: {elev.get('pendiente_pct')}%, señales: {len(senales)}, "
+        f"pendiente: {pendiente_str}, señales: {len(senales)}, "
         f"imágenes Mapillary: {len(imagenes)}, "
         f"radio efectivo: {radio_efectivo} m"
     )

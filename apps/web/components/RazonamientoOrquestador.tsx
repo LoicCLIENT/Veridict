@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import type { RazonamientoOrquestador, TurnoOrquestador, ToolCallTrace } from "@veridict/types";
+import { BorradorEnVivo } from "./BorradorEnVivo";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -64,10 +65,18 @@ const TOOL_META: Record<
     panel: "legal",
     panelLabel: "Marco legal",
   },
-  simular_fisica: {
-    icon: "🧮",
+  calcular_fisica: {
+    icon: "📐",
     color: "text-amber-300",
-    label: "SimulacionAgent",
+    label: "PhysicsAgent",
+    panel: "calculos",
+    panelLabel: "Cálculos",
+  },
+  // Alias deprecado — runs viejos
+  simular_fisica: {
+    icon: "📐",
+    color: "text-amber-300",
+    label: "PhysicsAgent",
     panel: "calculos",
     panelLabel: "Cálculos",
   },
@@ -85,10 +94,18 @@ const TOOL_META: Record<
     panel: "confrontacion",
     panelLabel: "Confrontación",
   },
+  generar_frame_simulacion: {
+    icon: "🎬",
+    color: "text-indigo-300",
+    label: "SimulacionAgent",
+    panel: "mapa",
+    panelLabel: "Simulación",
+  },
+  // Alias deprecado — runs viejos
   obtener_frame_simulacion: {
     icon: "🎬",
     color: "text-indigo-300",
-    label: "SimulacionFrames",
+    label: "SimulacionAgent",
     panel: "mapa",
     panelLabel: "Simulación",
   },
@@ -310,15 +327,18 @@ export function RazonamientoOrquestadorView({ casoId, onNavigateToPanel }: Props
         </CardContent>
       </Card>
 
+      {/* Borrador en vivo: el informe se va montando */}
+      <BorradorEnVivo data={data} />
+
       {/* Timeline de turnos */}
       <div className="relative">
         {/* Línea vertical */}
         <div className="absolute left-[19px] top-2 bottom-2 w-px bg-zinc-800" aria-hidden />
 
         <div className="space-y-3">
-          {data.turnos.map((t) => (
+          {data.turnos.map((t, idx) => (
             <TurnoCard
-              key={t.turno}
+              key={`${t.turno}-${idx}`}
               turno={t}
               expanded={expandedTurns.has(t.turno)}
               onToggle={() => toggleTurn(t.turno)}

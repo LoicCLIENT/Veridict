@@ -19,6 +19,7 @@ Estructura UNE-EN 16775 + ITRASA-style:
 from __future__ import annotations
 
 import io
+import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Optional
@@ -191,6 +192,173 @@ def _embed_remote_image(url: str, max_w_cm: float = 14, max_h_cm: float = 10):
                      kind="proportional")
     except Exception:
         return None
+
+
+def _resolve_imagen_cita(referencia: str, caso, informe) -> tuple[Optional[str], Optional[str]]:
+    """Mapea una referencia de cita 'imagen' (ej. '51781a2e — Parabrisas…') a la URL real
+    de la foto del perito o de un frame de simulación.
+
+    Devuelve (url, descripcion) o (None, None) si no se puede resolver.
+    Estrategia:
+      1. Prefijo hex 6-8 chars → busca foto con id que empiece igual.
+      2. Match parcial sobre informe.imagenes (URL + descripción).
+      3. Match por palabras clave sobre descripción de las fotos del caso.
+    """
+    if not referencia:
+        return None, None
+    ref = referencia.strip()
+
+    # 1. Prefijo hexadecimal al inicio (`51781a2e — ...` o `bce1a083`)
+    m = re.match(r"^[\W_]*([a-f0-9]{6,32})\b", ref, flags=re.IGNORECASE)
+    if m:
+        prefix = m.group(1).lower()
+        for foto in (caso.fotos or []):
+            if (foto.id or "").lower().startswith(prefix) and foto.url:
+                return foto.url, foto.descripcion or ref
+        # Buscar también en informe.imagenes (frames y similares contienen el hash en URL)
+        for img in (informe.imagenes or []):
+            if img.url and prefix in img.url.lower():
+                return img.url, img.descripcion or ref
+
+    # 2. Frames Veridict — referencia textual tipo "Frame Veridict — impacto"
+    low = ref.lower()
+    if "frame" in low or "simulacion" in low or "simulación" in low:
+        keywords = [k for k in ("impacto", "pre_impacto", "post_impacto", "croquis", "huellas")
+                    if k in low.replace(" ", "_")]
+        for img in (informe.imagenes or []):
+            src = (img.fuente or "").lower()
+            if not src.startswith("simulacion"):
+                continue
+            url_low = (img.url or "").lower()
+            if not keywords or any(k in url_low for k in keywords):
+                return img.url, img.descripcion or ref
+
+    # 3. Match por keywords (palabras ≥4 chars) sobre descripción de fotos
+    descr_part = ref.split("—", 1)[1].strip() if "—" in ref else ref
+    keywords = [w.lower() for w in re.findall(r"\w{4,}", descr_part)]
+    if keywords:
+        best, best_score = None, 0
+        for foto in (caso.fotos or []):
+            if not foto.url:
+                continue
+            haystack = " ".join([foto.descripcion or "", " ".join(foto.tags or []),
+                                  foto.tipo.value if foto.tipo else ""]).lower()
+            score = sum(1 for k in keywords if k in haystack)
+            if score > best_score:
+                best, best_score = foto, score
+        if best and best_score >= 2:
+            return best.url, best.descripcion or ref
+
+    return None, None
+
+
+def _imagen_inline_for_ref(referencia: str, caso, informe, uploads_root: Path,
+                            max_w_cm: float = 7.5, max_h_cm: float = 5.5):
+    """Devuelve un objeto Image/Drawing listo para embeber, o None."""
+    url, _desc = _resolve_imagen_cita(referencia, caso, informe)
+    if not url:
+        return None
+    if url.lower().endswith(".svg"):
+        return _embed_svg_local(url, uploads_root, max_w_cm=max_w_cm, max_h_cm=max_h_cm)
+    rl = _embed_local_image(url, uploads_root, max_w_cm=max_w_cm, max_h_cm=max_h_cm)
+    if rl is None:
+        rl = _embed_remote_image(url, max_w_cm=max_w_cm, max_h_cm=max_h_cm)
+    return rl
+
+
+def _grid_fotos_por_tipo(fotos, tipos: tuple[str, ...], uploads_root: Path, s,
+                          max_items: int = 4) -> Optional[Table]:
+    """Construye una rejilla 2-col con fotos del caso filtradas por tipo (TipoFoto)."""
+    items = []
+    for foto in fotos:
+        if not foto.url:
+            continue
+        ftipo = foto.tipo.value if foto.tipo else None
+        if ftipo not in tipos:
+            continue
+        img_obj = _embed_local_image(foto.url, uploads_root, max_w_cm=7.2, max_h_cm=5.2)
+        if img_obj is None:
+            continue
+        items.append((img_obj, foto.descripcion or ftipo or ""))
+        if len(items) >= max_items:
+            break
+
+    if not items:
+        return None
+
+    rows = []
+    for i in range(0, len(items), 2):
+        row = []
+        for j in (0, 1):
+            if i + j < len(items):
+                img_obj, pie = items[i + j]
+                row.append([img_obj, Spacer(1, 2),
+                            Paragraph(f"<i>{_safe(pie)[:140]}</i>", s["Small"])])
+            else:
+                row.append("")
+        rows.append(row)
+
+    t = Table(rows, colWidths=[7.8 * cm, 7.8 * cm])
+    t.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 4),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+    ]))
+    return t
+
+
+def _grid_imagenes_citadas(citas, caso, informe, uploads_root: Path, s) -> Optional[Table]:
+    """Construye una tabla 2-col con thumbs+pie para todas las citas de tipo 'imagen'.
+
+    Devuelve None si no hay imágenes resolubles.
+    """
+    items: list[tuple] = []
+    seen_urls: set[str] = set()
+    for c in citas:
+        if c.tipo != "imagen":
+            continue
+        url, desc = _resolve_imagen_cita(c.referencia or "", caso, informe)
+        if not url or url in seen_urls:
+            continue
+        seen_urls.add(url)
+        if url.lower().endswith(".svg"):
+            img_obj = _embed_svg_local(url, uploads_root, max_w_cm=7.2, max_h_cm=5.2)
+        else:
+            img_obj = _embed_local_image(url, uploads_root, max_w_cm=7.2, max_h_cm=5.2)
+            if img_obj is None:
+                img_obj = _embed_remote_image(url, max_w_cm=7.2, max_h_cm=5.2)
+        if img_obj is not None:
+            items.append((img_obj, desc or c.referencia))
+
+    if not items:
+        return None
+
+    rows = []
+    for i in range(0, len(items), 2):
+        cell_a = items[i]
+        cell_b = items[i + 1] if i + 1 < len(items) else None
+        row = []
+        for cell in (cell_a, cell_b):
+            if cell is None:
+                row.append("")
+                continue
+            img_obj, pie = cell
+            mini = [img_obj, Spacer(1, 2),
+                    Paragraph(f"<i>{_safe(pie)[:160]}</i>", s["Small"])]
+            row.append(mini)
+        rows.append(row)
+
+    t = Table(rows, colWidths=[7.8 * cm, 7.8 * cm])
+    t.setStyle(TableStyle([
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("LEFTPADDING", (0, 0), (-1, -1), 4),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+        ("TOPPADDING", (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
+    ]))
+    return t
 
 
 def _embed_svg_local(url: str, uploads_root: Path, max_w_cm: float = 16, max_h_cm: float = 11):
@@ -373,6 +541,18 @@ def generar_pdf(informe: InformePericial, caso: Caso, output_path: Path) -> Path
                 + (f". {_safe(l.secuelas)}" if l.secuelas else ""),
                 s["Body"]))
 
+    # Páginas del atestado y huellas en calzada (estilo IURGI: prueba documental inline)
+    grid_atestado = _grid_fotos_por_tipo(
+        caso.fotos or [],
+        tipos=("atestado_pagina", "escena_huellas", "croquis"),
+        uploads_root=uploads_root, s=s, max_items=4,
+    )
+    if grid_atestado is not None:
+        story.append(Spacer(1, 6))
+        story.append(Paragraph("<b>Documentación gráfica del atestado y de la escena:</b>", s["H2"]))
+        story.append(grid_atestado)
+        story.append(Spacer(1, 6))
+
     # ─────────────────── 2.bis CONTEXTO METEO/SOL ────────────────────────────
     if informe.contexto_meteo:
         story.append(Paragraph("2.1 Condiciones ambientales en el momento del siniestro", s["H2"]))
@@ -474,6 +654,24 @@ def generar_pdf(informe: InformePericial, caso: Caso, output_path: Path) -> Path
                 s["Body"]))
         if f.fuente:
             story.append(Paragraph(f"<i>Fuente:</i> {_safe(f.fuente)}", s["Small"]))
+
+        # Fotos del vehículo (frontales/laterales/daños) inline
+        fotos_vehiculo = [
+            foto for foto in (caso.fotos or [])
+            if foto.url and foto.vehiculo_id == f.vehiculo_id
+            and foto.tipo and foto.tipo.value.startswith("vehiculo_")
+        ]
+        if fotos_vehiculo:
+            grid_v = _grid_fotos_por_tipo(
+                fotos_vehiculo,
+                tipos=("vehiculo_frontal", "vehiculo_trasero",
+                       "vehiculo_lateral_izq", "vehiculo_lateral_dch",
+                       "vehiculo_detalle_dano", "vehiculo_general"),
+                uploads_root=uploads_root, s=s, max_items=4,
+            )
+            if grid_v is not None:
+                story.append(Spacer(1, 4))
+                story.append(grid_v)
         story.append(Spacer(1, 4))
 
     # ─────────────────── 4. ANÁLISIS TÉCNICO ────────────────────────────────
@@ -579,6 +777,48 @@ def generar_pdf(informe: InformePericial, caso: Caso, output_path: Path) -> Path
                 if img.descripcion:
                     story.append(Paragraph(_safe(img.descripcion), s["Small"]))
                 story.append(Spacer(1, 4))
+
+    # ─────────────── 6.bis CRONOLOGÍA VISUAL DEL SINIESTRO ──────────────────
+    cronologia_eventos = [
+        e for e in (informe.cronologia or [])
+        if (e.frame_url or e.descripcion_visual or e.t_simulacion_s is not None)
+    ]
+    if cronologia_eventos:
+        story.append(PageBreak())
+        story.append(Paragraph(
+            "6.bis Cronología visual del siniestro (reconstrucción cenital)", s["H1"]
+        ))
+        story.append(_section_rule(s))
+        story.append(Paragraph(
+            "Línea de tiempo pericial enlazada con la simulación cenital. Cada "
+            "instante muestra las posiciones de los actores, las trayectorias "
+            "recorridas hasta ese momento y, cuando aplica, el punto de impacto.",
+            s["Body"]
+        ))
+        story.append(Spacer(1, 6))
+
+        for i, ev in enumerate(cronologia_eventos):
+            block: list = []
+            t_lbl = (
+                f"t = {ev.t_simulacion_s:.2f} s"
+                if ev.t_simulacion_s is not None
+                else f"t = {ev.timestamp:.2f} s"
+            )
+            block.append(Paragraph(
+                f"<b>{t_lbl}</b> — {_safe(ev.descripcion)}", s["Body"]
+            ))
+            if ev.frame_url:
+                drawing = _embed_svg_local(
+                    ev.frame_url, uploads_root, max_w_cm=15.5, max_h_cm=8.5,
+                )
+                if drawing is not None:
+                    block.append(drawing)
+            if ev.descripcion_visual:
+                block.append(Paragraph(
+                    f"<i>{_safe(ev.descripcion_visual)}</i>", s["Small"]
+                ))
+            block.append(Spacer(1, 8))
+            story.append(KeepTogether(block))
 
     # ─────────────────── 7. ESTUDIO BIOMECÁNICO ─────────────────────────────
     bio = informe.analisis_biomecanico
@@ -784,6 +1024,14 @@ def generar_pdf(informe: InformePericial, caso: Caso, output_path: Path) -> Path
                 f"<font color='{PRIMARY.hexval()}'><b>{_safe(r.pregunta_id)}.</b></font> "
                 f"<b>{_safe(r.pregunta)}</b>", s["H2"]))
             block.append(Paragraph(_safe(r.respuesta), s["Body"]))
+
+            # Rejilla de fotos citadas inline (estilo IURGI/ITRASA)
+            grid = _grid_imagenes_citadas(r.citas or [], caso, informe, uploads_root, s)
+            if grid is not None:
+                block.append(Spacer(1, 6))
+                block.append(grid)
+                block.append(Spacer(1, 4))
+
             if r.citas:
                 cit = " &nbsp; ".join(
                     [f"<font color='#1e40af'>[{_safe(c.tipo)}: {_safe(c.referencia)}]</font>"
@@ -796,7 +1044,12 @@ def generar_pdf(informe: InformePericial, caso: Caso, output_path: Path) -> Path
                 f"Confianza de la respuesta: <b>{int(round(r.confianza * 100))}%</b></font>",
                 s["Small"]))
             block.append(Spacer(1, 8))
-            story.append(KeepTogether(block))
+            # Si hay imágenes, no fuerces KeepTogether: la respuesta puede ser larga
+            # y las thumbs ocupan media página fácilmente.
+            if grid is not None:
+                story.extend(block)
+            else:
+                story.append(KeepTogether(block))
 
     # ─────────────────── 8.bis CRÍTICA METODOLÓGICA AL ATESTADO ────────────
     if informe.conformidad_atestado:

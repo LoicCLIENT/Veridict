@@ -88,9 +88,17 @@ class Foto(BaseModel):
 
 
 class Evento(BaseModel):
-    timestamp: float       # segundos desde T0
+    timestamp: float       # segundos desde T0 (escala libre del relato)
     descripcion: str
     posicion: Optional[Ubicacion] = None
+    # ── Anclaje visual a la simulación cenital ─────────────────────────────
+    # Si el evento corresponde a un instante concreto de la EscenaSimulacionData,
+    # `t_simulacion_s` lo alinea con su scrubber (0..duracion_s) y `frame_url`
+    # apunta al SVG estático generado por el snapshot specialist.
+    t_simulacion_s: Optional[float] = None
+    frame_url: Optional[str] = None
+    descripcion_visual: Optional[str] = None  # qué se está mostrando en el frame
+    actor_principal_id: Optional[str] = None  # actor protagonista del evento
 
 
 class CalculoFisico(BaseModel):
@@ -381,6 +389,7 @@ class FichaTecnicaVehiculo(BaseModel):
     marca: str
     modelo: str
     anio: Optional[int] = None
+    tipo_vehiculo: Optional[str] = None   # 'turismo', 'furgoneta', 'camion', 'bicicleta', 'motocicleta', 'peaton'
     masa_kg: Optional[float] = None
     longitud_m: Optional[float] = None
     ancho_m: Optional[float] = None
@@ -390,6 +399,10 @@ class FichaTecnicaVehiculo(BaseModel):
     rigidez_a: Optional[float] = None
     rigidez_b: Optional[float] = None
     sistemas_seguridad: list[str] = Field(default_factory=list)
+    # Campos específicos de bicicleta (resto None si no aplica)
+    altura_sillin_m: Optional[float] = None
+    anchura_manillar_m: Optional[float] = None
+    masa_ciclista_estimada_kg: Optional[float] = None
     fuente: Optional[str] = None
     notas: Optional[str] = None
 
@@ -533,7 +546,10 @@ class ContextoEscenaResumen(BaseModel):
     pasos_peatones_proximos: int = 0
     senales: list[dict] = Field(default_factory=list)
     pendiente_pct: Optional[float] = None
+    pendiente_descartada_pct: Optional[float] = None  # DEM dio valor inverosímil (>30 %)
     elevacion_m: Optional[float] = None
+    visibilidad_efectiva_m: Optional[float] = None    # medición in situ aportada por perito
+    visibilidad_efectiva_fuente: Optional[str] = None  # 'in_situ', 'laser_3d', 'atestado'…
     n_imagenes_mapillary: int = 0
     fuentes: list[str] = Field(default_factory=list)
 
@@ -565,6 +581,138 @@ class AnalisisConformidadAtestado(BaseModel):
     recomendaciones: list[str] = Field(default_factory=list)
 
 
+class TipoActorSimulacion(str, Enum):
+    TURISMO = "turismo"
+    MOTOCICLETA = "motocicleta"
+    BICICLETA = "bicicleta"
+    PEATON = "peaton"
+    CICLOMOTOR = "ciclomotor"
+    CAMION = "camion"
+    AUTOBUS = "autobus"
+    MOBILIARIO_URBANO = "mobiliario_urbano"
+
+
+class TipoViaSimulacion(str, Enum):
+    RECTA = "recta"
+    CURVA = "curva"
+    INTERSECCION = "interseccion"
+    URBANA_ESTRECHA = "urbana_estrecha"
+    AUTOVIA = "autovia"
+
+
+class TipoObstaculoEscena(str, Enum):
+    EDIFICIO = "edificio"
+    MURO = "muro"
+    ZONA_TERRIZA = "zona_terriza"
+    TALUD = "talud"
+    POSTE = "poste"
+    FAROLA = "farola"
+    SENAL = "senal"
+    VEGETACION = "vegetacion"
+    ACERA = "acera"
+    BORDILLO = "bordillo"
+    QUITAMIEDOS = "quitamiedos"
+    BARRERA = "barrera"
+    OTRO = "otro"
+
+
+class TrayectoriaPunto(BaseModel):
+    """Un instante en la trayectoria de un actor (vista cenital, m/s/km/h)."""
+    x: float                           # metros, eje E-O (norte = +Y)
+    y: float                           # metros, eje N-S
+    t: float                           # segundos desde t=0 (inicio animación)
+    v_kmh: float                       # módulo velocidad
+    rotation_deg: Optional[float] = None  # heading en grados (0 = +X / este)
+    frenando: Optional[bool] = None
+
+
+class ActorSimulacion(BaseModel):
+    """Un interviniente con su geometría y trayectoria temporal."""
+    id: str                                            # "turismo_seat", "ciclista_iurgi"
+    tipo: TipoActorSimulacion
+    etiqueta: str                                      # "SEAT Ibiza 3526-BKL"
+    color: Optional[str] = None
+    largo_m: float = 0.0
+    ancho_m: float = 0.0
+    masa_kg: Optional[float] = None
+    trayectoria: list[TrayectoriaPunto] = Field(default_factory=list)
+    velocidad_inicial_kmh: Optional[float] = None
+    velocidad_impacto_kmh: Optional[float] = None
+    frena_desde_t: Optional[float] = None              # segundos, primer instante con freno
+
+
+class ObstaculoEscena(BaseModel):
+    """Elemento estático que forma la escena (edificios, terrizas, mobiliario)."""
+    tipo: TipoObstaculoEscena
+    poligono: list[tuple[float, float]] = Field(default_factory=list)
+    altura_m: Optional[float] = None
+    limita_visibilidad: bool = False
+    descripcion: Optional[str] = None
+
+
+class HuellaSimulacion(BaseModel):
+    """Marca en calzada para pintar (frenada, derrape, arrastre)."""
+    actor_id: Optional[str] = None
+    tipo: str                                          # frenada / derrape / arrastre
+    inicio: tuple[float, float]
+    fin: tuple[float, float]
+    longitud_m: Optional[float] = None
+
+
+class ViaSimulacion(BaseModel):
+    tipo: TipoViaSimulacion = TipoViaSimulacion.RECTA
+    carriles: int = 2
+    ancho_carril_m: float = 3.5
+    ancho_total_m: Optional[float] = None              # útil en urbana estrecha
+    limite_kmh: int = 50
+    pendiente_pct: Optional[float] = None              # signo: + ascendente para +X
+    superficie: Optional[str] = None                   # asfalto, hormigón…
+    sentido_unico: Optional[bool] = None
+    # Eje central de la calzada. Lista de puntos `(x, y)` por los que pasa la
+    # línea media de la vía. Cuando hay ≥2 puntos, el frontend dibuja la vía
+    # siguiendo este path con `stroke-width = ancho_total_m`. Imprescindible
+    # para curvas y trazados sinuosos. Si está vacío, el frontend asume vía
+    # recta horizontal centrada en y=0.
+    eje_via: list[tuple[float, float]] = Field(default_factory=list)
+
+
+class ImpactoSimulacion(BaseModel):
+    x: float
+    y: float
+    t: float                                           # segundos
+    angulo_deg: float = 0.0
+    delta_v_por_actor: dict[str, float] = Field(default_factory=dict)
+
+
+class MetaEscenaSimulacion(BaseModel):
+    meteo: Optional[str] = None
+    condicion_calzada: Optional[str] = None
+    visibilidad_m: Optional[float] = None
+    direccion: Optional[str] = None
+    lat: Optional[float] = None
+    lon: Optional[float] = None
+    es_dia: Optional[bool] = None
+
+
+class EscenaSimulacionData(BaseModel):
+    """Reconstrucción cenital animable del siniestro.
+
+    La produce el SimulationAgent (LLM) tras el cierre del Perito y la
+    consume `AccidentScene2D` en frontend para animar trayectorias con
+    scrubber. Cada actor (turismo/bici/peatón/mobiliario) lleva su
+    `trayectoria` por puntos `(x,y,t,v_kmh)` que el frontend interpola.
+    """
+    via: ViaSimulacion = Field(default_factory=ViaSimulacion)
+    actores: list[ActorSimulacion] = Field(default_factory=list)
+    impacto: Optional[ImpactoSimulacion] = None
+    obstaculos: list[ObstaculoEscena] = Field(default_factory=list)
+    huellas: list[HuellaSimulacion] = Field(default_factory=list)
+    meta: MetaEscenaSimulacion = Field(default_factory=MetaEscenaSimulacion)
+    duracion_s: float = 4.0                            # tiempo total de animación
+    falta_info: list[str] = Field(default_factory=list)
+    descripcion: Optional[str] = None                  # resumen 1-2 frases para tooltip
+
+
 class InformePericial(BaseModel):
     """Resultado del peritaje v2: estructurado por preguntas del encargo."""
     resumen_caso: str = ""
@@ -582,6 +730,11 @@ class InformePericial(BaseModel):
     contexto_escena: Optional[ContextoEscenaResumen] = None
     contexto_meteo: Optional[ContextoMeteoResumen] = None
     conformidad_atestado: Optional[AnalisisConformidadAtestado] = None
+    simulacion_escena: Optional[EscenaSimulacionData] = None
+    # Razonamiento completo del orquestador-perito y de cada specialist:
+    # {"razonamiento_perito": [...turnos], "datos_completos": [...tool calls]}.
+    # Se persiste en casos.json para poder revisar el trace tras reinicios.
+    trace: Optional[dict] = None
     confianza_global: float = 0.0
     pdf_url: Optional[str] = None
     sigstore_hash: Optional[str] = None

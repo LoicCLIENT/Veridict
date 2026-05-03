@@ -208,12 +208,45 @@ async def analizar_biomecanica(
             "fuente": "Otte 1989; Searle 1993; Van Rooij 2003; manuales UC3M-GC 2020.",
         }
 
-    # 2. Energía cinética y AIS — determinista
+    # 2. Energía cinética y AIS — determinista.
+    #
+    # Política: si tenemos rango WAD, calculamos Ec en TRES puntos del rango
+    # (mínimo, medio, máximo) para que el informe pericial muestre la energía
+    # acotada por el indicio biomecánico, no por un único punto inventado por
+    # el orquestador. Si no hay WAD, usamos solo `velocidad_estimada_kmh`.
     energia = None
     ais_pct = None
-    if masa_vehiculo_kg and velocidad_estimada_kmh:
-        energia = _energia_cinetica_kj(masa_vehiculo_kg, velocidad_estimada_kmh)
-        ais_pct = _ais3_pct_para_dv(velocidad_estimada_kmh)
+    energia_tabla: list[dict] = []
+    if masa_vehiculo_kg:
+        if wad_resultado:
+            puntos = [
+                ("min_wad", wad_resultado["velocidad_min_kmh"]),
+                ("max_wad", wad_resultado["velocidad_max_kmh"]),
+            ]
+            if velocidad_estimada_kmh:
+                puntos.append(("declarada_perito", velocidad_estimada_kmh))
+            for etiqueta, vk in puntos:
+                if vk is None:
+                    continue
+                energia_tabla.append({
+                    "etiqueta": etiqueta,
+                    "v_kmh": vk,
+                    "energia_kj": round(_energia_cinetica_kj(masa_vehiculo_kg, vk), 1),
+                    "ais3_plus_pct": _ais3_pct_para_dv(vk),
+                })
+            # Cifra principal: extremo SUPERIOR del rango WAD (criterio pericial
+            # ITRASA: "los daños indican AL MENOS 50 km/h" — no 35 km/h).
+            energia = _energia_cinetica_kj(masa_vehiculo_kg, wad_resultado["velocidad_max_kmh"])
+            ais_pct = _ais3_pct_para_dv(wad_resultado["velocidad_max_kmh"])
+        elif velocidad_estimada_kmh:
+            energia = _energia_cinetica_kj(masa_vehiculo_kg, velocidad_estimada_kmh)
+            ais_pct = _ais3_pct_para_dv(velocidad_estimada_kmh)
+            energia_tabla.append({
+                "etiqueta": "declarada_perito",
+                "v_kmh": velocidad_estimada_kmh,
+                "energia_kj": round(energia, 1),
+                "ais3_plus_pct": ais_pct,
+            })
 
     # 3. Razonamiento clínico — LLM
     llm_payload = {
@@ -236,6 +269,11 @@ async def analizar_biomecanica(
     out = {
         "wad": wad_resultado,
         "energia_cinetica_kj": round(energia, 1) if energia is not None else None,
+        "energia_cinetica_v_kmh_referencia": (
+            wad_resultado["velocidad_max_kmh"] if wad_resultado
+            else (velocidad_estimada_kmh if energia is not None else None)
+        ),
+        "energia_cinetica_tabla": energia_tabla,
         "probabilidad_ais3_pct": ais_pct,
         "mecanismos_lesivos_compatibles": razonamiento.get("mecanismos_lesivos_compatibles", []),
         "cadena_4_impactos_sucesivos": cadena_impactos,
@@ -269,7 +307,8 @@ async def analizar_biomecanica(
             f"{wad_resultado['velocidad_max_kmh']} km/h"
         )
     if energia is not None:
-        resumen_partes.append(f"Ec={energia:.1f} kJ")
+        v_ref = out["energia_cinetica_v_kmh_referencia"]
+        resumen_partes.append(f"Ec={energia:.1f} kJ @ {v_ref} km/h")
     if ais_pct is not None:
         resumen_partes.append(f"AIS3+ p={ais_pct}%")
     if out["analisis_craneal"]:

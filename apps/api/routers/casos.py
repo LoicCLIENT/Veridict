@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException, UploadFile, File
 
 from db import JsonCasoStore
 from models import Caso, CasoCreate, CasoUpdate, EstadoCaso
+from services.prewarm import lanzar_prewarm
 
 router = APIRouter()
 
@@ -35,6 +36,10 @@ async def crear_caso(caso_input: CasoCreate) -> Caso:
     """Create a new caso (v2 payload: encargo + identificación + hechos + lesiones)."""
     caso = _build_caso(caso_input)
     casos_db[caso.id] = caso
+    # Pre-warm: lanza en background las consultas que no dependen de las fotos
+    # (escena, meteo, ficha técnica, legal). Cuando el orquestador las pida
+    # más tarde, las recibirá instantáneas desde la cache.
+    lanzar_prewarm(caso)
     return caso
 
 
@@ -55,6 +60,7 @@ async def importar_caso_json(file: UploadFile = File(...)) -> Caso:
         raise HTTPException(status_code=422, detail=f"Estructura inválida: {e}")
     caso = _build_caso(caso_input)
     casos_db[caso.id] = caso
+    lanzar_prewarm(caso)
     return caso
 
 

@@ -20,6 +20,7 @@ import { InformeDocumento } from "@/components/InformeDocumento";
 import { ChatInfoFaltante } from "@/components/ChatInfoFaltante";
 import { RazonamientoOrquestadorView } from "@/components/RazonamientoOrquestador";
 import { SpecialistTrace } from "@/components/SpecialistTrace";
+import { UploadProgressBanner } from "@/components/UploadProgressBanner";
 import type { InformePericial } from "@veridict/types";
 import { mapEventosToTimeline } from "@/lib/mapTimeline";
 import { useToast } from "@/components/ui/toast";
@@ -76,6 +77,34 @@ export default function CasoDetailPage() {
   const [informeLoading, setInformeLoading] = useState(true);
   const [informeRegenerating, setInformeRegenerating] = useState(false);
   const [showFormulario, setShowFormulario] = useState(false);
+  const [recentlyEdited, setRecentlyEdited] = useState<string[]>([]);
+  const [simulacionLoading, setSimulacionLoading] = useState(false);
+  const [simulacionError, setSimulacionError] = useState<string | null>(null);
+
+  const regenerarSimulacion = async () => {
+    if (simulacionLoading) return;
+    setSimulacionLoading(true);
+    setSimulacionError(null);
+    try {
+      const updated = await api.regenerarSimulacion(casoId);
+      setInforme(updated);
+      const escena = updated.simulacion_escena;
+      if (!escena || !Array.isArray(escena.actores) || escena.actores.length === 0) {
+        const falta = (escena?.falta_info && escena.falta_info[0]) || "El SimulationAgent no devolvió actores válidos.";
+        setSimulacionError(`Sin escena reconstruida: ${falta}`);
+      }
+    } catch (e: any) {
+      setSimulacionError(e?.message || "No se pudo regenerar la simulación");
+    } finally {
+      setSimulacionLoading(false);
+    }
+  };
+
+  const marcarRecentlyEdited = (ids: string[]) => {
+    if (ids.length === 0) return;
+    setRecentlyEdited(ids);
+    setTimeout(() => setRecentlyEdited([]), 6000);
+  };
 
   useEffect(() => {
     async function loadCaso() {
@@ -292,6 +321,9 @@ export default function CasoDetailPage() {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
           >
+            {/* Barra de progreso de uploads en background */}
+            <UploadProgressBanner casoId={casoId} />
+
             {/* Tabs */}
             <div className="flex gap-2 mb-6">
               {tabs.map((tab) => (
@@ -379,13 +411,12 @@ export default function CasoDetailPage() {
                               </Button>
                             </div>
 
-                            {/* Sección de razonamiento condensada arriba del documento */}
-                            <RazonamientoOrquestadorView
-                              casoId={casoId}
-                              onNavigateToPanel={(panel) => setPanelActivo(panel)}
+                            <InformeDocumento
+                              informe={informe}
+                              caso={caso}
+                              onInformeUpdate={setInforme}
+                              recentlyEditedIds={recentlyEdited}
                             />
-
-                            <InformeDocumento informe={informe} caso={caso} onInformeUpdate={setInforme} />
                           </div>
                           {/* Chat lateral */}
                           <div className="lg:col-span-1">
@@ -394,6 +425,7 @@ export default function CasoDetailPage() {
                                 casoId={casoId}
                                 informe={informe}
                                 onUpdate={setInforme}
+                                onAffectedRespuestas={marcarRecentlyEdited}
                               />
                             </div>
                           </div>
@@ -411,13 +443,51 @@ export default function CasoDetailPage() {
                   )}
                   {panelActivo === "mapa" && (
                     <div className="p-4 md:p-6 space-y-4">
+                      <div className="flex items-center justify-between gap-3 flex-wrap">
+                        <div className="flex flex-col gap-0.5">
+                          <h3 className="text-sm font-semibold text-zinc-200">
+                            Reconstrucción de la escena
+                          </h3>
+                          <p className="text-xs text-zinc-500">
+                            {informe?.simulacion_escena?.actores?.length
+                              ? `${informe.simulacion_escena.actores.length} actor(es) · SimulationAgent (Opus 4.7)`
+                              : "Aún no hay reconstrucción dinámica generada para este caso."}
+                          </p>
+                        </div>
+                        <Button
+                          onClick={regenerarSimulacion}
+                          disabled={simulacionLoading || !informe}
+                          variant="outline"
+                          className="border-[#C2E94B]/30 text-[#C2E94B] hover:bg-[#C2E94B]/10"
+                          title={!informe ? "Genera primero el informe" : "Reusa los datos del informe (rápido)"}
+                        >
+                          {simulacionLoading ? (
+                            <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
+                          ) : (
+                            <Sparkles className="w-3.5 h-3.5 mr-2" />
+                          )}
+                          {informe?.simulacion_escena?.actores?.length
+                            ? "Regenerar simulación"
+                            : "Generar simulación"}
+                        </Button>
+                      </div>
+                      {simulacionError && (
+                        <div className="text-xs text-red-400 bg-red-500/10 border border-red-500/30 rounded px-3 py-2 font-mono">
+                          ⚠ {simulacionError}
+                        </div>
+                      )}
                       <SpecialistTrace
                         casoId={casoId}
-                        tools={["obtener_frame_simulacion", "simular_fisica"]}
+                        tools={["generar_frame_simulacion", "obtener_frame_simulacion"]}
                         title="Trabajo del SimulacionAgent"
-                        description="Frames de la simulación física que el orquestador ha pedido para reconstruir la dinámica del siniestro."
+                        description="Recreación visual del siniestro: croquis SVG generados a partir de las velocidades, masas y posiciones que ya validó el PhysicsAgent."
                       />
-                      <MapaReconstruccion ubicacion={caso.ubicacion} />
+                      <MapaReconstruccion
+                        ubicacion={caso.ubicacion}
+                        escenaSimulacion={informe?.simulacion_escena ?? undefined}
+                        onGenerarSimulacion={regenerarSimulacion}
+                        generandoSimulacion={simulacionLoading}
+                      />
                     </div>
                   )}
                   {panelActivo === "cronologia" && (
@@ -433,9 +503,9 @@ export default function CasoDetailPage() {
                     <div className="p-4 md:p-6 space-y-4">
                       <SpecialistTrace
                         casoId={casoId}
-                        tools={["simular_fisica", "analizar_biomecanica"]}
-                        title="Trabajo del SimulacionAgent y BiomecanicaAgent"
-                        description="Cálculos físicos deterministas (CRASH3, balance momento, Stannard-Baker, WAD) y patrón biomecánico que el orquestador ha citado para inferir velocidades y compatibilidad lesional."
+                        tools={["calcular_fisica", "simular_fisica", "analizar_biomecanica"]}
+                        title="Trabajo del PhysicsAgent y BiomecanicaAgent"
+                        description="Cálculos físicos deterministas (Stannard-Baker, balance momento, distancia detención, energía cinética) y patrón biomecánico (WAD, AIS) que el orquestador ha citado para inferir velocidades y compatibilidad lesional."
                       />
                       <CalculosFisicos calculos={caso.resultado?.calculos || []} />
                     </div>

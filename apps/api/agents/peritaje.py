@@ -11,6 +11,8 @@ import json
 from typing import Optional
 
 from agents.perito import construir_informe, coordinar
+from agents.specialists import cronologia as cronologia_spec
+from agents.specialists import escena_simulacion
 from agents import trace_store
 from models import (
     CalculoFisico,
@@ -145,7 +147,56 @@ async def generar_informe(caso: Caso) -> InformePericial:
             fallback.contexto_meteo = _build_meteo(datos["consultar_meteo"])
         if datos.get("analizar_conformidad_atestado"):
             fallback.conformidad_atestado = _build_conformidad(datos["analizar_conformidad_atestado"])
+        # SimulationAgent también en modo degradado
+        try:
+            sim_out = await escena_simulacion.reconstruir_escena(
+                caso=caso,
+                datos_por_tool=datos,
+                contexto={
+                    "caso_id": caso.id,
+                    "fotos": list(caso.fotos),
+                    "hechos_atestado": (
+                        caso.hechos_atestado.model_dump(mode="json")
+                        if caso.hechos_atestado else {}
+                    ),
+                    "lesiones": [l.model_dump(mode="json") for l in (caso.lesiones or [])],
+                },
+            )
+            from models import EscenaSimulacionData
+            sim_data = sim_out.get("datos")
+            if sim_data:
+                fallback.simulacion_escena = EscenaSimulacionData.model_validate(sim_data)
+            sim_log = sim_out.get("_log")
+            if sim_log is not None:
+                fallback.tool_calls = list(fallback.tool_calls or []) + [sim_log]
+        except Exception:
+            pass
         return fallback
+
+    # 3.bis SimulationAgent (LLM): reconstruye la escena cenital animable a
+    # partir de los datos que el Perito ya ha recopilado. Post-step opcional;
+    # si falla devuelve una EscenaSimulacionData vacía con `falta_info` y la
+    # UI muestra un placeholder.
+    simulacion_escena = None
+    sim_log = None
+    try:
+        contexto_sim = {
+            "caso_id": caso.id,
+            "fotos": list(caso.fotos),
+            "hechos_atestado": (
+                caso.hechos_atestado.model_dump(mode="json") if caso.hechos_atestado else {}
+            ),
+            "lesiones": [l.model_dump(mode="json") for l in (caso.lesiones or [])],
+        }
+        sim_out = await escena_simulacion.reconstruir_escena(
+            caso=caso,
+            datos_por_tool=coord_out.get("datos_por_tool") or {},
+            contexto=contexto_sim,
+        )
+        simulacion_escena = sim_out.get("datos")
+        sim_log = sim_out.get("_log")
+    except Exception as e:
+        print(f"[peritaje] SimulationAgent excepción: {e}", flush=True)
 
     # 4. Construir el InformePericial final
     chat_previo = caso.informe.chat if caso.informe else []
@@ -156,12 +207,40 @@ async def generar_informe(caso: Caso) -> InformePericial:
         bibliografia_recopilada=bibliografia,
         calculos_recopilados=calculos,
         chat_previo=chat_previo,
+        simulacion_escena=simulacion_escena,
     )
-    # Adjunto el trace en memoria para poder volcarlo desde el endpoint /trace
-    setattr(informe, "_trace", {
+    if sim_log is not None:
+        informe.tool_calls = list(informe.tool_calls or []) + [sim_log]
+
+    # 4.bis CronologiaAgent: si tenemos simulación, generar la cronología pericial
+    # con un snapshot SVG por evento. Las imágenes generadas se añaden a
+    # `informe.imagenes` para que el PDF las embeba en sección 6 también.
+    try:
+        crono_out = await cronologia_spec.construir_cronologia(
+            caso=caso,
+            escena=informe.simulacion_escena,
+            datos_por_tool=coord_out.get("datos_por_tool") or {},
+        )
+        eventos = crono_out.get("datos") or []
+        if eventos:
+            informe.cronologia = eventos
+        crono_log = crono_out.get("_log")
+        if crono_log is not None:
+            informe.tool_calls = list(informe.tool_calls or []) + [crono_log]
+        for sub in crono_out.get("_sub_logs") or []:
+            informe.tool_calls = list(informe.tool_calls or []) + [sub]
+            for img in (sub.imagenes or []):
+                informe.imagenes = list(informe.imagenes or []) + [img]
+    except Exception as e:
+        print(f"[peritaje] CronologiaAgent excepción: {e}", flush=True)
+
+    # Persistimos el trace completo en el informe (campo serializable) para que
+    # sobreviva al reinicio del servidor y se pueda revisar desde /razonamiento
+    # y /trace.md aunque el trace_store en memoria ya se haya vaciado.
+    informe.trace = {
         "razonamiento_perito": coord_out.get("razonamiento_perito", []),
         "datos_completos": coord_out.get("datos_completos", []),
-    })
+    }
     trace_store.finalize(caso.id, estado="completado",
                          mensaje="Informe pericial listo")
     return informe
@@ -171,7 +250,7 @@ def _build_trace_markdown(caso) -> str:
     """Genera el deep-log estructurado: razonamiento del Perito turno a turno,
     inputs y outputs completos de cada especialista, y comparación con IURGI."""
     informe = caso.informe
-    trace = getattr(informe, "_trace", {}) or {}
+    trace = (informe.trace if informe and informe.trace else {}) or {}
     razon = trace.get("razonamiento_perito", [])
     datos_c = trace.get("datos_completos", [])
 

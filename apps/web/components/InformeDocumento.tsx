@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import type {
   InformePericial,
@@ -15,6 +15,7 @@ interface Props {
   informe: InformePericial;
   caso: Caso;
   onInformeUpdate?: (i: InformePericial) => void;
+  recentlyEditedIds?: string[];
 }
 
 /**
@@ -22,7 +23,13 @@ interface Props {
  * con secciones numeradas y tipografía pericial. NO usa cards/tabs internas:
  * se lee de arriba abajo como si fuera el PDF firmable.
  */
-export function InformeDocumento({ informe, caso, onInformeUpdate }: Props) {
+export function InformeDocumento({
+  informe,
+  caso,
+  onInformeUpdate,
+  recentlyEditedIds,
+}: Props) {
+  const recentlyEditedSet = new Set(recentlyEditedIds ?? []);
   const encargo = caso.encargo;
   const fechaStr = caso.fecha_accidente
     ? new Date(caso.fecha_accidente).toLocaleDateString("es-ES", {
@@ -222,6 +229,7 @@ export function InformeDocumento({ informe, caso, onInformeUpdate }: Props) {
                 respuesta={r}
                 casoId={caso.id}
                 onUpdate={onInformeUpdate}
+                recentlyEdited={recentlyEditedSet.has(r.pregunta_id)}
               />
             ))}
           </div>
@@ -459,14 +467,23 @@ function RespuestaBloque({
   respuesta,
   casoId,
   onUpdate,
+  recentlyEdited = false,
 }: {
   respuesta: RespuestaPregunta;
   casoId: string;
   onUpdate?: (i: InformePericial) => void;
+  recentlyEdited?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(respuesta.respuesta);
   const [saving, setSaving] = useState(false);
+  const blockRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (recentlyEdited && blockRef.current) {
+      blockRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  }, [recentlyEdited]);
 
   const startEdit = () => {
     setDraft(respuesta.respuesta);
@@ -499,7 +516,20 @@ function RespuestaBloque({
   };
 
   return (
-    <div className="group">
+    <div
+      ref={blockRef}
+      className={`group rounded-lg transition-all duration-700 ${
+        recentlyEdited
+          ? "ring-2 ring-amber-400/70 shadow-[0_0_30px_rgba(251,191,36,0.25)] bg-amber-500/5 -mx-3 px-3 py-2 animate-pulse"
+          : ""
+      }`}
+    >
+      {recentlyEdited && (
+        <div className="mb-2 flex items-center gap-2 text-[11px] uppercase tracking-wide text-amber-300 font-sans">
+          <span className="inline-block w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+          Reescrita ahora con la información que has aportado
+        </div>
+      )}
       <div className="flex items-baseline justify-between gap-3">
         <h3 className="font-semibold text-white flex-1">
           <span className="font-mono text-blue-400 mr-2">{respuesta.pregunta_id}.</span>

@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/components/ui/toast";
+import { useAppStore } from "@/lib/store";
 import {
   FileText,
   Camera,
@@ -106,6 +107,8 @@ const ENCARGO_PRESETS: Record<TipoEncargoUI, { label: string; preguntasSugeridas
 export default function NuevoCasoPage() {
   const router = useRouter();
   const toast = useToast();
+  const iniciarUpload = useAppStore((s) => s.iniciarUpload);
+  const tickUpload = useAppStore((s) => s.tickUpload);
   const [loading, setLoading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number; current_name?: string } | null>(null);
   const [showAdjuntos, setShowAdjuntos] = useState(false);
@@ -413,34 +416,67 @@ export default function NuevoCasoPage() {
           })),
       });
 
-      // Adjuntos como evidencia
-      if (files.atestado) {
-        setUploadProgress({ current: 0, total: files.fotos.length + 1, current_name: "atestado" });
-        await api.uploadAtestado(caso.id, files.atestado);
-      }
-      for (let i = 0; i < files.fotos.length; i++) {
-        const foto = files.fotos[i];
-        setUploadProgress({
-          current: i + 1 + (files.atestado ? 1 : 0),
-          total: files.fotos.length + (files.atestado ? 1 : 0),
-          current_name: foto.name,
+      // Adjuntos como evidencia: subimos con concurrencia limitada (6 a la vez)
+      // y NO bloqueamos la navegación. La generación del informe arranca en
+      // paralelo con los uploads para que el usuario no espere a 51 fotos.
+      const totalAdjuntos = files.fotos.length + (files.atestado ? 1 : 0);
+
+      // Pool de subida con concurrencia 6 (límite real de HTTP/1.1 por origen)
+      // Reporta progreso al store global → la página del caso pinta una barra.
+      iniciarUpload(caso.id, totalAdjuntos, !!files.atestado);
+      const subirAdjuntosEnFondo = async () => {
+        if (totalAdjuntos === 0) return;
+        const CONCURRENCIA = 6;
+        const cola: Array<() => Promise<void>> = [];
+        if (files.atestado) {
+          const f = files.atestado;
+          cola.push(async () => {
+            try {
+              await api.uploadAtestado(caso.id, f);
+              tickUpload(caso.id, "atestado", true);
+            } catch (e) {
+              console.error("uploadAtestado:", e);
+              tickUpload(caso.id, "atestado", false);
+            }
+          });
+        }
+        for (const foto of files.fotos) {
+          cola.push(async () => {
+            try {
+              await api.uploadFoto(caso.id, foto);
+              tickUpload(caso.id, foto.name, true);
+            } catch (e) {
+              console.error("uploadFoto:", foto.name, e);
+              tickUpload(caso.id, foto.name, false);
+            }
+          });
+        }
+        let i = 0;
+        const workers = Array.from({ length: Math.min(CONCURRENCIA, cola.length) }, async () => {
+          while (i < cola.length) {
+            const idx = i++;
+            await cola[idx]();
+          }
         });
-        await api.uploadFoto(caso.id, foto);
-      }
-      setUploadProgress(null);
+        await Promise.all(workers);
+      };
+
+      // Lanzamos en paralelo: pre-warm ya está corriendo en backend, los uploads
+      // van llenando las fotos a su ritmo, y el orquestador empieza a investigar.
+      subirAdjuntosEnFondo().catch((err) => console.error("uploads error:", err));
+      api.generarInforme(caso.id).catch((err) => console.error("Informe error:", err));
 
       toast.success(
         "Caso creado",
-        files.fotos.length > 0
-          ? `${files.fotos.length} fotos indexadas. Generando informe…`
-          : "Veridict completará ficha técnica, normativa y cálculos. Generando informe…"
+        totalAdjuntos > 0
+          ? `Subiendo ${totalAdjuntos} adjuntos y generando informe en paralelo…`
+          : "Generando informe…"
       );
 
       // Borrador entregado con éxito → limpiamos el localStorage para la próxima vez
       try { localStorage.removeItem(STORAGE_KEY); } catch {}
 
-      // Disparar la generación del informe; no bloqueamos la navegación
-      api.generarInforme(caso.id).catch((err) => console.error("Informe error:", err));
+      setUploadProgress(null);
       router.push(`/casos/${caso.id}`);
     } catch (error) {
       console.error("Error creating caso:", error);

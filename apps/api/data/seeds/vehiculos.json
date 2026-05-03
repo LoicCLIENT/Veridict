@@ -55,9 +55,51 @@
     "notas": "Altura de plataforma 1.112–1.247 m según carga. Sin parachoques convencional, canto rígido."
   },
   "seat|ibiza": {
+    "_year_routing": [
+      {"min": 2017, "max": 2099, "key": "seat|ibiza|v"},
+      {"min": 2008, "max": 2016, "key": "seat|ibiza|iv"},
+      {"min": 2002, "max": 2007, "key": "seat|ibiza|iii"}
+    ],
+    "tipo_vehiculo": "turismo",
     "masa_kg": 1115,
     "longitud_m": 4.06,
-    "ancho_m": 1.78,
+    "ancho_m": 1.69,
+    "altura_m": 1.44,
+    "altura_parachoques_m": [0.42, 0.70],
+    "altura_largueros_m": 0.48,
+    "rigidez_a": 55.0,
+    "rigidez_b": 8.0,
+    "sistemas_seguridad": [
+      "Airbag conductor y pasajero",
+      "ABS y ESC",
+      "Cinturones con pretensores"
+    ],
+    "fuente": "SEAT España — ficha técnica Ibiza (genérica)",
+    "notas": "Sin año concreto: usar entrada por generación (seat|ibiza|iv o seat|ibiza|v). Anchura por defecto 1.69 m (carrocería sin retrovisores)."
+  },
+  "seat|ibiza|iii": {
+    "tipo_vehiculo": "turismo",
+    "masa_kg": 1050,
+    "longitud_m": 3.95,
+    "ancho_m": 1.69,
+    "altura_m": 1.44,
+    "altura_parachoques_m": [0.40, 0.68],
+    "altura_largueros_m": 0.46,
+    "rigidez_a": 52.0,
+    "rigidez_b": 7.5,
+    "sistemas_seguridad": [
+      "Airbag conductor y pasajero",
+      "ABS",
+      "Cinturones con pretensores"
+    ],
+    "fuente": "SEAT España — ficha técnica Ibiza III (6L) 2002-2008",
+    "notas": "Plataforma PQ24. Anchura carrocería 1.69 m (1.97 con retrovisores)."
+  },
+  "seat|ibiza|iv": {
+    "tipo_vehiculo": "turismo",
+    "masa_kg": 1100,
+    "longitud_m": 4.06,
+    "ancho_m": 1.69,
     "altura_m": 1.44,
     "altura_parachoques_m": [0.42, 0.70],
     "altura_largueros_m": 0.48,
@@ -68,8 +110,44 @@
       "ABS y ESC",
       "Cinturones con pretensores"
     ],
-    "fuente": "SEAT España — ficha técnica Ibiza (5ª gen.)",
-    "notas": "Turismo segmento B. Plataforma MQB A0."
+    "fuente": "SEAT España — ficha técnica Ibiza IV (6J/6P) 2008-2017",
+    "notas": "Plataforma PQ25. Anchura carrocería 1.69 m. ESC obligatorio desde 2014. La tarjeta ITV puede consignar 1.64 m según versión."
+  },
+  "seat|ibiza|v": {
+    "tipo_vehiculo": "turismo",
+    "masa_kg": 1115,
+    "longitud_m": 4.06,
+    "ancho_m": 1.78,
+    "altura_m": 1.44,
+    "altura_parachoques_m": [0.42, 0.70],
+    "altura_largueros_m": 0.48,
+    "rigidez_a": 55.0,
+    "rigidez_b": 8.0,
+    "sistemas_seguridad": [
+      "Airbag conductor, pasajero, laterales y de cortina",
+      "ABS, ESC, asistente de frenada",
+      "Cinturones con pretensores",
+      "Frenado autónomo de emergencia (Front Assist)"
+    ],
+    "fuente": "SEAT España — ficha técnica Ibiza V (KJ) 2017-presente",
+    "notas": "Plataforma MQB A0. Anchura carrocería 1.78 m."
+  },
+  "orbea|bicicleta": {
+    "tipo_vehiculo": "bicicleta",
+    "masa_kg": 12,
+    "longitud_m": 1.75,
+    "ancho_m": 0.55,
+    "altura_m": 1.05,
+    "altura_sillin_m": 0.79,
+    "anchura_manillar_m": 0.55,
+    "masa_ciclista_estimada_kg": 75,
+    "altura_parachoques_m": null,
+    "altura_largueros_m": null,
+    "rigidez_a": null,
+    "rigidez_b": null,
+    "sistemas_seguridad": [],
+    "fuente": "Orbea — segmento bicicleta deportiva (estimación)",
+    "notas": "Bicicleta deportiva. SIN airbag, ABS ni cinturones. Sillín 79 cm, manillar 55 cm, masa bici ~12 kg, masa ciclista estimada ~75 kg (total ~87 kg)."
   },
   "renault|megane": {
     "masa_kg": 1295,
@@ -138,6 +216,7 @@
     "fuente": "Peugeot España — 208 II"
   },
   "_default_turismo": {
+    "tipo_vehiculo": "turismo",
     "masa_kg": 1300,
     "longitud_m": 4.30,
     "ancho_m": 1.80,
@@ -155,6 +234,7 @@
     "notas": "Valores genéricos por defecto. Sustituir cuando se identifique marca/modelo concreto."
   },
   "_default_furgoneta": {
+    "tipo_vehiculo": "furgoneta",
     "masa_kg": 2000,
     "longitud_m": 4.90,
     "ancho_m": 1.95,
@@ -171,6 +251,7 @@
     "fuente": "Promedio furgoneta ligera (estimación)"
   },
   "_default_camion": {
+    "tipo_vehiculo": "camion",
     "masa_kg": 7500,
     "longitud_m": 6.50,
     "ancho_m": 2.40,
@@ -185,5 +266,22 @@
       "Antiempotramiento trasero"
     ],
     "fuente": "Promedio camión rígido (estimación)"
+  },
+  "_default_bicicleta": {
+    "tipo_vehiculo": "bicicleta",
+    "masa_kg": 12,
+    "longitud_m": 1.75,
+    "ancho_m": 0.55,
+    "altura_m": 1.05,
+    "altura_sillin_m": 0.78,
+    "anchura_manillar_m": 0.55,
+    "masa_ciclista_estimada_kg": 75,
+    "altura_parachoques_m": null,
+    "altura_largueros_m": null,
+    "rigidez_a": null,
+    "rigidez_b": null,
+    "sistemas_seguridad": [],
+    "fuente": "Promedio bicicleta urbana/deportiva (estimación)",
+    "notas": "SIN airbag, ABS ni cinturones. Verificar marca/modelo y aportar masa real del ciclista."
   }
 }

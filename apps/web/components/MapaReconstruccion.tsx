@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 import { MapPin } from "lucide-react";
-import { AccidentScene2D, AccidentSceneData, mockSceneDataCaso1 } from "./reconstruction";
+import type { EscenaSimulacionData } from "@veridict/types";
+import { AccidentScene2D, AccidentSceneData, EscenaSimulacionView } from "./reconstruction";
 import {
   VisualizationControls,
   VisualizationSettings,
@@ -11,6 +12,10 @@ import {
 
 interface MapaReconstruccionProps {
   ubicacion: { lat: number; lon: number };
+  /** Reconstrucción dinámica producida por el SimulationAgent (LLM). Si llega,
+   * tiene prioridad sobre `sceneData`. */
+  escenaSimulacion?: EscenaSimulacionData | null;
+  /** Compatibilidad: AccidentSceneData (mocks legacy con A/B). */
   sceneData?: AccidentSceneData;
   trayectorias?: {
     vehiculo: "A" | "B";
@@ -19,16 +24,24 @@ interface MapaReconstruccionProps {
   tiempoActual?: number;
   onTimeChange?: (time: number) => void;
   compact?: boolean;
+  /** Acción que dispara el SimulationAgent (LLM) en el backend. Cuando se
+   * proporciona, el placeholder vacío muestra un botón directo. */
+  onGenerarSimulacion?: () => void;
+  generandoSimulacion?: boolean;
 }
 
 export function MapaReconstruccion({
   ubicacion,
-  sceneData = mockSceneDataCaso1,
+  escenaSimulacion,
+  sceneData,
   trayectorias = [],
   tiempoActual = 0,
   onTimeChange,
   compact = false,
+  onGenerarSimulacion,
+  generandoSimulacion = false,
 }: MapaReconstruccionProps) {
+  const hasDynamicScene = !!(escenaSimulacion && Array.isArray(escenaSimulacion.actores) && escenaSimulacion.actores.length > 0);
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<any>(null);
   const [mapboxLoaded, setMapboxLoaded] = useState(false);
@@ -132,14 +145,27 @@ export function MapaReconstruccion({
   if (compact) {
     return (
       <div className="relative w-full h-72 rounded-lg overflow-hidden">
-        <AccidentScene2D
-          data={sceneData}
-          currentTime={currentTime}
-          showMeasurements={settings.showMeasurements}
-          showTrajectories={settings.showTrajectories}
-          showGrid={settings.showGrid}
-          compact={true}
-        />
+        {hasDynamicScene ? (
+          <EscenaSimulacionView
+            data={escenaSimulacion!}
+            currentTime={currentTime}
+            showMeasurements={settings.showMeasurements}
+            showTrajectories={settings.showTrajectories}
+            showGrid={settings.showGrid}
+            compact={true}
+          />
+        ) : sceneData ? (
+          <AccidentScene2D
+            data={sceneData}
+            currentTime={currentTime}
+            showMeasurements={settings.showMeasurements}
+            showTrajectories={settings.showTrajectories}
+            showGrid={settings.showGrid}
+            compact={true}
+          />
+        ) : (
+          <EmptyScenePlaceholder />
+        )}{/* keep playback bar */}
         {/* Simple playback bar */}
         <div className="absolute bottom-3 left-3 right-3 z-20">
           <div className="bg-[#0a0a0a]/90 backdrop-blur-sm rounded-lg p-2 border border-white/[0.06]">
@@ -185,22 +211,38 @@ export function MapaReconstruccion({
   // Full mode with controls
   const renderReconstructionView = () => (
     <div className="relative w-full h-full min-h-[500px]">
-      <AccidentScene2D
-        data={{
-          ...sceneData,
-          // Apply vehicle colors from settings
-        }}
-        currentTime={currentTime}
-        showMeasurements={settings.showMeasurements}
-        showTrajectories={settings.showTrajectories}
-        showGrid={settings.showGrid}
-        vehicleAColor={settings.vehicleA.color}
-        vehicleBColor={settings.vehicleB.color}
-        centerTarget={centerTarget}
-        showSpeedLabels={settings.showSpeedLabels}
-        showImpactZone={settings.showImpactZone}
-        viewMode={settings.viewMode}
-      />
+      {hasDynamicScene ? (
+        <EscenaSimulacionView
+          data={escenaSimulacion!}
+          currentTime={currentTime}
+          showMeasurements={settings.showMeasurements}
+          showTrajectories={settings.showTrajectories}
+          showGrid={settings.showGrid}
+          showImpactZone={settings.showImpactZone}
+        />
+      ) : sceneData ? (
+        <AccidentScene2D
+          data={{
+            ...sceneData,
+            // Apply vehicle colors from settings
+          }}
+          currentTime={currentTime}
+          showMeasurements={settings.showMeasurements}
+          showTrajectories={settings.showTrajectories}
+          showGrid={settings.showGrid}
+          vehicleAColor={settings.vehicleA.color}
+          vehicleBColor={settings.vehicleB.color}
+          centerTarget={centerTarget}
+          showSpeedLabels={settings.showSpeedLabels}
+          showImpactZone={settings.showImpactZone}
+          viewMode={settings.viewMode}
+        />
+      ) : (
+        <EmptyScenePlaceholder
+          onGenerar={onGenerarSimulacion}
+          generando={generandoSimulacion}
+        />
+      )}
 
       {/* Coordinates badge */}
       <div className="absolute bottom-3 left-3 bg-[#0a0a0a]/80 px-3 py-2 rounded-lg backdrop-blur-sm z-20 border border-white/[0.04]">
@@ -242,6 +284,8 @@ export function MapaReconstruccion({
 
   return (
     <div className="space-y-3">
+      {/* Descripción del SimulationAgent ahora vive dentro de la escena (chip
+          colapsable). Eliminamos la duplicación externa que tapaba la curva. */}
       {/* Visualization controls */}
       <VisualizationControls
         settings={settings}
@@ -270,6 +314,32 @@ export function MapaReconstruccion({
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+function EmptyScenePlaceholder({
+  onGenerar,
+  generando = false,
+}: { onGenerar?: () => void; generando?: boolean } = {}) {
+  return (
+    <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#0d110d] text-zinc-500 text-sm font-mono p-6 text-center gap-3">
+      <span className="text-3xl">🛣️</span>
+      <span>Reconstrucción no disponible.</span>
+      <span className="text-xs text-zinc-600 max-w-md">
+        El SimulationAgent (Claude Opus 4.7) puede recrear la escena a partir
+        del informe pericial, los datos del caso y los specialists ya
+        ejecutados.
+      </span>
+      {onGenerar && (
+        <button
+          onClick={onGenerar}
+          disabled={generando}
+          className="mt-2 px-4 py-2 rounded-md bg-[#C2E94B]/20 hover:bg-[#C2E94B]/30 disabled:opacity-50 text-[#C2E94B] border border-[#C2E94B]/40 text-xs font-mono uppercase tracking-wide transition"
+        >
+          {generando ? "Reconstruyendo escena…" : "✨ Generar simulación"}
+        </button>
+      )}
     </div>
   );
 }

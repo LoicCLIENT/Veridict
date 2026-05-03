@@ -5,30 +5,104 @@ import { api } from "@/lib/api";
 import type { InformePericial, InfoFaltante } from "@veridict/types";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Send, Loader2, AlertCircle, CheckCircle2, Sparkles, Camera } from "lucide-react";
+import { MessageCircle, Send, Loader2, AlertCircle, CheckCircle2, Sparkles, Camera, Pencil } from "lucide-react";
+
+type StepStatus = "pending" | "running" | "done" | "error";
+interface ProcesoStep {
+  id: string;        // "annot" | "C1" | "C2" ...
+  label: string;
+  status: StepStatus;
+}
 
 interface Props {
   casoId: string;
   informe: InformePericial;
   onUpdate: (nuevo: InformePericial) => void;
+  onAffectedRespuestas?: (ids: string[]) => void;
 }
 
-export function ChatInfoFaltante({ casoId, informe, onUpdate }: Props) {
+export function ChatInfoFaltante({
+  casoId,
+  informe,
+  onUpdate,
+  onAffectedRespuestas,
+}: Props) {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
+  const [proceso, setProceso] = useState<ProcesoStep[] | null>(null);
+  const [procesoErr, setProcesoErr] = useState<string | null>(null);
 
   const pendientes = informe.info_faltante.filter((q) => !q.respondida);
   const respondidas = informe.info_faltante.filter((q) => q.respondida);
 
+  const updateStep = (id: string, patch: Partial<ProcesoStep>) =>
+    setProceso((prev) =>
+      prev ? prev.map((s) => (s.id === id ? { ...s, ...patch } : s)) : prev
+    );
+
   const enviar = async () => {
     if (!activeId || !draft.trim()) return;
     setSending(true);
+    setProcesoErr(null);
+    // Paso 1 visible inmediatamente
+    setProceso([
+      { id: "annot", label: "Anotando tu respuesta en el chat", status: "running" },
+    ]);
     try {
-      const nuevo = await api.responderInfoFaltante(casoId, activeId, draft.trim());
-      onUpdate(nuevo);
+      const { informe: tras_start, afecta_a } = await api.iniciarRespuestaIncremental(
+        casoId,
+        activeId,
+        draft.trim()
+      );
+      onUpdate(tras_start);
+      updateStep("annot", { status: "done" });
+
+      if (afecta_a.length === 0) {
+        // Sin scope: solo se registró el chat
+        setTimeout(() => setProceso(null), 1200);
+        setDraft("");
+        setActiveId(null);
+        return;
+      }
+
+      // Crear pasos por cada C_i afectada
+      setProceso((prev) => [
+        ...(prev ?? []),
+        ...afecta_a.map((cid) => ({
+          id: cid,
+          label: `Reescribiendo ${cid} con Sonnet 4.6 (manteniendo el resto intacto)`,
+          status: "pending" as StepStatus,
+        })),
+      ]);
+
+      // Iterar secuencialmente para que el usuario vea el progreso
+      let lastInforme = tras_start;
+      for (const cid of afecta_a) {
+        updateStep(cid, { status: "running" });
+        try {
+          lastInforme = await api.editarPasoIncremental(casoId, activeId, cid);
+          onUpdate(lastInforme);
+          updateStep(cid, { status: "done" });
+        } catch (e) {
+          console.error(e);
+          updateStep(cid, { status: "error" });
+          throw e;
+        }
+      }
+
+      // Resaltar las afectadas en el documento
+      onAffectedRespuestas?.(afecta_a);
+
       setDraft("");
       setActiveId(null);
+      // Dejar el resumen visible un par de segundos
+      setTimeout(() => setProceso(null), 2500);
+    } catch (e) {
+      console.error(e);
+      setProcesoErr(
+        "No se pudo completar la edición incremental. Inténtalo de nuevo."
+      );
     } finally {
       setSending(false);
     }
@@ -46,6 +120,11 @@ export function ChatInfoFaltante({ casoId, informe, onUpdate }: Props) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Proceso de edición incremental en vivo */}
+        {proceso && (
+          <ProcesoEdicion steps={proceso} error={procesoErr} />
+        )}
+
         {/* Mensajes previos del chat */}
         {informe.chat.length > 0 && (
           <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
@@ -281,7 +360,7 @@ function PreguntaItem({
               {sending ? (
                 <>
                   <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                  Regenerando…
+                  Procesando…
                 </>
               ) : (
                 <>
@@ -292,6 +371,95 @@ function PreguntaItem({
             </Button>
           </div>
         </div>
+      )}
+    </div>
+  );
+}
+
+function ProcesoEdicion({
+  steps,
+  error,
+}: {
+  steps: ProcesoStep[];
+  error: string | null;
+}) {
+  const total = steps.length;
+  const done = steps.filter((s) => s.status === "done").length;
+  const running = steps.find((s) => s.status === "running");
+  const allDone = done === total && !error;
+
+  return (
+    <div
+      className={`rounded-lg border p-3 space-y-2 ${
+        error
+          ? "border-red-500/40 bg-red-500/5"
+          : allDone
+          ? "border-emerald-500/30 bg-emerald-500/5"
+          : "border-blue-500/30 bg-blue-500/5"
+      }`}
+    >
+      <div className="flex items-center gap-2">
+        {error ? (
+          <AlertCircle className="w-3.5 h-3.5 text-red-400" />
+        ) : allDone ? (
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+        ) : (
+          <Pencil className="w-3.5 h-3.5 text-blue-300" />
+        )}
+        <span className="text-xs font-semibold text-zinc-100">
+          {error
+            ? "Error en la edición incremental"
+            : allDone
+            ? "Edición incremental completada"
+            : running
+            ? running.label
+            : "Iniciando edición incremental"}
+        </span>
+        <span className="ml-auto text-[10px] uppercase tracking-wide text-zinc-500">
+          {done}/{total}
+        </span>
+      </div>
+
+      <ul className="space-y-1">
+        {steps.map((s) => (
+          <li
+            key={s.id}
+            className="flex items-center gap-2 text-xs"
+          >
+            {s.status === "done" ? (
+              <CheckCircle2 className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+            ) : s.status === "running" ? (
+              <Loader2 className="w-3 h-3 text-blue-300 animate-spin flex-shrink-0" />
+            ) : s.status === "error" ? (
+              <AlertCircle className="w-3 h-3 text-red-400 flex-shrink-0" />
+            ) : (
+              <span className="w-3 h-3 rounded-full border border-zinc-600 flex-shrink-0" />
+            )}
+            <span
+              className={
+                s.status === "done"
+                  ? "text-zinc-400 line-through"
+                  : s.status === "running"
+                  ? "text-blue-100"
+                  : s.status === "error"
+                  ? "text-red-200"
+                  : "text-zinc-500"
+              }
+            >
+              {s.label}
+            </span>
+          </li>
+        ))}
+      </ul>
+
+      {error && (
+        <p className="text-[11px] text-red-300">{error}</p>
+      )}
+      {allDone && (
+        <p className="text-[11px] text-emerald-200/80">
+          Solo se han reescrito las conclusiones afectadas — el resto del informe
+          (resumen, fichas, cálculos, normativa…) queda intacto.
+        </p>
       )}
     </div>
   );

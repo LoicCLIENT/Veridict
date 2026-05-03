@@ -1,0 +1,828 @@
+                                   INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                                BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+INFORME DE RECONSTRUCCIÓN
+
+ACCIDENTE DE TRÁFICO OCURRIDO EN
+
+  BARRIO ZUBERO Nº 6
+
+  (AULESTIA - BIZKAIA)
+
+                                                                                           FECHA 21/05/2020
+
+www.itrasa.com  itrasa@itrasa.com                                                                            1
+                        INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                     BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+       Estibaliz GONZÁLEZ PRADO, mayor de edad, DNI 30667381D, con domicilio en
+Bilbao:
+
+       · Técnico Superior Prevención de Riesgos Laborales.
+       · Coordinadora del Proyecto de Reconstrucción del Accidente.
+
+Equipo Investigador participante:
+
+       Dr. Aitor IBARRA TALLEDO, mayor de edad con domicilio en Bilbao:
+
+         · DOCTOR en Prevención de Riesgos Laborales, Universidad San Pablo CEU Madrid.
+         · MÁSTER Universitario en Prevención de Riesgos Laborales, Univer. Camilo José Cela.
+         · MÁSTER Universitario en Salud Laboral, Universidad de les Illes Balears.
+         · INGENIERO Superior en Organización Industrial, Escuela Superior de Ingenieros de Bilbao.
+         · INGENIERO Técnico Industrial, Escuela de Ingeniería Técnica Industrial de Bilbao.
+         · Perito Judicial en Prevención de Riesgos Laborales.
+         · Miembro del Cuerpo Nacional de Peritos Judiciales en Prevención de Riesgos Laborales.
+         · Delegado Territorial en el País Vasco de la Asociación de Especialistas en Prevención y Salud
+
+              Laboral (AEPSAL).
+         · Vocal de Junta Directiva de la Asociación Española de Investigación de Accidentes de Tráfico
+
+              (AEIAT).
+         · Auditor de Seguridad Vial, Universidad Burgos.
+         · Profesor Laboral Interino Universidad del País Vasco, Escuela de Ingeniería Técnica Industrial
+
+              de Bilbao años 2009 y 2010.
+
+       Pedro GUTIÉRREZ GARCÍA-DIEGO, mayor de edad con domicilio en Bilbao:
+
+         · Máster en reconstrucción de accidentes de circulación por la Escuela de Ingeniería de Oviedo.
+         · MÁSTER Universitario en Prevención de Riesgos Laborales, Univer. Camilo José Cela.
+         · MÁSTER Universitario en Salud Laboral, Universidad de les Illes Balears.
+         · INGENIERO de Grado, Universidad del País Vasco.
+         · INGENIERO Técnico Industrial, Escuela de Ingeniería Técnica Industrial de Bilbao.
+         · Perito Judicial en Prevención de Riesgos Laborales.
+         · Miembro del Cuerpo Nacional de Peritos Judiciales en Prevención de Riesgos Laborales.
+         · Secretario de la Asociación Española de Investigación de Accidentes de Tráfico.
+         · Auditor de Seguridad Vial, Universidad Burgos.
+         · Profesor-Ponente Universidad Oviedo, años 2009 y 2010
+
+www.itrasa.com  itrasa@itrasa.com  2
+         INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                      BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+ÍNDICE:
+
+         1. OBJETO DEL INFORME.                                   04
+
+         2. TIPO DE ACCIDENTE Y CONDICIONES DEL LUGAR.            05
+
+         3. CARACTERÍSTICAS DEL LUGAR DEL ACCIDENTE.              07
+
+         4. CARACTERÍSTICAS DEL ACCESO A AL BARRIO DE ZUBERO (AULESTIA) 13
+
+         5. VEHÍCULOS IMPLICADOS.                                 14
+
+         6 ANÁLISIS DEL ATESTADO POLICIAL.                        18
+
+         7. ANÁLISIS DE LA VELOCIDAD DEL TURISMO EN LA COLISIÓN.  27
+
+         8. ESTUDIO BIOMECÁNICO DEL ACCIDENTE.                    31
+
+         9. EVITABILIDAD DEL ACCIDENTE.                           35
+
+         10. CONDICIONANTES Y POSIBLES CAUSAS.                    39
+
+         11. CONCLUSIONES.                                        41
+
+         ANEXO: IMÁGENES DE LA ZONA DEL ACCIDENTE 02/06/2020.
+
+         www.itrasa.com  itrasa@itrasa.com                                  3
+                                INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+1-. OBJETO DEL INFORME.
+
+       El presente informe de reconstrucción se realiza, a fin de esclarecer el accidente ocurrido el
+día 21 de mayo de 2020 en el Barrio Zubero nº 6 de Aulestia (Bizkaia).
+
+     Para realizar el presente informe, se ha hecho un estudio integral de todos los posibles datos y
+factores concurrentes en el accidente, se han realizado inspecciones oculares y análisis del lugar,
+de sus características, e incluso, se han llevado a estudio y análisis las diligencias policiales y las
+declaraciones de los implicados, testigos, etc.. A tal efecto, los técnicos que suscriben han girado
+varias visitas de inspección pericial al lugar, con los medios auxiliares necesarios, con objeto de
+recabar el mayor número posible de mediciones y datos para una mayor comprensión de lo que se
+quiere manifestar en este informe. Durante las visitas se ha realizado un reportaje fotográfico de los
+elementos intervinientes en el siniestro que se acompaña en el presente informe.
+
+     Se ha realizado un escaneo 3D con un equipo láser lidar, que permite obtener las características
+del lugar donde ocurre el accidente, con extrema precisión.
+
+       Cada uno de los Ingenieros firmantes del presente documento autoriza expresamente
+a cualquiera de los otros firmantes individualmente a comparecer ante cualquier Tribunal
+para ratificar en Juicio el contenido de este, aclarando cuantos extremos sean requeridos
+de aclaración. Asimismo, cada uno de los Ingenieros abajo firmantes acepta expresamente
+la delegación recibida, comprometiéndose a actuar según su mejor saber y entender.
+
+     Los firmantes de este Dictamen Pericial manifiestan conjunta y solidariamente bajo
+promesa de decir verdad que han actuado y actuarán con la mayor objetividad posible
+tomando en consideración tanto lo que pueda favorecer como lo que sea posible de causar
+perjuicio a cualquiera de las partes, y que conocen las sanciones penales en las que podrían
+incurrir si incumplieran el deber del perito". Asimismo, cada uno de los Ingenieros abajo
+firmantes acepta expresamente la delegación recibida, comprometiéndose a actuar según
+su mejor saber y entender".
+
+www.itrasa.com  itrasa@itrasa.com  4
+                                INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+2-. TIPO DE ACCIDENTE Y CONDICIONES DEL LUGAR.
+
+        El accidente es una colisión fronto-lateral entre una bicicleta y un turismo.
+
+       Situando las huellas de frenado, según establece el atestado de la Ertzaintza, y la ubicación
+de los daños en la bicicleta y el frontal derecho del turismo, el impacto SE DEBE SITUAR de la
+siguiente forma.
+
+www.itrasa.com  itrasa@itrasa.com                                                      5
+INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+       Este impacto es el plausible con la ubicación de daños en paragolpes, capo, cristal
+delantero, techo y lesiones del ciclista Iurgi Beraza.
+
+www.itrasa.com  itrasa@itrasa.com                     6
+                                INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+3-. CARACTERÍSTICAS DEL LUGAR DEL ACCIDENTE.
+
+       Observamos los datos del atestado policial, así como las fotografías y nos indican que se trata
+de una zona urbana de las siguientes características.
+
+       Realizamos un escaneado laser 3D, que permite analizar con máxima precisión las
+condiciones y dimensiones de la vía, así como de las zonas aledañas
+
+Anchura 3,20 metros (Cloud compare 3D)
+
+www.itrasa.com  itrasa@itrasa.com       7
+      INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                   BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+Anchura 3,10 metros (Cloud compare 3D)
+
+       Distancia de visibilidad en ese punto de 26,5 metros lineales, lo que representa
+más de 30 metros de recorrido (según la trayectoria curva)
+
+www.itrasa.com  itrasa@itrasa.com                                                        8
+INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+Pendiente 9 %
+
+www.itrasa.com  itrasa@itrasa.com                     9
+INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+Pendiente 11,6 %
+
+www.itrasa.com  itrasa@itrasa.com                     10
+                                INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+        Analizando los laterales de la vía, de demuestra que existen varias decenas de metros tanto
+de anchura como de longitud.
+
+       Se observa claramente que, a la derecha de la vía, según sentido seguido por el turismo,
+existe una zona terriza, diáfana de varios metros de anchura y longitud, y con un desnivel máximo
+de 4 centímetros. La imagen desde el puesto de conducción permite la percepción y la maniobra
+libre hacia la derecha, sin riesgo alguno, que hubiera evitado la colisión.
+
+www.itrasa.com  itrasa@itrasa.com  11
+INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+                      Extracto del atestado de la Ertzaintza
+
+www.itrasa.com  itrasa@itrasa.com                             12
+                                INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+4-. CARACTERÍSTICAS DEL ACCESO AL BARRIO DE ZUBERO
+(AULESTIA).
+
+Acceso de la BI-4448 al barrio de Zubero, zona del accidente.
+
+www.itrasa.com  itrasa@itrasa.com                              13
+                                INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+5.- VEHÍCULOS IMPLICADOS.
+
+       El turismo es un SEAT modelo Ibiza, con placa de matrícula 3526-BKL
+
+       Atendiendo a las bases de datos de Virtual Crash 5.0, tenemos sus características:
+
+La anchura es de 1,64 metros, es un
+dato importante para analizar el
+presente accidente.
+
+www.itrasa.com  itrasa@itrasa.com                                                          14
+                        INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                     BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+Los daños observados relativos al accidente.
+
+www.itrasa.com  itrasa@itrasa.com                                             15
+                                INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+       Los daños evidentes en el parabrisas delantero, principalmente en su lado derecho, se
+observa daño por hendidura en el techo extremo derecho, daños estructurales en paragolpes
+delantero, principalmente en lateral derecho e incluso falta la tapa inferior del paragolpes a esa
+altura.
+
+       La ubicación en el lado derecho del turismo, así como los daños nos indican la zona contra la
+que colisiona la bicicleta (parte inferior en paragolpes) y parabrisas y techo por parte del ciclista.
+
+       Además, hemos visualizado una marca en el capo del turismo, que nos indica una posible
+trayectoria del ciclista (Iurgi), que al deslizarse sobre él dejó una impronta clara y evidente.
+(fotografías nº 5 y nº 9 del atestado de la Ertzaintza).
+
+www.itrasa.com  itrasa@itrasa.com  16
+                        INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                     BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+La bicicleta marca ORBEA, de color rojo, con nº bastidor 3773
+
+La bicicleta presenta daños en el cuadro, marcas en cubierta trasera de derrape.
+
+El sillín presenta una altura de 79 centímetros, y el manillar una anchura de 55 centímetros
+
+www.itrasa.com  itrasa@itrasa.com                                                 17
+                                INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+6-. ANÁLISIS DEL ATESTADO POLICIAL.
+
+       El accidente ocurre el día 21 de mayo de 2020 a las 20:38 horas.
+       Presentación del atestado en juzgado 23 de mayo de 2020.
+       Realizan una toma de datos del lugar, y de los vehículos, obteniendo algunos datos objetivos,
+si bien, otros, han pasado desapercibidos para el equipo instructor.
+
+Extracto del atestado de la Ertzaintza
+
+· En el momento del accidente, NO existe la limitación genérica de 30 km/h en vía urbana,
+    su incorporación al Reglamento General de Circulación es posterior a esa fecha.
+
+· En el lugar existe señal específica de limitación de velocidad de 20 km/h.
+· La pendiente en el lugar del accidente está comprendida entre un 9 ­ 11,6 %.
+· La anchura de la calzada se sitúa entre 3,10 / 3,15 metros en la zona del accidente.
+
+www.itrasa.com  itrasa@itrasa.com                                                          18
+                                INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+       Sabemos que la vía tiene una anchura de 3,10 metros en la zona del accidente y que el
+turismo, tiene una anchura, que aparece en su tarjeta de características técnicas de 1,64 metros.
+
+                                                    Extracto del atestado de la Ertzaintza
+
+       NO podemos aceptar esta evolución y esta falta de precisión en los datos.
+
+    1. La vía tiene una anchura de 3,10 metros.
+    2. El turismo tiene una anchura de 1,64 metros, quedarían libres 1,46 metros, además de
+
+         toda la zona terriza a la derecha del turismo, de varios metros de anchura.
+    3. Las huellas de frenada de la bicicleta, en su parte final están a 1,2 metros del borde de la
+
+         vía, pero se inician más cerca del borde, incluso a menos de 1 metro de éste (sentido
+         contrario del turismo).
+    4. NO se puede aceptar, como apriorismo, la posición del turismo, indicando que "podría
+         circular lo más próximo posible al borde derecho", máxime cuando en diligencias previas
+         se indica que se DESCONOCE LA TRAYECTORIA DEL TURISMO.
+
+                                Extracto del atestado de la Ertzaintza
+
+5. El conductor del turismo, ascendiendo una pendiente del 9-11,6%, manifiesta circular a 10-
+    20 km/h, y que ve al ciclista, a pesar de accionar el freno al máximo, en el momento de la
+    colisión, según su propia declaración, el turismo NO estaba detenido.
+
+www.itrasa.com  itrasa@itrasa.com  19
+                          INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                       BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+ Haciendo uso del software especializado SAM RAT, realizaremos el cálculo a 10 y 20 km/h.
+A 10 km/h, con una pendiente ascendente del 9%, y una adherencia µ=0,75 tenemos
+
+Observamos que el turismo se detiene en tan sólo 0,47 metros y 0,38 segundos.
+
+www.itrasa.com  itrasa@itrasa.com                                              20
+                          INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                       BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+A 20 km/h, con una pendiente ascendente del 9%, y una adherencia µ=0,75 tenemos
+
+       A 20 km/h, tras accionar el freno, el turismo se detiene en 1,89 metros y en tan sólo 0,76
+segundos.
+
+www.itrasa.com  itrasa@itrasa.com                                                21
+                                INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+       En cuanto a la vía y el límite de velocidad, tenemos los siguientes datos, que nos llevan a la
+confusión:
+
+    1. Cuando definen la vía, la Ertzaintza establece el límite de velocidad, como GENÉRICA de
+         30 km/h.
+
+                                                Extracto del atestado de la Ertzaintza
+         Sin embargo, en la fecha del accidente, NO EXISTÍA NINGUN LUGAR URBANO O
+         INTERURBANO, donde la velocidad máxima GENÉRICA fuera de 30 km/h, el límite genérico
+         urbano era de 50 km/h
+    2. Posteriormente, en las diligencias de investigación y causas, nos establecen que esta
+         velocidad máxima, era por señal especifica de limitación de velocidad.
+
+                                               Extracto del atestado de la Ertzaintza
+       No nos aportan fotografía alguna de esta señal.
+    3. Se realiza unos croquis, SIN ESCALA, DESPROPORCIONADOS, que llevan al error a
+
+         quien los analice, sin tener la información adecuada. No es aceptable, realizar una evolución
+         en una investigación, sin considerar las dimensiones reales y las proporciones, máxime,
+         cuando se desconocen otros datos objetivos.
+
+Extracto del atestado de la Ertzaintza
+
+www.itrasa.com  itrasa@itrasa.com       22
+                           INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                        BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+4. No se ha realizado ningún tipo de cálculo de velocidades, ni se tiene clara la posición real
+    de ambos vehículos previos, ni en el momento de la colisión. Existen unas huellas de
+    turismo, que "pudieran" ser del turismo implicado, y unos daños objetivos, que nos aportan
+    información sobre velocidad y/o trayectorias tras la colisión. Las marcas en capo, parabrisas
+    y techo nos indican la trayectoria del ciclista tras colisionar, su posición nos indica una
+    velocidad "mínima necesaria", para alcanzar esas posiciones, pero esto NO es investigado,
+    ni interpretado por el equipo instructor.
+
+5. Tras el impacto, se "estiman" unos movimientos post colisión, de los cuales NO se tiene
+    prueba o dato alguno objetivo. Se indica que el turismo retrocede, algo difícilmente explicable
+    desde la ciencia, un turismo con más de 1 tonelada, en movimiento, embiste a un ciclista
+    casi parado y fruto del impacto, NUNCA EL TURISMO PUEDE SALIR "REBOTADO" HACIA
+    ATRÁS, sino continuará avanzando, fruto de la mayor cantidad de energía (y cantidad de
+    movimiento) en el momento del impacto.
+
+                                         Extracto del atestado de la Ertzaintza
+
+         Las proporciones turismo/vía, no se mantienen, no hay ninguna prueba/indicio que nos
+indique el retroceso, como consecuencia del impacto, si no es un movimiento voluntario
+realizado por el conductor del turismo.
+
+www.itrasa.com  itrasa@itrasa.com  23
+                        INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                     BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+NO es aceptable una conclusión, carente de rigor científico de la manera:
+
+                                                      Extracto del atestado de la Ertzaintza
+
+       No se analizan los tiempos de reacción y ejecución, ni las posibles maniobras evasivas, ni se
+mide con precisión la distancia de visibilidad para poder establecer la "atención" a la conducción.
+
+       Se conoce la posición y longitud de las huellas del ciclista, que nos aportan información sobre
+el "riesgo" que percibió el ciclista y que le llevó a accionar el freno, dejando una impronta de 8
+metros. Esta información, nos aporta datos objetivos como son:
+
+    · Ciclista percibe el peligro.
+    · Actúa sobre el freno.
+    · Frena durante al menos 8 metros.
+
+       Esta conducta volitiva del ciclista requiere un tiempo de reacción + un tiempo de ejecución +
+tiempo de frenado.
+
+       Conocida la pendiente, la adherencia y la longitud de la huella, podemos determinar no sólo
+la velocidad, sino el TIEMPO MÍNIMO NECESARIO desde que percibe el riesgo hasta la colisión
+contra el turismo.
+
+www.itrasa.com  itrasa@itrasa.com                                             24
+INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+       Un ciclista, con un tiempo de reacción de 1 segundo, que bloquea su freno trasero dejando
+una impronta de 8 metros, en una vía, con un 9% de pendiente descendente, precisa de 3,333
+segundos, COMO MÍNIMO, desde que percibe el riesgo hasta el impacto.
+
+El conductor del turismo, que percibe al ciclista, no es capaz de detenerlo circulando a 20
+
+km/h, cuando hemos acreditado que PODÍA HACERLO, en 1 segundo de tiempo de reacción a los
+
+que hay que sumarle 0,76 segundos en la frenada, es decir tan sólo 1,76 segundos. Esto indicaría
+
+que podía haber detenido el turismo antes de que el ciclista terminase su frenada y por tanto
+
+HUBIERA EVITADO LA COLISIÓN.
+
+www.itrasa.com  itrasa@itrasa.com                     25
+                                INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+       Este dato OBJETIVO, nos lleva a un escenario que plantea al menos 3 situaciones que indicen
+directamente en la consecución del accidente.
+
+    1. Que la velocidad del turismo fuera notablemente superior a los 20 km/h que indica su
+         conductor.
+
+    2. Que la atención del conductor no fuera la adecuada, suficiente, necesaria y obligatoria.
+
+    3. Que el conductor del turismo pudo realizar una maniobra evasiva, hacia su derecha evitando
+         la trayectoria del ciclista, al margen de su posición real en la calzada en el momento previo
+         al accidente y en el momento del accidente.
+
+       De los numerables estudios de colisiones y atropellos, nos aporta datos relativos a la posición
+de los daños en un turismo y la relación con su velocidad.
+
+       En el lugar del accidente, hay una visibilidad de 25 ­ 26 metros para el conductor para poder
+percibir al ciclista. Circulando a 20 km/h, un turismo precisaría al menos 4,5 segundos para
+recorrerlos.
+
+Hemos medido la distancia "in situ".
+Lo hemos analizado con el levantamiento laser
+3D y software especializado en reconstrucción
+de accidentes de tráfico Virtual Crash 5.0
+
+www.itrasa.com  itrasa@itrasa.com              26
+                                INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+7-. ANÁLISIS DE LA VELOCIDAD DEL TURISMO EN LA COLISIÓN.
+
+       Careciendo de algunos datos objetivos, usaremos como elementos de trabajo, los que si
+tenemos y son irrefutables.
+
+       En este caso, tenemos los daños del turismo, daños en el parabrisas e incluso en el techo.
+
+       Los diferentes manuales de reconstrucción, y concretamente los últimos, realizados por la
+Universidad Carlos III y la Guardia Civil en el año 2020, nos indican en el caso de colisiones entre
+turismos y ciclistas.
+
+       Los daños en el parabrisas ya nos está indicando una velocidad de circulación por parte del
+turismo de al menos 50 km/h (sin considerar los daños en la parte más alta del parabrisas y del
+techo del turismo).
+
+       En nuestro accidente, tenemos los daños situados todavía en una parte más elevada
+del parabrisas, lo que nos indicaría un rango superior incluso a los 50 km/h.
+
+www.itrasa.com  itrasa@itrasa.com  27
+INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+Si estimamos que la bicicleta pudiera estar ligeramente girada, tenemos
+
+www.itrasa.com  itrasa@itrasa.com                                        28
+       INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                     BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+50 km/h
+
+       Por consiguiente, ya podemos afirmar, que la velocidad del turismo era excesiva y muy
+superior a la máxima de la vía.
+
+       En una situación de visibilidad restringida, por el trazado y conocido éste, circular a una
+velocidad desproporcionada y excesiva en este lugar implica un riesgo evitable.
+
+       A esta velocidad la distancia de detención aumenta exponencialmente, realizamos el cálculo
+
+www.itrasa.com  itrasa@itrasa.com                             29
+                        INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                     BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+Distancia de detención a 50 km/h con un tiempo de reacción del conductor de 1 seg.
+
+       Se confirma, que la distancia de detención sería de 26 metros, en una zona que según indica
+el atestado la visibilidad es de 20 metros, circulando a 50 km/h NO ES POSIBLE DETENERSE
+ANTE CUALQUIER OBSTACULO QUE HUBIERA EXISTIDO.
+
+       Además se comprueba, que a pesar de estar atento el conductor la distancia que precisa para
+detenerse, 26 metros, siendo la distancia de visibilidad de al menos 25 metros, por eso, tal y como
+manifiesta el propio conductor, en el momento del impacto, el turismo NO ESTABA DETENIDO, se
+encontraba frenando. Hechos totalmente compatibles con una conducción desatenta, a
+velocidad excesiva y superior a la máxima de la vía.
+
+www.itrasa.com  itrasa@itrasa.com                                                   30
+                                INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+8-. ESTUDIO BIOMECÁNICO DEL ACCIDENTE.
+
+       Según la D.G.T. (Temario Específico de la ESTT - Especialidad: Gestión del Tráfico y
+movilidad (2011))
+
+       La biomecánica es la ciencia que trata de describir los mecanismos lesivos, explicando las
+lesiones producidas en el organismo humano, mediante la integración de diferentes disciplinas, que
+incluyen la medicina, la epidemiología, la física y la ingeniería. Podríamos decir que es la ciencia
+que analiza los efectos lesivos causados por un impacto en el cuerpo humano con objeto de
+encontrar medidas que permitan la prevención de lesiones.
+
+       Los principios de la biomecánica aplicados a la reducción de lesiones se basan en las leyes
+de Newton. Las energías que se liberan en el trauma, y que rigen la biomecánica de lesiones, se
+interpretan según estas leyes.
+
+       La primera ley de Newton establece que un cuerpo en movimiento continuará su trayectoria
+de una manera continua y permanente, a no ser que haya una fuerza externa que se oponga a este
+movimiento (es lo que ocurriría si, lanzando una piedra, ésta no se viera afectada en su movimiento
+por el rozamiento y por la fuerza de la gravedad). Por el contrario, un cuerpo en reposo tenderá a
+permanecer en esta situación a no ser que una fuerza externa actuando sobre él lo desplace.
+
+       La segunda ley de Newton establece la cuantía de la energía determinada por el movimiento,
+y viene dada por la fórmula E E=1/2 de M x V2, siendo M la masa del cuerpo y V su velocidad.
+
+       Esta ley ya indica que el factor velocidad determina en general la magnitud de la energía y,
+por ello, el principal determinante de la gravedad es la velocidad del objeto incidente, debido a que
+ese factor está elevado al cuadrado.
+
+       En cuanto a la lesividad, se deben también tener en cuenta las diferencias significativas, de
+masa y velocidad, entre dos los dos cuerpos que soportan el choque (lo que se denomina
+incompatibilidad).
+
+www.itrasa.com  itrasa@itrasa.com  31
+                                INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+       Las lesiones se producen cuando una determinada estructura corporal ve superado su límite
+de resistencia por la energía a que ha sido sometida.
+
+       Los mecanismos de lesión corresponden a uno de los cinco siguientes, ya sean solos o
+combinados:
+
+    · Flexión. Suelen producir fracturas trasversales.
+
+    · Extensión. Pueden producir también fracturas trasversales y/o luxaciones articulares.
+
+    · Tracción. Suele producir desgarros cutáneos, musculares, luxaciones, etc.
+
+    · Compresión. Se debe a la aplicación de una fuerza en sentido longitudinal, tal como se
+         produce en el caso de un nadador que se tira de cabeza a una zona con poca agua,
+         quedando su cabeza comprimida contra el suelo por el resto del cuerpo que la empuja, con
+         lo que se produce un fenómeno de émbolo que puede dar lugar a fracturas o lesiones
+         cervicales. Es un mecanismo para explicar las fracturas por estallido de cuerpo vertebral.
+
+    · Torsión. Suele producir fracturas espiroideas. Es el caso típico del esquiador cuyo esquí
+         queda atrapado fijo, produciéndose un giro brusco de su cuerpo sobre la pierna que actúa
+         de eje.
+
+       Es importante tener en cuenta que en el caso de un accidente de vehículo en el que éste
+colisione contra un obstáculo, se produce un primer impacto o impacto inicial, que es el del automóvil
+contra el objeto, sea este fijo o móvil. El segundo impacto es el de los ocupantes contra alguna
+estructura interior del vehículo, caso de no salir despedidos, como puede ser el golpe contra el
+volante cuando se trata de un choque frontal de un conductor no sujeto por cinturón de seguridad.
+
+       El tercer impacto es el de los órganos internos entre sí, como ocurre, por ejemplo, si, además
+del impacto del tórax contra el volante, se produce el impacto de la cabeza contra alguna estructura
+interna del vehículo (parabrisas, marco metálico de separación de parabrisas y ventanilla, etc.).
+
+       Puede haber un cuarto impacto por la existencia de objetos no fijos en el interior del automóvil,
+que pueden golpear a sus ocupantes (recipientes situados en la bandeja, animales sueltos,
+pasajeros situados en los asientos traseros, etc.).
+
+www.itrasa.com  itrasa@itrasa.com  32
+                                INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+       El impacto de los órganos internos entre sí tiene importancia para explicar la producción de
+lesiones. Si, por ejemplo, el encéfalo, que está contenido en el interior del cráneo, una estructura
+dura e inextensible, golpea tras una deceleración brusca, produciéndose el impacto de los lóbulos
+frontales, protegidos parcialmente por las meninges, contra la parte interna del hueso frontal, se
+podrán producir hematomas o focos contusitos frontales.
+
+       Pero si, además, consideramos que la zona occipital se ha visto sometida a un fenómeno de
+tracción tras el desplazamiento, que puede haber producido un desgarro de los vasos sanguíneos
+que unen el encéfalo con las meninges, se podrá producir también en el mismo accidente un
+hematoma subdural occipital o una hemorragia subaracnoidea a dicho nivel.
+
+       La autopsia de Iurgi Beraza Uriarte muestra las lesiones, principalmente en cabeza,
+con lesiones incompatibles con la vida, producidas por el impacto contra el turismo en el
+accidente.
+
+www.itrasa.com  itrasa@itrasa.com                                                           33
+                                INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+Lesividad en función de la velocidad
+
+       Un hecho incontestable, es que la velocidad es un factor directo de la lesividad, a mayor
+velocidad, mayores son las lesiones que se causan, y esto se sustenta en la aplicación de los
+principios de la física, concretamente en la Ley de la Conservación de la Energía, que indica que la
+energía, ni se crea ni se destruye, solo se transforma.
+
+       Un vehículo, de 1.150 kilogramos, como es el del accidente, puesto en servicio y con un
+conductor medio, tiene una energía cinética, debido a su velocidad, que varía en función de esta,
+según la ecuación cuadrática:
+
+                                 Ec= ½ * M * V2
+
+       Si conocemos la masa, calculamos la energía a 10 km/h y a 20 km/h según indica el propio
+conductor que circulaba y a 50 km/h, que es la velocidad que nos indica objetivamente la magnitud
+y ubicación de los daños en el vehículo tras el accidente.
+
+       Se observa que a 10 km/h el turismo tiene 4.437 julio, y que al pasar a 50 km/h, su
+energía es de 110.918 julios. Es decir, aumentando la velocidad en 40 km/h se ha multiplicado
+la energía aumenta un 2.500% (aumenta en 25 veces). Y comparándolo con la velocidad
+máxima de la vía (20 km/h) la energía de la colisión supera en 6,25 veces la máxima de la vía,
+pasando de la máxima de 17.747 julios a 110.918 julios.
+
+www.itrasa.com  itrasa@itrasa.com  34
+                                INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+9-. EVITABILIDAD DEL ACCIDENTE
+
+       No es función de los técnicos, establecer responsabilidades en un accidente, sino reflejar los
+elementos objetivos que existen en un accidente.
+
+       La evitabilidad del presente accidente pasa por el cumplimiento de la normativa de tráfico por
+parte del conductor del turismo quién realiza una concatenación de maniobras antirreglamentarias
+generando un riesgo a los usuarios de la vía, CIRCULA A UNA VELOCIDAD EXCESIVA, CON UNA
+FALTA EVIDENTE DE ATENCIÓN A LA CIRCULACIÓN que provoca un accidente al colisionar con
+un ciclista (usuario muy vulnerable) y unas consecuencias tan severas como evitables para el ciclista
+que circulaba adecuadamente.
+
+       Obviamente, hemos acreditado que circulando a la velocidad reglamentaria hay varios
+segundos para percibir al ciclista y distancia más que suficiente para detener el vehículo, evitando el
+accidente y sus consecuencias.
+
+       También hay que recordar, que el conductor, reside en la zona, conoce el peligro y las
+restricciones de velocidad, así como la dificultad del trazado, por lo que hay que exigirle un
+cumplimiento de la normativa en seguridad vial y de los riesgos inherentes al tipo de conducción
+que estaba realizando.
+
+       Por consiguiente, hemos de concluir que la evitabilidad del presente accidente pasaba
+única y exclusivamente por el respeto y cumplimiento de la normativa de tráfico (Reglamento
+General de Circulación R.D. 1428/2003) del conductor profesional del turismo D. Jesús María
+EREZUMA URIARTE.
+
+       Se quebranta el límite de velocidad y la obligatoria atención a la circulación, hechos
+que de manera combinada provocan y agravan el accidente y sus consecuencias.
+
+       El ciclista, ve quebrantado su principio de confianza al circular por la mitad derecha de la vía,
+según su sentido de circulación, cuando ve invadida su trayectoria y el evidente riesgo para su
+integridad, que le obliga a realizar una maniobra evasiva hacia el único lugar posible, intentando
+frenar de manera simultánea.
+
+www.itrasa.com  itrasa@itrasa.com  35
+INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+       Si el turismo circula por su mitad derecha, existe la posibilidad de circular simultáneamente. El
+turismo mide 1,64 metros de ancho y la bicicleta 0,55 metros de anchura.
+
+       Pero la circulación del turismo pudiera haber sido por la zona terriza al visualizar cualquier tipo
+de riesgo.
+
+     Cualquier maniobra evasiva hacia la derecha, por parte del conductor del turismo, hubiera
+evitado cualquier situación de riesgo
+
+www.itrasa.com  itrasa@itrasa.com                     36
+                              INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                           BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+     A tal efecto, hemos situado en el programa Virtual Crash 5.0, tanto el escenario escaneado
+en 3D, como los vehículos implicados, de manera que no queda duda, sobre los tamaños y la
+posibilidad de evitar la colisión.
+
+www.itrasa.com  itrasa@itrasa.com  37
+INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+                        Evitabilidad evidente.
+
+www.itrasa.com  itrasa@itrasa.com                     38
+                              INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                           BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+10.- CONDICIONANTES Y POSIBLES CAUSAS.
+
+     Hemos acreditado que la evitabilidad pasaba exclusivamente por el cumplimiento de la
+normativa de tráfico vigente, en concreto por el Reglamento General de Circulación R.D.
+1428/2003.
+
+     En este caso, en cuanto a la maniobra previa al accidente tenemos:
+
+Artículo 3 Conductores
+1. Se deberá conducir con la diligencia y precaución necesarias para evitar todo daño, propio o
+ajeno, cuidando de no poner en peligro, tanto al mismo conductor como a los demás ocupantes
+del vehículo y al resto de los usuarios de la vía. Queda terminantemente prohibido conducir de
+modo negligente o temerario (artículo 9.2 del texto articulado).
+
+Artículo 45: Adecuación de la velocidad a las circunstancias.
+Todo conductor está obligado a respetar los límites de velocidad establecidos y a tener en
+cuenta, además, sus propias condiciones físicas y psíquicas, las características y el estado
+de la vía, del vehículo y de su carga, las condiciones meteorológicas, ambientales y de
+circulación, y, en general, cuantas circunstancias concurran en cada momento, a fin de adecuar
+la velocidad de su vehículo a ellas, de manera que siempre pueda detenerlo dentro de los
+límites de su campo de visión y ante cualquier obstáculo que pueda presentarse (artículo
+19.1 del texto articulado).
+
+Artículo 46: Moderación de la velocidad. Casos.
+1. Se circulará a velocidad moderada y, si fuera preciso, se detendrá el vehículo cuando las
+circunstancias lo exijan, especialmente en los casos siguientes
+
+a) Cuando haya peatones en la parte de la vía que se esté utilizando o pueda preverse
+racionalmente su irrupción en ella, principalmente si se trata de niños, ancianos, invidentes u
+otras personas manifiestamente impedidas.
+
+b) Al aproximarse a ciclos circulando, así como en las intersecciones y en las proximidades de
+vías de uso exclusivo de ciclos y de los pasos de peatones no regulados por semáforo o agentes
+
+www.itrasa.com  itrasa@itrasa.com  39
+                              INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                           BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+de la circulación, así como al acercarse a mercados, centros docentes o a lugares en que sea
+previsible la presencia de niños.
+
+d) En los tramos con edificios de inmediato acceso a la parte de la vía que se esté utilizando.
+
+     Se acredita no solo el exceso de velocidad, la falta de atención y por la ubicación de las
+huellas de frenada del ciclista, así como la posición de los daños en bicicleta y turismo, la
+bicicleta, se sitúa a menos de 1 metro del borde derecho, según su sentido de circulación,
+cuando percibe el peligro y realiza una frenada de emergencia (finalizando a 1,2 metros del
+borde), sin embargo el turismo, no puede estar situado en el margen derecho, puesto que
+golpea la rueda trasera de la bicicleta con su mitad derecha del turismo.
+
+     El conductor del turismo presenta un quebrantamiento evidente de varios preceptos
+del Reglamento General de Circulación, siendo un accidente EVITABLE.
+
+www.itrasa.com  itrasa@itrasa.com  40
+INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+11-. CONCLUSIONES.
+
+     Hemos analizado los datos y analizado el informe realizado por la fuerza instructora. Con
+ayuda del software especializado en reconstrucción de accidentes de tráfico Virtual Crash 5.0 y a
+tenor de los datos objetivos que se poseen hemos de indicar:
+
+     1. El accidente es una colisión fronto lateral excéntrica entre un turismo y un ciclista.
+
+     2. El turismo implicado circulaba a una velocidad excesiva y muy superior al límite
+     máximo de la vía. Siendo el límite 20 km/h y circulando éste al menos a 50 km/h en el
+     momento de la colisión (exceso de 150%).
+
+3. El exceso de velocidad, por el principio de conservación de la energía, agrava las
+lesiones y las consecuencias de este accidente, hemos acreditado que la energía aumenta
+exponencialmente y que supera al menos 6,25 veces la energía máxima que debía tener el
+turismo circulando a 20 km/h.
+
+4. El resultado final, examinado el estudio biomecánico y la autopsia realizada al
+ciclista fallecido D. Iurgi Beraza Uriarte.
+
+5. El conductor del turismo NO realiza maniobra evasiva alguna, a pesar de tener más
+de 3,33 segundos desde que puede percibir al ciclista, sin embargo, el ciclista, realiza una
+frenada e intenta cambiar la dirección, para evitar la colisión, al verse quebrantado su principio
+de confianza, pues circulaba en su carril (mitad derecha de la calzada, que se objetiva en base
+a las huellas de frenada) y ve interceptada su trayectoria.
+
+6. El accidente era evitable únicamente con el básico y exigible respeto a la normativa
+de circulación por parte del conductor del turismo, conocedor de la vía, de la limitación
+de velocidad y del trazado de la vía, circula a velocidad excesiva, y con una evidente falta de
+atención según establece el Reglamento General de Circulación R.D. 1428/2003.
+
+7. El atestado policial, no realiza informe técnico alguno e introduce errores, no sólo
+en los límites de velocidad, en la señalización, en las dimensiones, carece de cálculos
+de velocidad, de un croquis escalado real, incluso, no realiza algunos elementos de
+investigación exigible en este tipo de accidentes y que tiende a la investigación
+
+www.itrasa.com  itrasa@itrasa.com                     41
+                              INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                           BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+     obligatoria relativa a los delitos contra la seguridad vial (prueba de drogas etc...).
+     Establece unos apriorismos que le llevan a unas conclusiones carentes de rigor técnico
+     y científico.
+
+     Tras analizar todos los elementos intervinientes en este accidente, las circunstancias y
+condicionantes posibles, hemos de afirmar que no es función de los técnicos establecer
+responsabilidades en un accidente, sino reflejar los elementos objetivos que existen el mismo,
+facilitando a V.I. el establecimiento de posibles responsabilidades en el presente accidente.
+
+     Y para que conste a los efectos oportunos.
+
+                                                                                          Bilbao a 21 de marzo de 2022
+
+                                   Estibaliz González
+
+                                          DNI: 30667381D
+                            Coordinadora de Proyecto ITRASA
+
+Pedro Gutiérrez                                              Dr. Aitor Ibarra
+
+DNI: 29032074W                                               DNI: 30642305A
+Colegiado nº 6187                                            Colegiado nº 5653
+Secretario AEIAT                                             Socio AEIAT
+C.N.P.J.P.R.L. AEPSAL nº28                                   C.N.P.J.P.R.L. AEPSAL nº29
+                                                             Delegado Territorial AEPSAL
+
+C.N.P.J.P.R.L.: Cuerpo Nacional de Peritos Judiciales en Prevención de Riesgos Laborales
+           A.E.P.S.A.L.: Asociación de Especialistas en Prevención y Salud Laboral
+           A.E.I.A.T.: Asociación Española de Investigación de Accidentes de Tráfico
+
+                            www.itrasa.com  itrasa@itrasa.com                             42
+                                INFORME RECONSTRUCCIÓN DE ACCIDENTE DE TRÁFICO EN
+                                             BARRIO ZUBERO Nº 6 ­ AULESTIA (BIZKAIA)
+
+ANEXO. IMÁGENES DE LA ZONA DEL ACCIDENTE 02/06/2020.
+
+     En la calzada se observan marcas de neumáticos el lateral derecho de la vía, limpio de objetos
+o elementos que permiten la circulación por esa zona.
+
+www.itrasa.com  itrasa@itrasa.com                                                     43
+

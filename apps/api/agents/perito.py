@@ -54,12 +54,13 @@ DISPONES DE ESTAS TOOLS (ya descritas en el schema):
 - consultar_meteo(lat, lon, fecha_iso): meteorología histórica.
 - consultar_ficha_tecnica(marca, modelo, anio): ficha técnica del vehículo.
 - consultar_legal(tipo_encargo, fecha_siniestro_iso, palabras_clave): normativa + BOE.
-- simular_fisica(modelo, parametros): cálculos físicos deterministas. Modelos: balance_momento_alcance, velocidad_por_huella, distancia_detencion (con `incluir_tiempo_reaccion` bool), atropello_throw, **tiempo_huella** (clave atropello: t_total=t_reacción+t_ejecución+t_frenada de la víctima).
+- calcular_fisica(modelo, parametros): **PhysicsAgent** — fuente de verdad de cifras físicas (NO genera imágenes). Modelos: balance_momento_alcance, velocidad_por_huella, distancia_detencion (con `incluir_tiempo_reaccion` bool), atropello_throw, **tiempo_huella** (clave atropello: t_total=t_reacción+t_ejecución+t_frenada de la víctima), **energia_cinetica** (acepta `v_kmh_lista` para tabla 10/20/50 km/h estilo ITRASA). Default μ=0.75 (asfalto seco).
 - verificar_atestado(velocidad_calculada_kmh, velocidad_declarada_kmh, declaracion): contraste compatibilidad.
 - analizar_conformidad_atestado(fecha_siniestro_iso, velocidad_declarada_kmh, velocidad_calculada_kmh, es_atropello): crítica metodológica DETERMINISTA del atestado (8 reglas R1-R8). OBLIGATORIA en encargos de responsabilidad/atropello/velocidad y siempre que haya fallecimiento.
 - buscar_foto_perito(criterio): pide al BibliotecaFotosAgent la mejor foto del catálogo del perito que cumpla un criterio (p.ej. 'frontal del SEAT con parabrisas dañado'). Si no la hay, devuelve `requiere_foto=true` y la pregunta a hacerle al perito.
 - analizar_imagen_dano(image_url, contexto): análisis visual de daños sobre una URL ya conocida (de Mapillary o devuelta por buscar_foto_perito).
-- obtener_frame_simulacion(evento, masa_a, masa_b, ebs_a_kmh, ebs_b_kmh, ...): pide al motor INTERNO Veridict un croquis SVG de la dinámica (eventos: croquis_general, pre_impacto, impacto, post_impacto, huellas). Llámala AL MENOS UNA VEZ por informe relevante (responsabilidad/velocidad/atropello) para que el PDF lleve un croquis de reconstrucción.
+- generar_frame_simulacion(evento, masa_a, masa_b, ebs_a_kmh, ebs_b_kmh, ...): **SimulacionAgent** — recreación VISUAL del siniestro (croquis SVG con vehículos, trayectorias, PDI, huellas). Le pasas las velocidades y masas QUE YA VALIDASTE con el PhysicsAgent; él solo renderiza, no calcula. Eventos: croquis_general, pre_impacto, impacto, post_impacto, huellas. Llámala AL MENOS UNA VEZ por informe relevante (responsabilidad/velocidad/atropello) para que el PDF lleve un croquis de reconstrucción.
+- capturar_simulacion(t_segundos, descripcion): **SnapshotEscenaAgent** — captura UN INSTANTE de la EscenaSimulacionData ya reconstruida (la simulación cenital animable producida por el SimulationAgent). Devuelve URL de un SVG estático con los actores en ese momento, trayectorias visibles, huellas e impacto si ya ha ocurrido. **Disponible solo después de que la simulación esté reconstruida** (post-orquestación). Útil para attachear visualmente un instante a un argumento del informe (ej. "véase t=2.8 s, momento del contacto"). Es complementaria a `generar_frame_simulacion` (croquis físico abstracto): este es la captura de la escena REAL renderizada igual que el frontend.
 - analizar_biomecanica(descripcion_lesiones, ...): aplica ESTT/DGT 2011 + WAD + AIS. OBLIGATORIO si hay lesiones graves o fallecimiento. En atropellos pasa `es_atropello=true` + `descripcion_danos_vehiculo` (texto con dónde quedaron los impactos: parabrisas/capó/techo) + `masa_vehiculo_kg` + `velocidad_estimada_kmh`. El agente devuelve análisis cefálico (cráneo) si la zona es la cabeza.
 
 REGLAS:
@@ -69,14 +70,24 @@ REGLAS:
 2. ESTRATEGIA DE INVESTIGACIÓN — REGLA UNIVERSAL Y POR ENCARGO.
    REGLA UNIVERSAL (todos los encargos): consultar_escena + consultar_meteo SIEMPRE (son contexto base que el lector espera ver).
    POR ENCARGO (rúbrica concreta):
-   - responsabilidad_trafico: ficha + legal(['art.3','art.45','principio de confianza']) + simular(distancia_detencion con incluir_tiempo_reaccion=false) + verificar_atestado + analizar_conformidad_atestado + obtener_frame_simulacion(croquis_general).
-   - velocidad_impacto: ficha + simular(velocidad_por_huella + tiempo_huella) + verificar_atestado + analizar_conformidad_atestado + obtener_frame_simulacion(impacto).
-   - seguridad_pasiva: ficha + simular(balance_momento) + legal(['airbag','antiempotramiento','ECE-R12','FMVSS-208']) + analizar_biomecanica.
-   - atropello: ficha + escena(direccion=...) + simular(velocidad_por_huella) + simular(tiempo_huella para la víctima) + simular(distancia_detencion del vehículo a la velocidad reglamentaria, incluir_tiempo_reaccion=true) + legal(['art.3','art.45','art.46','principio de confianza']) + obtener_frame_simulacion(impacto) + analizar_biomecanica(es_atropello=true) + analizar_conformidad_atestado.
+   - responsabilidad_trafico: ficha + legal(['art.3','art.45','principio de confianza']) + calcular_fisica(distancia_detencion con incluir_tiempo_reaccion=false) + verificar_atestado + analizar_conformidad_atestado + generar_frame_simulacion(croquis_general).
+   - velocidad_impacto: ficha + calcular_fisica(velocidad_por_huella + tiempo_huella + energia_cinetica) + verificar_atestado + analizar_conformidad_atestado + generar_frame_simulacion(impacto).
+   - seguridad_pasiva: ficha + calcular_fisica(balance_momento_alcance) + legal(['airbag','antiempotramiento','ECE-R12','FMVSS-208']) + analizar_biomecanica.
+   - atropello: ficha + escena(direccion=...) + calcular_fisica(velocidad_por_huella) + calcular_fisica(tiempo_huella para la víctima) + calcular_fisica(distancia_detencion del vehículo a la velocidad reglamentaria, incluir_tiempo_reaccion=true) + calcular_fisica(energia_cinetica con v_kmh_lista=[10,20,50] para tabla comparativa) + legal(['art.3','art.45','art.46','principio de confianza']) + generar_frame_simulacion(impacto) + analizar_biomecanica(es_atropello=true) + analizar_conformidad_atestado.
    - mecanica_fallo: ficha + legal + escena.
    - cuantia_danos: ficha + legal + escena + analizar_biomecanica si hay lesiones.
 
    PATRÓN DE EVITABILIDAD (atropello/responsabilidad): compara `tiempo_huella(víctima)` vs `tiempo_total(distancia_detencion del vehículo a velocidad reglamentaria con t_reacción=1s)`. Si t_huella > t_detencion, el accidente era evitable a velocidad reglamentaria. Cita ambos cálculos en la respuesta.
+
+   ATRIBUCIÓN DE HUELLAS — CRÍTICA. Si el atestado atribuye una huella al CICLISTA/PEATÓN (no al turismo), la `velocidad_por_huella` calculada es la de la víctima, NO una cota inferior de la del turismo. NUNCA presentes la velocidad del ciclista como "rango mínimo del turismo". La velocidad del turismo se acota por OTROS indicios (WAD biomecánico, daños en vehículo, distancia de proyección Searle si aplica). Mantén ambos análisis SEPARADOS y rotulados claramente.
+
+   CIFRA PERICIAL ÚNICA — CIERRE OBLIGATORIO. En las preguntas de velocidad (C1 típicamente) NO basta con enumerar rangos paralelos ("X-Y cinemático" + "Z-W biomecánico"). DEBES cerrar la respuesta con UNA cifra pericial final acotada del estilo "velocidad real del turismo en el impacto: AL MENOS V km/h" o "V±Δ km/h", razonando cuál es el indicio dominante. Criterio de selección por defecto:
+     · Si hay rango WAD biomecánico, ése es el dominante (los daños son evidencia objetiva en el vehículo). Cierra con el extremo INFERIOR del rango WAD como mínimo pericial ("al menos X km/h", estilo ITRASA "al menos 50 km/h").
+     · Si solo hay cinemática (huella del propio turismo), cierra con esa cifra.
+     · Si el rango WAD y otros indicios discrepan, explica la discrepancia y elige la cota más conservadora pericialmente.
+   La energía cinética que cites debe corresponder a esa cifra final, no a un punto medio inventado. Si llamaste a `analizar_biomecanica`, usa el campo `energia_cinetica_v_kmh_referencia` que ya devuelve el agente (corresponde al extremo superior del WAD) o consulta directamente `calcular_fisica(energia_cinetica)` con la velocidad pericial elegida.
+
+   FRAME DE SIMULACIÓN — INPUTS VALIDADOS. Cuando llames a `generar_frame_simulacion`, las velocidades `ebs_a_kmh`/`ebs_b_kmh` DEBEN ser las que ya validaste con el PhysicsAgent (output de `calcular_fisica`). NO inventes velocidades de impacto: el SimulacionAgent rechazará el frame si el balance de momento se desvía >15 % de la consistencia física. Si recibes `rechazado=true`, vuelve a calcular con el PhysicsAgent y reintenta.
 
 3. Si una tool devuelve `falta_info`, INCLUYE esa pregunta como `info_faltante` en tu JSON final, dirigida al perito humano. NUNCA inventes datos.
 
@@ -176,9 +187,17 @@ async def coordinar(caso: Caso, *, caso_id: str | None = None) -> dict:  # noqa:
     que el frontend pueda hacer polling y verlo en directo.
     """
     contexto_dispatch = {
+        "caso_id": caso_id or caso.id,
         "fotos": list(caso.fotos),
         "hechos_atestado": caso.hechos_atestado.model_dump(mode="json") if caso.hechos_atestado else {},
         "lesiones": [l.model_dump(mode="json") for l in (caso.lesiones or [])],
+        # `simulacion_escena` se rellena dinámicamente cuando el Perito invoca
+        # un specialist que la produce/usa. Mientras tanto: la del informe
+        # previo si existe (regeneraciones).
+        "simulacion_escena": (
+            caso.informe.simulacion_escena.model_dump(mode="json")
+            if (caso.informe and caso.informe.simulacion_escena) else None
+        ),
     }
     """Devuelve {informe_data, tool_calls, imagenes_recopiladas}.
 
@@ -340,6 +359,9 @@ async def coordinar(caso: Caso, *, caso_id: str | None = None) -> dict:  # noqa:
             final_json = await _forzar_json_final(client, settings, messages)
             if final_json is None:
                 error = "El Perito no devolvió un JSON parseable tras forzar el cierre."
+        if caso_id and final_json:
+            trace_store.update(caso_id, informe_borrador=final_json,
+                               mensaje="Informe redactado, ensamblando vista final…")
         break
     else:
         # Tope de turnos alcanzado — pedimos JSON con los datos recopilados
@@ -435,8 +457,10 @@ def construir_informe(
     bibliografia_recopilada: list[str],
     calculos_recopilados: list[CalculoFisico],
     chat_previo: list,
+    simulacion_escena: dict | None = None,
 ) -> InformePericial:
     """Funde el JSON del Perito + las fuentes acumuladas en un InformePericial."""
+    from models import EscenaSimulacionData
     data = coord_out.get("informe_data") or {}
 
     respuestas = [
@@ -471,6 +495,13 @@ def construir_informe(
     conf_raw = datos.get("analizar_conformidad_atestado")
     conf_struct = _build_conformidad(conf_raw) if conf_raw else None
 
+    sim_struct: EscenaSimulacionData | None = None
+    if simulacion_escena:
+        try:
+            sim_struct = EscenaSimulacionData.model_validate(simulacion_escena)
+        except Exception:
+            sim_struct = None
+
     return InformePericial(
         resumen_caso=data.get("resumen_caso", "") or coord_out.get("error", "Informe no generado."),
         fichas_tecnicas=fichas_recopiladas,
@@ -486,6 +517,7 @@ def construir_informe(
         contexto_escena=escena_struct,
         contexto_meteo=meteo_struct,
         conformidad_atestado=conf_struct,
+        simulacion_escena=sim_struct,
         confianza_global=float(data.get("confianza_global", 0.0)),
     )
 
@@ -511,7 +543,10 @@ def _build_escena(raw: dict) -> ContextoEscenaResumen:
         pasos_peatones_proximos=int(raw.get("n_pasos_peatones") or 0),
         senales=raw.get("senales") or [],
         pendiente_pct=raw.get("pendiente_pct"),
+        pendiente_descartada_pct=raw.get("pendiente_descartada_pct"),
         elevacion_m=raw.get("elevacion_m"),
+        visibilidad_efectiva_m=raw.get("visibilidad_efectiva_m"),
+        visibilidad_efectiva_fuente=raw.get("visibilidad_efectiva_fuente"),
         n_imagenes_mapillary=int(raw.get("imagenes_disponibles") or 0),
         fuentes=raw.get("fuentes") or [],
     )

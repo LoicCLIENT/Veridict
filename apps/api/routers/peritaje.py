@@ -29,6 +29,18 @@ class EditarRespuestaInput(BaseModel):
     citas: list[Cita] | None = None      # nuevas citas (opcional, sobrescribe)
 
 
+class IniciarRespuestaIncrementalOutput(BaseModel):
+    """Resultado de marcar una pregunta como respondida e iniciar el proceso."""
+    informe: InformePericial
+    afecta_a: list[str]
+
+
+class EditarPasoIncrementalInput(BaseModel):
+    """Solicita reescribir UNA respuesta C_i ya iniciada."""
+    info_id: str
+    pregunta_id: str
+
+
 router = APIRouter()
 
 
@@ -60,6 +72,91 @@ async def obtener_informe(caso_id: str) -> InformePericial:
     caso = casos_db[caso_id]
     if not caso.informe:
         raise HTTPException(status_code=404, detail="Informe aún no generado")
+    return caso.informe
+
+
+@router.post("/{caso_id}/simulacion", response_model=InformePericial)
+async def regenerar_simulacion(caso_id: str) -> InformePericial:
+    """Regenera SOLO la escena del SimulationAgent (LLM) reutilizando los datos
+    que ya produjeron los specialists del Perito en la última generación.
+
+    Mucho más rápido que `/informe` (una sola llamada al LLM) y útil cuando:
+    - el informe ya existe pero el panel "Simulación" no tiene escena;
+    - hay que iterar sobre la calidad de la reconstrucción sin re-correr todo.
+    """
+    from agents.specialists import escena_simulacion
+    from models import EscenaSimulacionData, InformePericial, ToolCallLog
+
+    if caso_id not in casos_db:
+        raise HTTPException(status_code=404, detail="Caso not found")
+    caso = casos_db[caso_id]
+    # NO exigimos informe previo: si falta, creamos uno vacío para hospedar la
+    # escena. El SimulationAgent puede trabajar solo con los datos del caso
+    # (vehículos, hechos, lesiones) y los datos del trace_store si existen.
+    if not caso.informe:
+        caso.informe = InformePericial(resumen_caso="Escena reconstruida sin informe previo.")
+
+    # Reconstruir datos_por_tool desde varias fuentes (en orden de preferencia):
+    # 1) informe.trace persistido (último run guardado en BD),
+    # 2) trace_store (último run en memoria del orquestador),
+    # 3) tool_calls del informe (mínimo: solo inputs/resumen).
+    datos_por_tool: dict = {}
+    trace = (caso.informe.trace if caso.informe and caso.informe.trace else {}) or {}
+    for d in trace.get("datos_completos") or []:
+        if isinstance(d, dict) and "tool" in d and "datos" in d:
+            datos_por_tool[d["tool"]] = d["datos"]
+    if not datos_por_tool:
+        try:
+            store_trace = trace_store.get(caso_id) or {}
+        except Exception:
+            store_trace = {}
+        for d in store_trace.get("datos_completos") or []:
+            if isinstance(d, dict) and "tool" in d and "datos" in d:
+                datos_por_tool[d["tool"]] = d["datos"]
+    if not datos_por_tool and caso.informe.tool_calls:
+        # Último recurso: aunque no tengamos los `datos` completos, pasamos
+        # los inputs+resumen para que el LLM al menos sepa qué tools se han
+        # llamado y use el caso original como evidencia.
+        for tc in caso.informe.tool_calls:
+            datos_por_tool[tc.agente or "unknown"] = {
+                "pregunta": tc.pregunta,
+                "inputs": tc.inputs,
+                "resumen": tc.resultado_resumen,
+                "fuentes": tc.fuentes_consultadas,
+            }
+    print(f"[regenerar_simulacion] caso={caso_id} datos_por_tool keys={list(datos_por_tool.keys())}", flush=True)
+
+    contexto = {
+        "caso_id": caso.id,
+        "fotos": list(caso.fotos),
+        "hechos_atestado": (
+            caso.hechos_atestado.model_dump(mode="json")
+            if caso.hechos_atestado else {}
+        ),
+        "lesiones": [l.model_dump(mode="json") for l in (caso.lesiones or [])],
+    }
+
+    sim_out = await escena_simulacion.reconstruir_escena(
+        caso=caso,
+        datos_por_tool=datos_por_tool,
+        contexto=contexto,
+    )
+
+    sim_data = sim_out.get("datos")
+    if sim_data:
+        try:
+            caso.informe.simulacion_escena = EscenaSimulacionData.model_validate(sim_data)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Escena inválida: {e}")
+
+    sim_log = sim_out.get("_log")
+    if isinstance(sim_log, ToolCallLog):
+        # Sustituir el ToolCallLog anterior del SimulationAgent (si lo hay)
+        caso.informe.tool_calls = [
+            t for t in (caso.informe.tool_calls or []) if t.agente != "SimulationAgent"
+        ] + [sim_log]
+
+    casos_db[caso_id] = caso
     return caso.informe
 
 
@@ -125,6 +222,7 @@ async def obtener_razonamiento(caso_id: str) -> dict:
             "n_turnos": len(turnos),
             "n_tool_calls": sum(len(t["tools_pedidas"]) for t in turnos),
             "turnos": turnos,
+            "informe_borrador": parcial.get("informe_borrador"),
             "en_vivo": True,
         }
 
@@ -132,7 +230,7 @@ async def obtener_razonamiento(caso_id: str) -> dict:
     caso = casos_db[caso_id]
     if not caso.informe:
         raise HTTPException(status_code=404, detail="Informe aún no generado")
-    trace = getattr(caso.informe, "_trace", {}) or {}
+    trace = (caso.informe.trace if caso.informe.trace else {}) or {}
     turnos = _ensamblar_turnos(
         trace.get("razonamiento_perito") or [],
         trace.get("datos_completos") or [],
@@ -147,6 +245,7 @@ async def obtener_razonamiento(caso_id: str) -> dict:
         "n_turnos": len(turnos),
         "n_tool_calls": sum(len(t["tools_pedidas"]) for t in turnos),
         "turnos": turnos,
+        "informe_borrador": None,
         "en_vivo": False,
     }
 
@@ -157,9 +256,19 @@ def _resumir_respuesta(tool_name: str, datos: dict | None) -> str:
         return "—"
     if tool_name == "consultar_escena":
         via = (datos.get("via_principal") or {}).get("name") or (datos.get("via_principal") or {}).get("highway")
+        pend = datos.get("pendiente_pct")
+        pend_desc = datos.get("pendiente_descartada_pct")
+        if pend is not None:
+            pend_str = f"{pend}%"
+        elif pend_desc is not None:
+            pend_str = f"DEM={pend_desc}% (descartada, inverosímil)"
+        else:
+            pend_str = "—"
+        vis = datos.get("visibilidad_efectiva_m")
+        vis_str = f" · visibilidad {vis} m" if vis else ""
         return (
             f"📍 {datos.get('direccion_resuelta', '')[:60] or 'sin dirección'} · "
-            f"vía={via or '—'} · pendiente={datos.get('pendiente_pct')}% · "
+            f"vía={via or '—'} · pendiente={pend_str}{vis_str} · "
             f"{datos.get('imagenes_disponibles', 0)} imágenes Mapillary"
         )
     if tool_name == "consultar_meteo":
@@ -169,6 +278,14 @@ def _resumir_respuesta(tool_name: str, datos: dict | None) -> str:
             f"{'día' if datos.get('es_dia') else 'noche'}"
         )
     if tool_name == "consultar_ficha_tecnica":
+        tipo = datos.get("tipo_vehiculo")
+        if tipo == "bicicleta":
+            return (
+                f"🚲 {datos.get('marca')} {datos.get('modelo')} (bicicleta) · "
+                f"bici {datos.get('masa_kg')} kg · sillín {datos.get('altura_sillin_m')} m · "
+                f"manillar {datos.get('anchura_manillar_m')} m · "
+                f"ciclista est. {datos.get('masa_ciclista_estimada_kg')} kg"
+            )
         return (
             f"🚗 {datos.get('marca')} {datos.get('modelo')} · "
             f"{datos.get('masa_kg')} kg · ancho {datos.get('ancho_m')} m · "
@@ -181,7 +298,7 @@ def _resumir_respuesta(tool_name: str, datos: dict | None) -> str:
         if adv:
             s += f" · ⚠ {adv[:80]}"
         return s
-    if tool_name == "simular_fisica":
+    if tool_name in ("calcular_fisica", "simular_fisica"):
         return f"🧮 {datos.get('resumen', '')[:200]}"
     if tool_name == "verificar_atestado":
         return f"🔍 {datos.get('observacion', '')[:200]}"
@@ -191,7 +308,7 @@ def _resumir_respuesta(tool_name: str, datos: dict | None) -> str:
             f"{len(datos.get('incongruencias') or [])} incongruencias · "
             f"{len(datos.get('elementos_omitidos') or [])} omisiones"
         )
-    if tool_name == "obtener_frame_simulacion":
+    if tool_name in ("generar_frame_simulacion", "obtener_frame_simulacion"):
         return (
             f"🎬 frame {datos.get('evento')} · v_pre A={datos.get('v_pre_a_kmh')} km/h, "
             f"B={datos.get('v_pre_b_kmh')} km/h · Δv A={datos.get('delta_v_a_kmh')}, B={datos.get('delta_v_b_kmh')}"
@@ -320,6 +437,102 @@ async def responder_info_incremental(caso_id: str, body: RespuestaPeritoInput) -
     if nuevas:
         caso.informe.respuestas = [
             nuevas.get(r.pregunta_id, r) for r in caso.informe.respuestas
+        ]
+
+    casos_db[caso_id] = caso
+    return caso.informe
+
+
+@router.post(
+    "/{caso_id}/responder-start",
+    response_model=IniciarRespuestaIncrementalOutput,
+)
+async def iniciar_respuesta_incremental(
+    caso_id: str, body: RespuestaPeritoInput
+) -> IniciarRespuestaIncrementalOutput:
+    """Paso 1 del flujo incremental con progreso visible.
+
+    Marca la `info_faltante` como respondida, registra los mensajes en el chat
+    y devuelve la lista de respuestas C_i que hay que reescribir, para que el
+    frontend pueda iterar mostrando progreso real por cada paso.
+    """
+    if caso_id not in casos_db:
+        raise HTTPException(status_code=404, detail="Caso not found")
+    caso = casos_db[caso_id]
+    if not caso.informe:
+        raise HTTPException(status_code=404, detail="Informe aún no generado")
+
+    target_info = next(
+        (q for q in caso.informe.info_faltante if q.id == body.info_id), None
+    )
+    if target_info is None:
+        raise HTTPException(
+            status_code=404, detail=f"Info faltante {body.info_id} no encontrada"
+        )
+
+    target_info.respondida = True
+    target_info.respuesta_perito = body.respuesta
+    caso.informe.chat.append(
+        MensajeChat(
+            rol="claude",
+            contenido=target_info.pregunta,
+            referencia_info_id=body.info_id,
+        )
+    )
+    caso.informe.chat.append(
+        MensajeChat(
+            rol="perito",
+            contenido=body.respuesta,
+            referencia_info_id=body.info_id,
+        )
+    )
+
+    casos_db[caso_id] = caso
+    return IniciarRespuestaIncrementalOutput(
+        informe=caso.informe,
+        afecta_a=list(target_info.afecta_a or []),
+    )
+
+
+@router.post(
+    "/{caso_id}/responder-edit-step",
+    response_model=InformePericial,
+)
+async def editar_paso_incremental(
+    caso_id: str, body: EditarPasoIncrementalInput
+) -> InformePericial:
+    """Paso 2 del flujo incremental: reescribe UNA respuesta C_i.
+
+    Llama a `editar_respuesta` SOLO para la `pregunta_id` indicada y devuelve
+    el informe actualizado. El frontend itera este endpoint una vez por cada
+    C_i listado en `afecta_a` para visualizar el progreso paso a paso.
+    """
+    if caso_id not in casos_db:
+        raise HTTPException(status_code=404, detail="Caso not found")
+    caso = casos_db[caso_id]
+    if not caso.informe:
+        raise HTTPException(status_code=404, detail="Informe aún no generado")
+
+    target_info = next(
+        (q for q in caso.informe.info_faltante if q.id == body.info_id), None
+    )
+    if target_info is None or not target_info.respondida:
+        raise HTTPException(
+            status_code=400,
+            detail="La pregunta debe haberse iniciado con /responder-start",
+        )
+
+    razon = (
+        f"El perito aporta dato nuevo en respuesta a «{target_info.pregunta[:120]}»: "
+        f"{(target_info.respuesta_perito or '')[:300]}"
+    )
+    nueva = await editar_respuesta(
+        caso, body.pregunta_id, target_info.respuesta_perito, razon=razon
+    )
+    if nueva is not None:
+        caso.informe.respuestas = [
+            nueva if r.pregunta_id == body.pregunta_id else r
+            for r in caso.informe.respuestas
         ]
 
     casos_db[caso_id] = caso

@@ -153,6 +153,11 @@ export const api = {
       handle<InformePericialT>(r, "Error obteniendo informe")
     ),
 
+  regenerarSimulacion: (casoId: string): Promise<InformePericialT> =>
+    fetch(`${API_BASE}/api/casos/${casoId}/simulacion`, { method: "POST" }).then((r) =>
+      handle<InformePericialT>(r, "Error regenerando simulación")
+    ),
+
   getRazonamiento: (casoId: string): Promise<RazonamientoOrquestadorT> =>
     fetch(`${API_BASE}/api/casos/${casoId}/razonamiento`).then((r) =>
       handle<RazonamientoOrquestadorT>(r, "Error obteniendo razonamiento")
@@ -168,6 +173,34 @@ export const api = {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ info_id: infoId, respuesta }),
     }).then((r) => handle<InformePericialT>(r, "Error enviando respuesta")),
+
+  // Flujo incremental por pasos (con progreso visible en UI)
+  iniciarRespuestaIncremental: (
+    casoId: string,
+    infoId: string,
+    respuesta: string
+  ): Promise<{ informe: InformePericialT; afecta_a: string[] }> =>
+    fetch(`${API_BASE}/api/casos/${casoId}/responder-start`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ info_id: infoId, respuesta }),
+    }).then((r) =>
+      handle<{ informe: InformePericialT; afecta_a: string[] }>(
+        r,
+        "Error iniciando respuesta"
+      )
+    ),
+
+  editarPasoIncremental: (
+    casoId: string,
+    infoId: string,
+    preguntaId: string
+  ): Promise<InformePericialT> =>
+    fetch(`${API_BASE}/api/casos/${casoId}/responder-edit-step`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ info_id: infoId, pregunta_id: preguntaId }),
+    }).then((r) => handle<InformePericialT>(r, "Error editando respuesta")),
 
   // Edición manual del perito sobre una respuesta del informe (sin LLM)
   editarRespuesta: (

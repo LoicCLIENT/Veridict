@@ -16,8 +16,9 @@ from agents.specialists import escena as escena_spec
 from agents.specialists import ficha as ficha_spec
 from agents.specialists import legal as legal_spec
 from agents.specialists import meteo as meteo_spec
+from agents.specialists import physics as physics_spec
 from agents.specialists import simulacion as simulacion_spec
-from agents.specialists import simulacion_frames as sim_frames_spec
+from agents.specialists import snapshot_escena as snapshot_spec
 
 
 # ── Schemas de tools que se envían a Anthropic ─────────────────────────────
@@ -122,29 +123,35 @@ TOOLS: list[dict[str, Any]] = [
         },
     },
     {
-        "name": "simular_fisica",
+        "name": "calcular_fisica",
         "description": (
-            "SimulacionAgent — Cálculo físico determinista. Modelos:\n"
+            "PhysicsAgent — Cálculo físico determinista (fuente de verdad de cifras: "
+            "velocidades, distancias, tiempos, energías). NO genera imágenes. Sus "
+            "resultados los consume después el SimulacionAgent para recrear el croquis. "
+            "Default μ=0.75 (asfalto seco). Modelos:\n"
             "- 'balance_momento_alcance': v_a_kmh, v_b_kmh, m_a_kg, m_b_kg → Δv, energía, frames.\n"
             "- 'velocidad_por_huella': distancia_m (huella), opcional coef_friccion, pendiente_pct → velocidad mínima Stannard-Baker.\n"
             "- 'distancia_detencion': v_kmh, opcional coef_friccion, pendiente_pct, t_reaccion_s, "
-            "incluir_tiempo_reaccion (bool, def True) → distancia y tiempo de parada. Pasa "
-            "`incluir_tiempo_reaccion=false` cuando quieras alinearte con la cifra pericial habitual "
+            "incluir_tiempo_reaccion (bool, def True) → distancia y tiempo de parada con frenada y reacción separadas. "
+            "Pasa `incluir_tiempo_reaccion=false` cuando quieras alinearte con la cifra pericial habitual "
             "(solo frenada, sin reacción).\n"
             "- 'atropello_throw': distancia_proyeccion_m, opcional coef_friccion_peaton → velocidad mínima (Searle).\n"
             "- 'tiempo_huella': distancia_m (huella), opcional coef_friccion, pendiente_pct, "
-            "t_reaccion_s (def 1.0), t_ejecucion_s (def 0.5) → t_total = t_reacción + t_ejecución + "
+            "t_reaccion_s (def 1.0), t_ejecucion_s (def 0.0) → t_total = t_reacción + t_ejecución + "
             "t_frenada. CLAVE para atropellos: demuestra el tiempo mínimo entre que la víctima "
             "percibe el riesgo y el final de su huella, lo que permite acotar si el conductor pudo "
             "haber detenido el vehículo a velocidad reglamentaria (compárese con la distancia de "
-            "detención)."
+            "detención).\n"
+            "- 'energia_cinetica': masa_kg + (v_kmh escalar O v_kmh_lista array) → tabla de Ec en J/kJ. "
+            "Útil para mostrar el factor multiplicador de energía a 10/20/50 km/h (estilo ITRASA)."
         ),
         "input_schema": {
             "type": "object",
             "properties": {
                 "modelo": {"type": "string",
                            "enum": ["balance_momento_alcance", "velocidad_por_huella",
-                                    "distancia_detencion", "atropello_throw", "tiempo_huella"]},
+                                    "distancia_detencion", "atropello_throw", "tiempo_huella",
+                                    "energia_cinetica"]},
                 "parametros": {"type": "object",
                                "description": "Inputs específicos del modelo (ver descripción)."},
             },
@@ -195,14 +202,13 @@ TOOLS: list[dict[str, Any]] = [
         },
     },
     {
-        "name": "obtener_frame_simulacion",
+        "name": "generar_frame_simulacion",
         "description": (
-            "SimulacionFramesAgent — Pide al motor de reconstrucción interno un FRAME "
-            "concreto del siniestro (croquis SVG con vehículos, trayectorias, PDI, huellas "
-            "y vectores de velocidad). Usa esta tool cuando necesites una imagen visual de "
-            "la dinámica para citarla en el informe (no usa Mapillary; el motor lo genera "
-            "a partir de masas, velocidades y posiciones finales). El SVG queda guardado "
-            "y devuelve URL pública. "
+            "SimulacionAgent — RECREACIÓN VISUAL del siniestro. Consume las velocidades "
+            "y masas que ya hayas obtenido del PhysicsAgent (`calcular_fisica`) y las "
+            "renderiza como croquis SVG con vehículos, trayectorias, PDI, huellas y "
+            "vectores de velocidad. El SVG se persiste y devuelve URL pública. NO calcula "
+            "velocidades por su cuenta: pásale las que ya validaste físicamente. "
             "Eventos válidos: 'croquis_general' (cenital con todo), 'pre_impacto', "
             "'impacto', 'post_impacto', 'huellas'."
         ),
@@ -296,6 +302,40 @@ TOOLS: list[dict[str, Any]] = [
         },
     },
     {
+        "name": "capturar_simulacion",
+        "description": (
+            "SnapshotEscenaAgent — Captura un INSTANTE concreto de la "
+            "EscenaSimulacionData ya reconstruida por el SimulationAgent y la "
+            "guarda como SVG cenital con los actores en su posición y velocidad "
+            "interpoladas, las trayectorias visibles hasta ese momento, las "
+            "huellas, el impacto si ya ha ocurrido y un footer con t y "
+            "descripción. Devuelve URL pública lista para citar en el informe "
+            "como cita de tipo 'imagen'. Úsala para ILUSTRAR la cronología y "
+            "explicar la trazada: 1 captura del instante de aproximación, otra "
+            "del impacto, otra de las posiciones finales. La escena de fondo "
+            "es la misma que ve el frontend, así el PDF queda coherente con la "
+            "simulación interactiva."
+        ),
+        "input_schema": {
+            "type": "object",
+            "properties": {
+                "t_segundos": {
+                    "type": "number",
+                    "description": "Instante a capturar (0 ≤ t ≤ duracion_s de la simulación).",
+                },
+                "descripcion": {
+                    "type": "string",
+                    "description": "Pie técnico que aparece en el footer del SVG y como descripción de la cita en el informe.",
+                },
+                "actor_principal_id": {
+                    "type": "string",
+                    "description": "id del actor protagonista del evento (opcional, para resaltar contexto).",
+                },
+            },
+            "required": ["t_segundos", "descripcion"],
+        },
+    },
+    {
         "name": "analizar_imagen_dano",
         "description": (
             "AtestadoAgent.vision — Pide al modelo de visión que describa una "
@@ -324,17 +364,51 @@ async def dispatch(name: str, args: dict[str, Any], *, contexto: dict | None = N
     `contexto` es un canal lateral con datos del caso que algunos specialists
     necesitan (p.ej. la lista de fotos del perito) y que NO son inputs del
     modelo (porque el modelo no los conoce ni los puede inventar).
+
+    Si `contexto["caso_id"]` está presente, se consulta la cache de specialists
+    para servir instantáneo lo que ya se haya pre-warmado.
     """
+    from services import specialist_cache
+
+    # Aliases deprecados (mantienen compat con conversaciones del orquestador
+    # ya en curso y con prompts/cachés viejos). Mapean al nuevo nombre.
+    DEPRECATED_ALIASES = {
+        "simular_fisica": "calcular_fisica",
+        "obtener_frame_simulacion": "generar_frame_simulacion",
+    }
+    if name in DEPRECATED_ALIASES:
+        name = DEPRECATED_ALIASES[name]
+
+    caso_id = (contexto or {}).get("caso_id")
+    # Tools cuyo resultado solo depende de `args` (no de fotos/contexto del caso).
+    CACHEABLES = {
+        "consultar_escena",
+        "consultar_meteo",
+        "consultar_ficha_tecnica",
+        "consultar_legal",
+        "calcular_fisica",
+    }
+    if caso_id and name in CACHEABLES:
+        cached = specialist_cache.get(caso_id, name, args)
+        if cached is not None:
+            return cached
+
+    async def _run_and_cache(coro):
+        result = await coro
+        if caso_id and name in CACHEABLES:
+            specialist_cache.put(caso_id, name, args, result)
+        return result
+
     if name == "consultar_escena":
-        return await escena_spec.analizar_escena(**args)
+        return await _run_and_cache(escena_spec.analizar_escena(**args))
     if name == "consultar_meteo":
-        return await meteo_spec.consultar_meteo(**args)
+        return await _run_and_cache(meteo_spec.consultar_meteo(**args))
     if name == "consultar_ficha_tecnica":
-        return await ficha_spec.consultar_ficha(**args)
+        return await _run_and_cache(ficha_spec.consultar_ficha(**args))
     if name == "consultar_legal":
-        return await legal_spec.consultar_legal(**args)
-    if name == "simular_fisica":
-        return await simulacion_spec.simular(**args)
+        return await _run_and_cache(legal_spec.consultar_legal(**args))
+    if name == "calcular_fisica":
+        return await _run_and_cache(physics_spec.calcular(**args))
     if name == "verificar_atestado":
         return await atestado_spec.verificar_declaraciones(**args)
     if name == "analizar_conformidad_atestado":
@@ -352,8 +426,14 @@ async def dispatch(name: str, args: dict[str, Any], *, contexto: dict | None = N
         return await biblioteca_spec.buscar_foto(args.get("criterio", ""), fotos)
     if name == "analizar_imagen_dano":
         return await atestado_spec.analizar_imagen_dano(**args)
-    if name == "obtener_frame_simulacion":
-        return await sim_frames_spec.obtener_frame(**args)
+    if name == "generar_frame_simulacion":
+        return await simulacion_spec.generar_frame(**args)
+    if name == "capturar_simulacion":
+        # La EscenaSimulacionData se inyecta lateralmente: el orquestador la
+        # acumula en datos_por_tool tras ejecutar `reconstruir_escena`. El
+        # contexto la pasa aquí para que el modelo no tenga que reenviarla.
+        escena = (contexto or {}).get("simulacion_escena")
+        return await snapshot_spec.capturar_instante(escena=escena, **args)
     if name == "analizar_biomecanica":
         return await biomecanica_spec.analizar_biomecanica(**args)
     return {"datos": {"error": f"tool desconocida: {name}"}, "_log": None}
