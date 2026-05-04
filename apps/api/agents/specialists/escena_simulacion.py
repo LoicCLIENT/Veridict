@@ -34,7 +34,7 @@ from models import (
 )
 
 
-MODEL = "claude-opus-4-7"
+MODEL = "claude-opus-4-20250514"
 
 
 SYSTEM_PROMPT = """Eres VERIDICT-SIMULATION, un reconstructor cenital 2D de escenas de tráfico.

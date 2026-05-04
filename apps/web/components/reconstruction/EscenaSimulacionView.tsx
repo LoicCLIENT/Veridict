@@ -395,7 +395,7 @@ export function EscenaSimulacionView({
           animate={{ scale: 1, opacity: 1 }}
         >
           <div className="text-xs font-mono text-red-400 text-center">
-            <div className="font-bold text-sm">⚠ IMPACTO · t = {data.impacto.t.toFixed(2)}s</div>
+            <div className="font-bold text-sm">⚠ IMPACT · t = {data.impacto.t.toFixed(2)}s</div>
             <div className="flex gap-3 mt-1 flex-wrap justify-center">
               {Object.entries(data.impacto.delta_v_por_actor).map(([id, dv]) => (
                 <span key={id}>

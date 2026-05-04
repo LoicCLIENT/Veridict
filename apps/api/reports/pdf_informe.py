@@ -548,10 +548,11 @@ def generar_pdf(informe: InformePericial, caso: Caso, output_path: Path) -> Path
                 s["Body"]))
 
     # Páginas del atestado y huellas en calzada (estilo IURGI: prueba documental inline)
+    # Aumentamos límite para mostrar más fotos relevantes
     grid_atestado = _grid_fotos_por_tipo(
         caso.fotos or [],
-        tipos=("atestado_pagina", "escena_huellas", "croquis"),
-        uploads_root=uploads_root, s=s, max_items=4,
+        tipos=("atestado_pagina", "escena_huellas", "croquis", "escena_general", "escena_senalizacion"),
+        uploads_root=uploads_root, s=s, max_items=12,
     )
     if grid_atestado is not None:
         story.append(Spacer(1, 6))
@@ -662,6 +663,7 @@ def generar_pdf(informe: InformePericial, caso: Caso, output_path: Path) -> Path
             story.append(Paragraph(f"<i>Fuente:</i> {_safe(f.fuente)}", s["Small"]))
 
         # Fotos del vehículo (frontales/laterales/daños) inline
+        # Aumentamos límite para mostrar todas las fotos relevantes del vehículo
         fotos_vehiculo = [
             foto for foto in (caso.fotos or [])
             if foto.url and foto.vehiculo_id == f.vehiculo_id
@@ -672,8 +674,9 @@ def generar_pdf(informe: InformePericial, caso: Caso, output_path: Path) -> Path
                 fotos_vehiculo,
                 tipos=("vehiculo_frontal", "vehiculo_trasero",
                        "vehiculo_lateral_izq", "vehiculo_lateral_dch",
-                       "vehiculo_detalle_dano", "vehiculo_general"),
-                uploads_root=uploads_root, s=s, max_items=4,
+                       "vehiculo_detalle_dano", "vehiculo_general",
+                       "vehiculo_interior"),
+                uploads_root=uploads_root, s=s, max_items=10,
             )
             if grid_v is not None:
                 story.append(Spacer(1, 4))
@@ -684,6 +687,18 @@ def generar_pdf(informe: InformePericial, caso: Caso, output_path: Path) -> Path
     if informe.calculos:
         story.append(Paragraph("4. Análisis técnico y cálculos", s["H1"]))
         story.append(_section_rule(s))
+
+        # Insertar fotos de huellas al inicio del análisis técnico (contexto visual)
+        grid_huellas = _grid_fotos_por_tipo(
+            caso.fotos or [],
+            tipos=("escena_huellas",),
+            uploads_root=uploads_root, s=s, max_items=6,
+        )
+        if grid_huellas is not None:
+            story.append(Paragraph("<b>Huellas en calzada (evidencia visual):</b>", s["H2"]))
+            story.append(grid_huellas)
+            story.append(Spacer(1, 8))
+
         for c in informe.calculos:
             story.append(Paragraph(
                 f"<b>{_safe(c.nombre)}</b> &nbsp; "
@@ -755,10 +770,11 @@ def generar_pdf(informe: InformePericial, caso: Caso, output_path: Path) -> Path
                     story.append(Paragraph(f"<i>{_safe(fr.relevancia)}</i>", s["Small"]))
                 story.append(Spacer(1, 6))
 
-        # 6.2 Fotos del perito
+        # 6.2 Fotos del perito (todas las que citó en el análisis)
         if fotos_perito:
             story.append(Paragraph("6.2 Fotografías aportadas por el perito", s["H2"]))
-            for img in fotos_perito[:8]:
+            # Aumentamos límite para mostrar todas las fotos citadas
+            for img in fotos_perito[:16]:
                 rl = _embed_local_image(img.url or "", uploads_root, max_w_cm=12, max_h_cm=8)
                 if rl is not None:
                     story.append(rl)
@@ -836,6 +852,43 @@ def generar_pdf(informe: InformePericial, caso: Caso, output_path: Path) -> Path
             "Análisis biomecánico aplicando el Manual ESTT/DGT 2011, las tablas WAD "
             "(Wrap Around Distance) de Otte 1989, Searle 1993 y Van Rooij 2003 y las curvas "
             "de probabilidad AIS 3+ de Mertz/NHTSA.", s["Body"]))
+
+        # Fotos de daños en zona WAD (capó, parabrisas, techo) - clave para biomecánica
+        fotos_wad = [
+            foto for foto in (caso.fotos or [])
+            if foto.url and foto.tipo and foto.tipo.value in (
+                "vehiculo_frontal", "vehiculo_detalle_dano"
+            )
+        ]
+        # Filtrar las que mencionan elementos relevantes para WAD
+        fotos_wad_relevantes = [
+            f for f in fotos_wad
+            if any(kw in (f.descripcion or "").lower() or kw in " ".join(f.tags or []).lower()
+                   for kw in ("parabrisas", "capo", "capó", "techo", "frontal", "impacto", "hundido", "fractura"))
+        ] or fotos_wad[:6]
+
+        if fotos_wad_relevantes:
+            grid_wad = _grid_fotos_por_tipo(
+                fotos_wad_relevantes,
+                tipos=("vehiculo_frontal", "vehiculo_detalle_dano"),
+                uploads_root=uploads_root, s=s, max_items=6,
+            )
+            if grid_wad is not None:
+                story.append(Spacer(1, 6))
+                story.append(Paragraph("<b>Zona de impacto — evidencia visual para análisis WAD:</b>", s["H2"]))
+                story.append(grid_wad)
+                story.append(Spacer(1, 8))
+
+        # Fotos de lesiones si las hay
+        grid_lesiones = _grid_fotos_por_tipo(
+            caso.fotos or [],
+            tipos=("lesion",),
+            uploads_root=uploads_root, s=s, max_items=4,
+        )
+        if grid_lesiones is not None:
+            story.append(Paragraph("<b>Documentación de lesiones:</b>", s["H2"]))
+            story.append(grid_lesiones)
+            story.append(Spacer(1, 8))
 
         # 7.1 KPIs principales en tarjetas (tabla)
         kpi_rows = []

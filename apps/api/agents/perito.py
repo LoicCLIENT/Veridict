@@ -42,12 +42,12 @@ from models import (
 
 
 MAX_TURNS = 18  # Tope de seguridad para el loop de tools (10 specialists × algo de margen)
-MODEL_PERITO_DEFAULT = "claude-opus-4-7"
+MODEL_PERITO_DEFAULT = "claude-opus-4-20250514"
 
 
-SYSTEM_PROMPT = """Eres VERIDICT-PERITO, un perito forense de accidentes de tráfico que coordina varios agentes especialistas.
+SYSTEM_PROMPT = """You are VERIDICT-PERITO, a forensic traffic accident expert who coordinates multiple specialist agents.
 
-Trabajas en español de España. Tu objetivo es producir un BORRADOR de informe pericial UNE-EN 16775 que responda a las preguntas del encargo, citando las evidencias que recopilas con las herramientas a tu disposición.
+You work in English. Your goal is to produce a DRAFT expert report following UNE-EN 16775 standards that answers the assignment questions, citing the evidence you gather with the tools at your disposal.
 
 DISPONES DE ESTAS TOOLS (ya descritas en el schema):
 - consultar_escena(lat, lon, radio_m, direccion): geometría real, señales, Mapillary. PREFIERE pasar `direccion` cuando la dispongas: Nominatim resuelve coords más precisas. Reintenta automáticamente con radios 100 m y 250 m si OSM falla.
@@ -93,28 +93,42 @@ REGLAS:
 
 3.bis CRÍTICA AL ATESTADO. Si `analizar_conformidad_atestado` devuelve valoración "incompleto" o "deficiente", AÑADE una respuesta extra al final con `pregunta_id="C-AT"` y `pregunta="Crítica metodológica al atestado"` que enumere las incongruencias y omisiones más relevantes. Cita las que detectó el agente con `{"tipo":"hecho","referencia":"ConformidadAtestadoAgent — R<n>"}`.
 
-4. FOTOS DEL PERITO — EXPLORACIÓN EXHAUSTIVA OBLIGATORIA.
+4. FOTOS DEL PERITO — USO CONTEXTUAL OBLIGATORIO.
 
-   PRIMER PASO OBLIGATORIO: llama `listar_biblioteca_fotos()` ANTES que cualquier otra tool de fotos. Devuelve el inventario COMPLETO ya clasificado por visión Claude (por tipo: vehiculo_frontal, vehiculo_detalle_dano, escena_huellas, escena_senalizacion, croquis, lesion…). Con eso conoces qué tienes a tu disposición.
+   TIENES ACCESO DIRECTO AL CATÁLOGO COMPLETO DE FOTOS. En el payload recibes `fotos_clasificadas` con:
+   - `total`: número de fotos disponibles
+   - `por_tipo`: fotos agrupadas por tipo (vehiculo_frontal, vehiculo_detalle_dano, escena_huellas, etc.)
+   - `catalogo`: lista completa con id, id_corto, url, tipo, vehiculo_id, descripcion, tags, elementos_visibles
 
-   En el payload solo recibes `n_fotos_disponibles` y `tipos_fotos_disponibles`. La biblioteca completa (con descripciones e ids) la obtienes UNA VEZ con `listar_biblioteca_fotos`. NO recibes URLs hasta llamar `buscar_foto_perito` o `listar_biblioteca_fotos`.
+   REGLA FUNDAMENTAL — INTEGRACIÓN CONTEXTUAL: las fotos deben aparecer DONDE TIENEN SENTIDO en el análisis, igual que en un informe pericial real:
+   - Cuando analices daños de un vehículo → cita las fotos de ese vehículo (vehiculo_frontal, vehiculo_detalle_dano, etc.)
+   - Cuando calcules velocidad por huellas → cita las fotos de huellas en calzada (escena_huellas)
+   - Cuando describas la escena → cita fotos de escena_general, escena_senalizacion
+   - Cuando hagas análisis biomecánico → cita fotos de lesiones o daños relevantes para WAD
+   - Cuando menciones el croquis del atestado → cita la foto del croquis
+   - Cuando hables de señalización → cita fotos de escena_senalizacion
 
-   REGLA DURA: por CADA respuesta C_i que vayas a emitir, identifica al menos UN aspecto visual relevante y llama `buscar_foto_perito(criterio="...")` para localizarlo. Para cada foto encontrada, llama `analizar_imagen_dano(image_url, contexto="qué quieres ver")` para tener una descripción técnica que puedas citar.
+   CÓMO CITAR FOTOS:
+   1. Revisa el catálogo (`fotos_clasificadas.catalogo`) para encontrar fotos relevantes al punto que estás analizando.
+   2. Usa el `id_corto` (8 caracteres) para la cita: `{"tipo":"imagen","referencia":"<id_corto> — <descripcion_breve>"}`.
+   3. Si necesitas análisis visual más profundo de una foto, llama `analizar_imagen_dano(image_url, contexto)`.
+   4. Puedes usar `buscar_foto_perito(criterio)` si necesitas encontrar una foto específica que no localizas en el catálogo.
 
-   Antes de cerrar el informe, REVISA el catálogo y pide fotos para CADA UNA de estas categorías que sea relevante al caso:
-   - Daños frontales / capó / parabrisas / techo del vehículo (clave para WAD).
-   - Daños del segundo vehículo o del peatón/ciclista (bici, casco, ropa).
-   - Escena: vista general de la vía, curva, pendiente, anchura.
-   - Huellas en calzada (frenada, derrape, arrastre).
-   - Señalización (límite de velocidad, ceda, stop, paso peatones).
-   - Croquis o diagramas técnicos del expediente.
-   - Posición final de los vehículos / cuerpo de la víctima.
+   DISTRIBUCIÓN DE CITAS — OBLIGATORIO. NO acumules todas las citas de imagen al final. Distribúyelas en las respuestas correspondientes:
+   - C1 (velocidad/responsabilidad) → fotos de huellas, daños de impacto, croquis
+   - C2 (análisis técnico) → fotos de vehículos, detalles de daños, escena
+   - C3 (biomecánica/lesiones) → fotos de daños en zona WAD (capó, parabrisas, techo), lesiones
+   - etc.
 
-   Si una categoría no tiene match (`requiere_foto=true`), AÑÁDELA a `info_faltante` con la pregunta concreta. Si SÍ tiene match, CITA la imagen en la respuesta correspondiente con `{"tipo":"imagen","referencia":"<id corto> — <descripción>"}`.
+   FORMATO DE REFERENCIA — OBLIGATORIO. El `<id_corto>` DEBE ir AL INICIO:
+   ✓ Válido: `"e2a59537 — Parabrisas frontal fracturado"`
+   ✓ Válido: `"3a7702e0 — Frame croquis_general v_A=50"`
+   ✗ Inválido: `"FOTO-PARABRISAS (e2a59537)"`
+   ✗ Inválido: `"SimulacionAgent — croquis (3a7702e0)"`
 
-   FORMATO DE LA REFERENCIA — OBLIGATORIO. El `<id corto>` es el primer fragmento (8 chars) del `id` UUID que te devolvió `buscar_foto_perito`/`listar_biblioteca_fotos`/`generar_frame_simulacion` (ej. para `id="e2a59537-1c4d-..."` → `e2a59537`). DEBE ir AL INICIO de la `referencia`, sin paréntesis ni etiquetas previas. Ejemplos válidos: `"e2a59537 — Parabrisas frontal fracturado"`, `"3a7702e0 — Frame croquis_general v_A=50 v_B=34.9"`. Ejemplos PROHIBIDOS: `"FOTO-PARABRISAS-01 (e2a59537) — ..."`, `"SimulacionAgent — croquis (3a7702e0) — ..."`, `"e2a59537-1c4d-... — ..."`. Si no recuerdas el id, NO inventes una etiqueta: vuelve a llamar a la tool correspondiente.
+   Si una categoría relevante no tiene foto, AÑÁDELA a `info_faltante` con `requiere_foto=true`.
 
-   El objetivo es que el informe final esté SUSTENTADO POR EVIDENCIA VISUAL del expediente, no solo por números. Apunta a 4-8 imágenes citadas si el catálogo lo permite.
+   OBJETIVO: El informe debe estar SUSTENTADO POR EVIDENCIA VISUAL en cada sección del análisis. Apunta a 8-15 citas de imagen distribuidas contextualmente.
 
 5. CITAS OBLIGATORIAS. Toda afirmación cuantitativa o normativa va con cita {tipo, referencia, extracto}.
    Tipos válidos: 'calculo' | 'normativa' | 'ficha_tecnica' | 'hecho' | 'imagen' | 'meteo' | 'escena'.
@@ -134,11 +148,34 @@ REGLAS:
 }
 Sin markdown, sin comentarios fuera del JSON.
 
-Tono: pericial, conciso, español de España.
+Tone: expert, concise, formal English.
 """
 
 
 def _payload_inicial(caso: Caso) -> dict:
+    # Construir catálogo completo de fotos clasificadas para que el Perito
+    # pueda citarlas contextualmente en cada sección del análisis.
+    fotos_catalogadas = []
+    for f in caso.fotos:
+        if not f.url:
+            continue
+        fotos_catalogadas.append({
+            "id": f.id,
+            "id_corto": f.id[:8] if f.id else None,  # Para citas
+            "url": f.url,
+            "tipo": f.tipo.value if f.tipo else "otro",
+            "vehiculo_id": f.vehiculo_id,
+            "descripcion": (f.descripcion or "")[:200],  # Truncar para no inflar
+            "tags": f.tags[:10] if f.tags else [],  # Máx 10 tags
+            "elementos_visibles": f.elementos_visibles[:8] if f.elementos_visibles else [],
+        })
+
+    # Agrupar por tipo para fácil referencia
+    fotos_por_tipo: dict[str, list] = {}
+    for foto in fotos_catalogadas:
+        tipo = foto["tipo"]
+        fotos_por_tipo.setdefault(tipo, []).append(foto)
+
     return {
         "encargo": caso.encargo.model_dump(mode="json") if caso.encargo else None,
         "siniestro": {
@@ -153,14 +190,13 @@ def _payload_inicial(caso: Caso) -> dict:
             caso.hechos_atestado.model_dump(mode="json") if caso.hechos_atestado else None
         ),
         "lesiones": [l.model_dump(mode="json") for l in caso.lesiones],
-        # Catálogo COMPACTO. La descripción larga + tags + calidad de cada foto
-        # se consultan SOLO bajo demanda con `listar_biblioteca_fotos` o
-        # `buscar_foto_perito`. Esto evita inflar el payload del modelo cuando
-        # hay decenas de fotos indexadas.
-        "n_fotos_disponibles": sum(1 for f in caso.fotos if f.url),
-        "tipos_fotos_disponibles": sorted({
-            (f.tipo.value if f.tipo else "otro") for f in caso.fotos if f.url
-        }),
+        # Catálogo COMPLETO de fotos clasificadas por visión Claude.
+        # El Perito tiene acceso directo para citar fotos contextualmente.
+        "fotos_clasificadas": {
+            "total": len(fotos_catalogadas),
+            "por_tipo": fotos_por_tipo,
+            "catalogo": fotos_catalogadas,
+        },
         "chat_previo": [
             {"rol": m.rol, "contenido": m.contenido}
             for m in (caso.informe.chat if caso.informe else [])
@@ -370,9 +406,11 @@ async def coordinar(caso: Caso, *, caso_id: str | None = None) -> dict:  # noqa:
                 final_json = await _forzar_json_final(client, settings, messages)
                 if final_json is None:
                     error = "El Perito no devolvió un JSON parseable tras forzar el cierre."
-        if caso_id and final_json:
-            trace_store.update(caso_id, informe_borrador=final_json,
-                               mensaje="Informe redactado, ensamblando vista final…")
+        if caso_id:
+            # Don't set informe_borrador here - wait until full report is complete
+            # (SimulationAgent and CronologiaAgent still need to run)
+            trace_store.update(caso_id, estado="ensamblando",
+                               mensaje="Reasoning complete, assembling simulation and timeline…")
         break
     else:
         # Tope de turnos alcanzado — pedimos JSON con los datos recopilados
@@ -469,8 +507,13 @@ def construir_informe(
     calculos_recopilados: list[CalculoFisico],
     chat_previo: list,
     simulacion_escena: dict | None = None,
+    fotos_caso: list | None = None,
 ) -> InformePericial:
-    """Funde el JSON del Perito + las fuentes acumuladas en un InformePericial."""
+    """Funde el JSON del Perito + las fuentes acumuladas en un InformePericial.
+
+    Si se pasan `fotos_caso`, extrae las fotos citadas en las respuestas y las
+    añade a las imágenes del informe con fuente="perito".
+    """
     from models import EscenaSimulacionData
     data = coord_out.get("informe_data") or {}
 
@@ -484,6 +527,33 @@ def construir_informe(
         )
         for i, r in enumerate(data.get("respuestas", []))
     ]
+
+    # Extraer fotos citadas en las respuestas y añadirlas a las imágenes
+    imagenes_citadas: list[ImagenAnalizada] = []
+    if fotos_caso:
+        fotos_por_id = {f.id: f for f in fotos_caso if f.url}
+        fotos_por_id_corto = {f.id[:8]: f for f in fotos_caso if f.url and f.id}
+        ids_ya_incluidos: set[str] = set()
+
+        for r in data.get("respuestas", []):
+            for cita in r.get("citas", []):
+                if cita.get("tipo") != "imagen":
+                    continue
+                ref = cita.get("referencia", "")
+                # Extraer id_corto del inicio de la referencia (8 chars hex)
+                import re
+                match = re.match(r"^([a-f0-9]{8})", ref.lower())
+                if match:
+                    id_corto = match.group(1)
+                    foto = fotos_por_id_corto.get(id_corto)
+                    if foto and foto.id not in ids_ya_incluidos:
+                        ids_ya_incluidos.add(foto.id)
+                        imagenes_citadas.append(ImagenAnalizada(
+                            url=foto.url,
+                            descripcion=foto.descripcion or ref,
+                            fuente="perito",
+                            relevancia=r.get("pregunta_id", ""),
+                        ))
     info = [
         InfoFaltante(
             id=q.get("id", f"Q{i+1}"),
@@ -513,6 +583,14 @@ def construir_informe(
         except Exception:
             sim_struct = None
 
+    # Combinar imágenes recopiladas por tools + imágenes citadas en respuestas
+    imagenes_base = coord_out.get("imagenes_recopiladas", [])
+    urls_existentes = {img.url for img in imagenes_base if img.url}
+    # Añadir solo las citadas que no estén ya en la lista
+    imagenes_finales = list(imagenes_base) + [
+        img for img in imagenes_citadas if img.url not in urls_existentes
+    ]
+
     return InformePericial(
         resumen_caso=data.get("resumen_caso", "") or coord_out.get("error", "Informe no generado."),
         fichas_tecnicas=fichas_recopiladas,
@@ -523,7 +601,7 @@ def construir_informe(
         info_faltante=info,
         chat=chat_previo,
         tool_calls=coord_out.get("tool_calls", []),
-        imagenes=coord_out.get("imagenes_recopiladas", []),
+        imagenes=imagenes_finales,
         analisis_biomecanico=bio_struct,
         contexto_escena=escena_struct,
         contexto_meteo=meteo_struct,

@@ -60,9 +60,9 @@ export const mockSceneDataCaso1: AccidentSceneData = {
   },
   metadata: {
     scaleMetersPerUnit: 1,
-    weatherCondition: "Lluvia ligera",
-    roadCondition: "Mojado",
-    visibility: "Buena",
+    weatherCondition: "Light rain",
+    roadCondition: "Wet",
+    visibility: "Good",
   },
 };
 
@@ -122,9 +122,9 @@ export const mockSceneDataCaso2: AccidentSceneData = {
   },
   metadata: {
     scaleMetersPerUnit: 1,
-    weatherCondition: "Despejado",
-    roadCondition: "Seco",
-    visibility: "Buena",
+    weatherCondition: "Clear",
+    roadCondition: "Dry",
+    visibility: "Good",
   },
 };
 
@@ -180,9 +180,9 @@ export const mockSceneDataCaso3: AccidentSceneData = {
   },
   metadata: {
     scaleMetersPerUnit: 1,
-    weatherCondition: "Soleado",
-    roadCondition: "Seco",
-    visibility: "Excelente",
+    weatherCondition: "Sunny",
+    roadCondition: "Dry",
+    visibility: "Excellent",
   },
 };
 

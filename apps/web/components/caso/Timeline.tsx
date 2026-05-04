@@ -162,7 +162,7 @@ export default function Timeline({
             </span>
             {activeEventIndex >= 0 && (
               <span className="text-xs px-2 py-0.5 rounded bg-veridict-green-700 text-veridict-gray">
-                Evento {activeEventIndex + 1}/{sortedEvents.length}
+                Event {activeEventIndex + 1}/{sortedEvents.length}
               </span>
             )}
           </div>

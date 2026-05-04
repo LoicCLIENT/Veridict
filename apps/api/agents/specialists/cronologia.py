@@ -26,7 +26,7 @@ from config import get_claude, get_settings
 from models import EscenaSimulacionData, Evento, ToolCallLog
 
 
-MODEL = "claude-opus-4-7"
+MODEL = "claude-opus-4-20250514"
 
 
 SYSTEM_PROMPT = """Eres VERIDICT-CRONOLOGIA, un perito que escribe la línea de tiempo del siniestro.

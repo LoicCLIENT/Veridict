@@ -70,7 +70,7 @@ export function EscenaPanel({ escena }: Props) {
             value={escena.ancho_carril_m != null ? `${escena.ancho_carril_m} m` : null}
           />
           <Field
-            label="Visibilidad"
+            label="Visibility"
             value={
               escena.distancia_visibilidad_m != null ? `${escena.distancia_visibilidad_m} m` : null
             }

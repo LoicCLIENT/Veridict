@@ -177,6 +177,8 @@ async def generar_informe(caso: Caso) -> InformePericial:
     # partir de los datos que el Perito ya ha recopilado. Post-step opcional;
     # si falla devuelve una EscenaSimulacionData vacía con `falta_info` y la
     # UI muestra un placeholder.
+    trace_store.update(caso.id, estado="simulacion",
+                       mensaje="Running SimulationAgent to reconstruct the scene…")
     simulacion_escena = None
     sim_log = None
     try:
@@ -199,6 +201,8 @@ async def generar_informe(caso: Caso) -> InformePericial:
         print(f"[peritaje] SimulationAgent excepción: {e}", flush=True)
 
     # 4. Construir el InformePericial final
+    trace_store.update(caso.id, estado="construyendo",
+                       mensaje="Assembling the expert report…")
     chat_previo = caso.informe.chat if caso.informe else []
     informe = construir_informe(
         coord_out=coord_out,
@@ -208,6 +212,7 @@ async def generar_informe(caso: Caso) -> InformePericial:
         calculos_recopilados=calculos,
         chat_previo=chat_previo,
         simulacion_escena=simulacion_escena,
+        fotos_caso=list(caso.fotos),  # Para extraer fotos citadas en respuestas
     )
     if sim_log is not None:
         informe.tool_calls = list(informe.tool_calls or []) + [sim_log]
@@ -215,6 +220,8 @@ async def generar_informe(caso: Caso) -> InformePericial:
     # 4.bis CronologiaAgent: si tenemos simulación, generar la cronología pericial
     # con un snapshot SVG por evento. Las imágenes generadas se añaden a
     # `informe.imagenes` para que el PDF las embeba en sección 6 también.
+    trace_store.update(caso.id, estado="cronologia",
+                       mensaje="Building accident timeline…")
     try:
         crono_out = await cronologia_spec.construir_cronologia(
             caso=caso,

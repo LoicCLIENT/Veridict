@@ -11,9 +11,9 @@ class Settings(BaseSettings):
     openai_api_key: str = ""
 
     # Models
-    model_sonnet: str = "claude-sonnet-4-6"
-    model_opus: str = "claude-opus-4-7"
-    model_haiku: str = "claude-haiku-4-5-20251001"
+    model_sonnet: str = "claude-sonnet-4-20250514"
+    model_opus: str = "claude-opus-4-20250514"
+    model_haiku: str = "claude-3-5-haiku-20241022"
 
     # External APIs
     aemet_api_key: str = ""

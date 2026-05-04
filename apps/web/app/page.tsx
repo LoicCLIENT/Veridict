@@ -77,11 +77,6 @@ export default function Home() {
                   View Demo
                 </button>
               </Link>
-              <Link href="/docs">
-                <button className="px-8 py-4 text-white font-medium hover:text-[#C2E94B] transition-colors">
-                  Documentation
-                </button>
-              </Link>
             </div>
           </motion.div>
         </div>
@@ -204,138 +199,123 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA - Revolut/Vercel Style */}
-      <section className="relative py-32 md:py-40 bg-[#0a0a0a] overflow-hidden">
-        {/* Background Effects */}
-        <div className="absolute inset-0">
-          {/* Gradient orbs */}
-          <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#C2E94B]/10 rounded-full blur-[120px]" />
-          <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#C2E94B]/5 rounded-full blur-[100px]" />
-          {/* Grid pattern */}
-          <div
-            className="absolute inset-0 opacity-[0.03]"
-            style={{
-              backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)`,
-              backgroundSize: '60px 60px'
-            }}
-          />
-        </div>
-
-        <div className="relative max-w-6xl mx-auto px-6">
-          {/* Stats Row */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6 }}
-            className="grid grid-cols-3 gap-8 mb-20"
-          >
-            {[
-              { value: "2", unit: "min", label: "Average report time", icon: Clock },
-              { value: "95", unit: "%", label: "Accuracy rate", icon: Target },
-              { value: "10", unit: "x", label: "Faster than manual", icon: Zap },
-            ].map((stat, i) => (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 + 0.2 }}
-                className="text-center group"
-              >
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-white/5 mb-4 group-hover:bg-[#C2E94B]/10 transition-colors">
-                  <stat.icon className="w-6 h-6 text-[#C2E94B]" />
-                </div>
-                <div className="flex items-baseline justify-center gap-1 mb-2">
-                  <span className="text-5xl md:text-6xl font-bold text-white">{stat.value}</span>
-                  <span className="text-2xl md:text-3xl font-semibold text-[#C2E94B]">{stat.unit}</span>
-                </div>
-                <p className="text-sm text-white/40">{stat.label}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          {/* Main CTA */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="text-center"
-          >
-            {/* Badge */}
+      {/* CTA - Screenshot based */}
+      <section className="relative py-24 md:py-32 bg-[#0a0a0a]">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="grid lg:grid-cols-5 gap-12 items-center">
+            {/* Left: CTA (2 cols) */}
             <motion.div
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileInView={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
-              transition={{ delay: 0.4 }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-8"
+              className="lg:col-span-2"
             >
-              <span className="w-2 h-2 rounded-full bg-[#C2E94B] animate-pulse" />
-              <span className="text-sm text-white/60">Ready to transform your workflow</span>
+              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+                Try the demo
+              </h2>
+              <p className="text-white/50 mb-6">
+                Real case. Real analysis. See the full report.
+              </p>
+              <Link href="/casos">
+                <button className="flex items-center gap-2 px-6 py-3 bg-[#C2E94B] text-[#0a0a0a] font-semibold rounded-full hover:bg-[#d4f06d] transition-colors">
+                  <span>Open Demo</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </Link>
             </motion.div>
 
-            <h2 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
-              Start analyzing
-              <br />
-              <span className="bg-gradient-to-r from-[#C2E94B] via-[#d4f06d] to-[#C2E94B] bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient">
-                in seconds
-              </span>
-            </h2>
+            {/* Right: App mockup (3 cols) */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.1 }}
+              className="lg:col-span-3"
+            >
+              <div className="relative rounded-xl overflow-hidden border border-white/10 bg-[#111] shadow-2xl">
+                {/* Window header */}
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-white/10 bg-[#0a0a0a]">
+                  <div className="flex gap-1.5">
+                    <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
+                    <div className="w-3 h-3 rounded-full bg-[#ffbd2e]" />
+                    <div className="w-3 h-3 rounded-full bg-[#28ca41]" />
+                  </div>
+                  <div className="flex-1 text-center">
+                    <span className="text-xs text-white/30 font-mono">veridict.app/casos/demo-1</span>
+                  </div>
+                </div>
 
-            <p className="text-lg md:text-xl text-white/40 max-w-xl mx-auto mb-12">
-              Upload your case files and let our AI agents handle the rest.
-              Court-ready reports, delivered instantly.
-            </p>
+                {/* App content mockup */}
+                <div className="p-4 space-y-3">
+                  {/* Header row */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-[#C2E94B]/20 flex items-center justify-center">
+                        <FileSearch className="w-4 h-4 text-[#C2E94B]" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-white font-medium">Aulestia Case</div>
+                        <div className="text-xs text-white/40">Pedestrian collision · A Coruña</div>
+                      </div>
+                    </div>
+                    <div className="px-2 py-1 rounded bg-[#C2E94B]/10 text-[#C2E94B] text-xs font-medium">
+                      Completed
+                    </div>
+                  </div>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link href="/casos">
-                <motion.button
-                  whileHover={{ scale: 1.02, boxShadow: "0 0 40px rgba(194, 233, 75, 0.3)" }}
-                  whileTap={{ scale: 0.98 }}
-                  className="group flex items-center gap-3 px-8 py-4 bg-[#C2E94B] text-[#0a0a0a] font-semibold rounded-full transition-all duration-300"
-                >
-                  <span>Open Demo</span>
-                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                </motion.button>
-              </Link>
-              <Link href="/casos">
-                <motion.button
-                  whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.1)" }}
-                  whileTap={{ scale: 0.98 }}
-                  className="flex items-center gap-2 px-8 py-4 text-white font-medium rounded-full border border-white/20 transition-all duration-300"
-                >
-                  <LayoutDashboard className="w-5 h-5" />
-                  <span>View Dashboard</span>
-                </motion.button>
-              </Link>
-            </div>
-          </motion.div>
+                  {/* Tabs mockup */}
+                  <div className="flex gap-1 border-b border-white/10 pb-2">
+                    {["Report", "Simulation", "Reasoning"].map((tab, i) => (
+                      <div
+                        key={tab}
+                        className={`px-3 py-1.5 text-xs rounded-md ${i === 0 ? "bg-white/10 text-white" : "text-white/40"}`}
+                      >
+                        {tab}
+                      </div>
+                    ))}
+                  </div>
 
-          {/* Bottom decoration */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.6 }}
-            className="flex items-center justify-center gap-8 mt-20 text-white/20 text-sm"
-          >
-            <span className="flex items-center gap-2">
-              <Shield className="w-4 h-4" />
-              UNE-EN 16775
-            </span>
-            <span className="w-1 h-1 rounded-full bg-white/20" />
-            <span className="flex items-center gap-2">
-              <Lock className="w-4 h-4" />
-              Sigstore Signed
-            </span>
-            <span className="w-1 h-1 rounded-full bg-white/20" />
-            <span className="flex items-center gap-2">
-              <Bot className="w-4 h-4" />
-              5 AI Agents
-            </span>
-          </motion.div>
+                  {/* Report content mockup */}
+                  <div className="grid grid-cols-3 gap-3">
+                    {/* Left panel - questions */}
+                    <div className="col-span-2 space-y-2">
+                      <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                        <div className="text-xs text-[#C2E94B] mb-1 font-mono">C1</div>
+                        <div className="text-xs text-white/70 mb-2">Vehicle speed at impact</div>
+                        <div className="h-1 w-3/4 bg-white/10 rounded" />
+                        <div className="h-1 w-1/2 bg-white/10 rounded mt-1" />
+                      </div>
+                      <div className="p-3 rounded-lg bg-white/5 border border-white/10">
+                        <div className="text-xs text-[#C2E94B] mb-1 font-mono">C2</div>
+                        <div className="text-xs text-white/70 mb-2">Collision avoidability</div>
+                        <div className="h-1 w-full bg-white/10 rounded" />
+                        <div className="h-1 w-2/3 bg-white/10 rounded mt-1" />
+                      </div>
+                    </div>
+
+                    {/* Right panel - data */}
+                    <div className="space-y-2">
+                      <div className="p-2 rounded-lg bg-[#C2E94B]/5 border border-[#C2E94B]/20">
+                        <div className="text-[10px] text-white/40 mb-1">Speed</div>
+                        <div className="text-lg text-white font-bold">52 <span className="text-xs text-white/50">km/h</span></div>
+                      </div>
+                      <div className="p-2 rounded-lg bg-white/5 border border-white/10">
+                        <div className="text-[10px] text-white/40 mb-1">Energy</div>
+                        <div className="text-lg text-white font-bold">48 <span className="text-xs text-white/50">kJ</span></div>
+                      </div>
+                      <div className="p-2 rounded-lg bg-white/5 border border-white/10">
+                        <div className="text-[10px] text-white/40 mb-1">Confidence</div>
+                        <div className="text-lg text-[#C2E94B] font-bold">94%</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Gradient fade */}
+                <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-[#0a0a0a] to-transparent pointer-events-none" />
+              </div>
+            </motion.div>
+          </div>
         </div>
       </section>
 
@@ -368,11 +348,6 @@ export default function Home() {
                       Demo
                     </Link>
                   </li>
-                  <li>
-                    <Link href="/docs" className="text-white/50 hover:text-[#C2E94B] transition-colors text-sm">
-                      Documentation
-                    </Link>
-                  </li>
                 </ul>
               </div>
               <div>
@@ -390,15 +365,10 @@ export default function Home() {
           </div>
 
           {/* Bottom section */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 pt-8">
+          <div className="pt-8">
             <p className="text-white/30 text-sm">
-              © 2025 Veridict. All rights reserved.
+              © 2026 Veridict. All rights reserved.
             </p>
-            <div className="flex items-center gap-2">
-              <span className="text-white/30 text-sm">Made with</span>
-              <span className="text-[#C2E94B]">♥</span>
-              <span className="text-white/30 text-sm">for forensic experts</span>
-            </div>
           </div>
         </div>
       </footer>
