@@ -25,8 +25,8 @@ interface AppState {
   setTiempoActual: (tiempo: number) => void;
 
   // UI
-  panelActivo: "informe" | "razonamiento" | "simulacion" | "cronologia" | "calculos" | "legal" | "confrontacion" | "contexto" | "vehiculos" | "escena" | "docs";
-  setPanelActivo: (panel: "informe" | "razonamiento" | "simulacion" | "cronologia" | "calculos" | "legal" | "confrontacion" | "contexto" | "vehiculos" | "escena" | "docs") => void;
+  panelActivo: "informe" | "razonamiento" | "simulacion" | "cronologia" | "calculos" | "legal" | "confrontacion" | "contexto" | "vehiculos" | "escena" | "docs" | "mapa";
+  setPanelActivo: (panel: "informe" | "razonamiento" | "simulacion" | "cronologia" | "calculos" | "legal" | "confrontacion" | "contexto" | "vehiculos" | "escena" | "docs" | "mapa") => void;
 
   // Upload progress tracking
   uploadsPorCaso: Record<string, UploadProgress>;

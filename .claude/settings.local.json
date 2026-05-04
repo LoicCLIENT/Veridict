@@ -21,7 +21,9 @@
       "Bash(python -c \"import json; print\\(json.load\\(open\\('apps/api/db/casos.json',encoding='utf-8'\\)\\)\\)\")",
       "Bash(cd:*)",
       "Bash(python -m uvicorn:*)",
-      "Bash(python -c:*)"
+      "Bash(python -c:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)"
     ]
   }
 }

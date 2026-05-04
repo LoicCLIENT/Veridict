@@ -35,12 +35,12 @@ export default function CountUp({
     bounce: 0,
   });
 
-  const display = useTransform(spring, (current) => {
-    const value = decimals > 0 ? current.toFixed(decimals) : Math.round(current);
+  const display = useTransform(spring, (current): string => {
+    const value = decimals > 0 ? current.toFixed(decimals) : Math.round(current).toString();
     if (separator) {
       return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, separator);
     }
-    return value;
+    return value.toString();
   });
 
   useEffect(() => {
