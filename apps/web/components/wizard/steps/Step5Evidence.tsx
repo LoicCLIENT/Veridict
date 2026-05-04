@@ -12,7 +12,6 @@ import {
   Loader2,
   CheckCircle,
   Image,
-  File,
 } from "lucide-react";
 import { FilesForm } from "../types";
 
@@ -195,121 +194,79 @@ export function Step5Evidence({ files, onChange, onSubmit, onBack, isSubmitting 
         </div>
       </motion.div>
 
-      {/* Document uploads (collapsed) */}
+      {/* Atestado document upload */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
         className="max-w-4xl mx-auto"
       >
-        <p className="text-sm font-medium text-veridict-gray mb-4">
-          Additional documents
-          <span className="text-veridict-gray/50 ml-1">(optional)</span>
-        </p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          {/* Police report */}
-          <label className={`
-            p-4 rounded-xl border cursor-pointer transition-all
-            ${files.atestado
-              ? "border-veridict-lime/50 bg-veridict-lime/5"
-              : "border-veridict-green-700/50 hover:border-veridict-green-600 bg-veridict-green-800/30"
-            }
-          `}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                <FileText className="w-5 h-5 text-blue-400" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-veridict-white">
-                  Police report
-                </p>
-                {files.atestado ? (
-                  <p className="text-xs text-veridict-lime truncate flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3" />
-                    {files.atestado.name}
-                  </p>
-                ) : (
-                  <p className="text-xs text-veridict-gray">PDF</p>
-                )}
-              </div>
-            </div>
-            <input
-              type="file"
-              accept=".pdf"
-              onChange={(e) => onChange({ ...files, atestado: e.target.files?.[0] })}
-              className="hidden"
-            />
-          </label>
-
-          {/* Medical report */}
-          <label className={`
-            p-4 rounded-xl border cursor-pointer transition-all
-            ${files.informeMedico
-              ? "border-veridict-lime/50 bg-veridict-lime/5"
-              : "border-veridict-green-700/50 hover:border-veridict-green-600 bg-veridict-green-800/30"
-            }
-          `}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-red-500/20 flex items-center justify-center flex-shrink-0">
-                <File className="w-5 h-5 text-red-400" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-veridict-white">
-                  Medical report
-                </p>
-                {files.informeMedico ? (
-                  <p className="text-xs text-veridict-lime truncate flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3" />
-                    {files.informeMedico.name}
-                  </p>
-                ) : (
-                  <p className="text-xs text-veridict-gray">PDF</p>
-                )}
-              </div>
-            </div>
-            <input
-              type="file"
-              accept=".pdf"
-              onChange={(e) => onChange({ ...files, informeMedico: e.target.files?.[0] })}
-              className="hidden"
-            />
-          </label>
-
-          {/* Repair estimate */}
-          <label className={`
-            p-4 rounded-xl border cursor-pointer transition-all
-            ${files.presupuesto
-              ? "border-veridict-lime/50 bg-veridict-lime/5"
-              : "border-veridict-green-700/50 hover:border-veridict-green-600 bg-veridict-green-800/30"
-            }
-          `}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                <File className="w-5 h-5 text-emerald-400" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-veridict-white">
-                  Repair estimate
-                </p>
-                {files.presupuesto ? (
-                  <p className="text-xs text-veridict-lime truncate flex items-center gap-1">
-                    <CheckCircle className="w-3 h-3" />
-                    {files.presupuesto.name}
-                  </p>
-                ) : (
-                  <p className="text-xs text-veridict-gray">PDF / Image</p>
-                )}
-              </div>
-            </div>
-            <input
-              type="file"
-              accept=".pdf,image/*"
-              onChange={(e) => onChange({ ...files, presupuesto: e.target.files?.[0] })}
-              className="hidden"
-            />
-          </label>
+        <div className="flex items-center gap-2 mb-4">
+          <FileText className="w-4 h-4 text-veridict-lime" />
+          <p className="text-sm font-medium text-veridict-white">
+            Police report (atestado)
+          </p>
+          <span className="text-xs text-veridict-gray/60">PDF</span>
         </div>
+
+        <label className={`
+          block rounded-2xl border-2 border-dashed cursor-pointer transition-all duration-300
+          ${files.atestado
+            ? "border-veridict-lime/40 bg-veridict-lime/5"
+            : "border-veridict-green-700/50 hover:border-veridict-lime/30 hover:bg-veridict-green-800/30"
+          }
+        `}>
+          {files.atestado ? (
+            <div className="flex items-center gap-4 p-5">
+              <div className="w-14 h-14 rounded-xl bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                <FileText className="w-7 h-7 text-blue-400" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-veridict-white truncate">
+                  {files.atestado.name}
+                </p>
+                <p className="text-xs text-veridict-lime flex items-center gap-1 mt-1">
+                  <CheckCircle className="w-3 h-3" />
+                  Ready to upload
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  onChange({ ...files, atestado: undefined });
+                }}
+                className="p-2 rounded-lg hover:bg-red-500/20 text-veridict-gray hover:text-red-400 transition-colors flex-shrink-0"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center p-10 text-center">
+              <div className="w-16 h-16 rounded-2xl bg-blue-500/20 border border-blue-500/30 flex items-center justify-center mb-4">
+                <FileText className="w-8 h-8 text-blue-400" />
+              </div>
+              <p className="text-base font-semibold text-veridict-white mb-1">
+                Upload the atestado
+              </p>
+              <p className="text-xs text-veridict-gray mb-4">
+                PDF document from the responding police force
+              </p>
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-veridict-green-800/50 border border-veridict-green-700/50">
+                <Upload className="w-4 h-4 text-veridict-lime" />
+                <span className="text-sm font-medium text-veridict-lime">
+                  Select PDF
+                </span>
+              </div>
+            </div>
+          )}
+          <input
+            type="file"
+            accept=".pdf,application/pdf"
+            onChange={(e) => onChange({ ...files, atestado: e.target.files?.[0] })}
+            className="hidden"
+          />
+        </label>
       </motion.div>
 
       {/* AI capabilities summary */}

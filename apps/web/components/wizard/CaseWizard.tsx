@@ -113,6 +113,103 @@ export function CaseWizard() {
   const updateVehiculos = (vehiculos: VehiculoForm[]) => setData({ ...data, vehiculos });
   const updateFiles = (files: FilesForm) => setData({ ...data, files });
 
+  const importFromJson = (imported: any) => {
+    setData((d) => {
+      const next: WizardData = { ...d, files: d.files };
+
+      // Siniestro: split ISO datetime into date + time
+      if (imported.fecha_accidente || imported.ubicacion || imported.tipo_colision) {
+        let fecha = "";
+        let hora = "";
+        if (typeof imported.fecha_accidente === "string") {
+          const [datePart, timePart] = imported.fecha_accidente.split("T");
+          fecha = datePart || "";
+          hora = (timePart || "").slice(0, 5);
+        }
+        next.siniestro = {
+          ...d.siniestro,
+          fecha_accidente: fecha || d.siniestro.fecha_accidente,
+          hora_accidente: hora || d.siniestro.hora_accidente,
+          tipo_colision: imported.tipo_colision || d.siniestro.tipo_colision,
+          direccion: imported.ubicacion?.direccion ?? d.siniestro.direccion,
+          lat: imported.ubicacion?.lat != null ? String(imported.ubicacion.lat) : d.siniestro.lat,
+          lon: imported.ubicacion?.lon != null ? String(imported.ubicacion.lon) : d.siniestro.lon,
+        };
+      }
+
+      // Encargo
+      if (imported.encargo) {
+        const e = imported.encargo;
+        next.encargo = {
+          ...d.encargo,
+          tipo: e.tipo ?? d.encargo.tipo,
+          preguntas:
+            Array.isArray(e.preguntas) && e.preguntas.length > 0
+              ? e.preguntas
+              : d.encargo.preguntas,
+          solicitante: e.solicitante ?? d.encargo.solicitante,
+          parte: e.parte ?? d.encargo.parte,
+          procedimiento: e.procedimiento ?? d.encargo.procedimiento,
+          observaciones: e.observaciones ?? d.encargo.observaciones,
+        };
+      }
+
+      // Vehículos
+      if (Array.isArray(imported.vehiculos_identificacion)) {
+        next.vehiculos = imported.vehiculos_identificacion.map((v: any, i: number) => ({
+          id: v.id ?? String.fromCharCode(65 + i),
+          matricula: v.matricula ?? "",
+          marca: v.marca ?? "",
+          modelo: v.modelo ?? "",
+          anio: v.anio != null ? String(v.anio) : "",
+          color: v.color ?? "",
+          conductor: v.conductor ?? "",
+        }));
+      }
+
+      // Atestado + velocidades
+      if (imported.hechos_atestado) {
+        const h = imported.hechos_atestado;
+        next.atestado = {
+          ...d.atestado,
+          numero_atestado: h.numero_atestado ?? d.atestado.numero_atestado,
+          cuerpo_actuante: h.cuerpo_actuante ?? d.atestado.cuerpo_actuante,
+          hay_huellas_frenada:
+            h.hay_huellas_frenada === true
+              ? "si"
+              : h.hay_huellas_frenada === false
+                ? "no"
+                : d.atestado.hay_huellas_frenada,
+          condiciones_meteorologicas:
+            h.condiciones_meteorologicas ?? d.atestado.condiciones_meteorologicas,
+          estado_calzada: h.estado_calzada ?? d.atestado.estado_calzada,
+          visibilidad: h.visibilidad ?? d.atestado.visibilidad,
+          declaraciones: h.declaraciones ?? d.atestado.declaraciones,
+        };
+        if (Array.isArray(h.velocidades_declaradas)) {
+          next.velocidades = h.velocidades_declaradas.map((v: any) => ({
+            vehiculo_id: v.vehiculo_id ?? "",
+            valor_kmh: v.valor_kmh != null ? String(v.valor_kmh) : "",
+            fuente: v.fuente ?? "declaracion_conductor",
+          }));
+        }
+      }
+
+      // Lesiones
+      if (Array.isArray(imported.lesiones)) {
+        next.lesiones = imported.lesiones.map((l: any) => ({
+          ocupante: l.ocupante ?? "",
+          vehiculo_id: l.vehiculo_id ?? "",
+          zona_corporal: l.zona_corporal ?? "",
+          gravedad: l.gravedad ?? "leve",
+          dias_baja: l.dias_baja != null ? String(l.dias_baja) : "",
+        }));
+      }
+
+      return next;
+    });
+  };
+
   const handleSubmit = async () => {
     const { encargo, siniestro, vehiculos, files } = data;
 
@@ -287,16 +384,14 @@ export function CaseWizard() {
                   accept="application/json,.json"
                   className="hidden"
                   onChange={(e) => {
-                    // Import logic here
                     const f = e.target.files?.[0];
                     if (f) {
                       f.text().then((text) => {
                         try {
                           const imported = JSON.parse(text);
-                          // Map imported data to wizard format
-                          // This is a simplified import - extend as needed
-                          if (imported.encargo) setData((d) => ({ ...d, encargo: { ...d.encargo, ...imported.encargo } }));
-                          toast.success("JSON imported", "Review and adjust the data as needed.");
+                          importFromJson(imported);
+                          setCurrentStep(1);
+                          toast.success("JSON imported", "All sections were filled in. Review and continue.");
                         } catch {
                           toast.error("Invalid JSON", "Could not parse the file.");
                         }

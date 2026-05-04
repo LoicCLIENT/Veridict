@@ -149,26 +149,26 @@ export default function Home() {
                 {
                   num: "01",
                   icon: FileSearch,
-                  title: "Automated analysis",
-                  desc: "Processes police reports, photos, and EDR data automatically with AI vision.",
+                  title: "Atestado + evidence ingestion",
+                  desc: "Parses Guardia Civil atestados, photos and witness statements, and pulls real-time meteo, OSM road data and sun position for the scene.",
                 },
                 {
                   num: "02",
                   icon: Bot,
-                  title: "5 AI agents",
-                  desc: "Multi-agent pipeline that cross-validates every finding for accuracy.",
+                  title: "7-agent forensic pipeline",
+                  desc: "Forensic Analyst (CRASH3/SB physics), Legal Reasoner (RGC/LSV), Declaration Analyst, Adjudicator (Opus), Devil's Advocate and Report Writer — running in parallel phases.",
                 },
                 {
                   num: "03",
                   icon: Shield,
                   title: "UNE-EN 16775",
-                  desc: "Court-ready reports following European forensic standards.",
+                  desc: "Court-ready peritajes following European forensic standards, with adversarial verification before sign-off.",
                 },
                 {
                   num: "04",
                   icon: Lock,
                   title: "Sigstore signature",
-                  desc: "Cryptographic proof of authenticity and chain of custody.",
+                  desc: "Each PDF is hashed and signed via Sigstore for cryptographic proof of authenticity and chain of custody.",
                 },
               ].map((item, i) => (
                 <motion.div

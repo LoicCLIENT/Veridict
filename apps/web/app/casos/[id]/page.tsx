@@ -695,17 +695,17 @@ export default function CasoDetailPage() {
                               ⚠ {simulacionError}
                             </div>
                           )}
-                          <SpecialistTrace
-                            casoId={casoId}
-                            tools={["generar_frame_simulacion", "obtener_frame_simulacion"]}
-                            title="SimulationAgent Work"
-                            description="Visual recreation of the accident: SVG sketches generated from velocities, masses, and positions validated by the PhysicsAgent."
-                          />
                           <MapaReconstruccion
                             ubicacion={caso.ubicacion}
                             escenaSimulacion={informe?.simulacion_escena ?? undefined}
                             onGenerarSimulacion={regenerarSimulacion}
                             generandoSimulacion={simulacionLoading}
+                          />
+                          <SpecialistTrace
+                            casoId={casoId}
+                            tools={["generar_frame_simulacion", "obtener_frame_simulacion"]}
+                            title="SimulationAgent Work"
+                            description="Visual recreation of the accident: SVG sketches generated from velocities, masses, and positions validated by the PhysicsAgent."
                           />
                         </div>
                       )}
